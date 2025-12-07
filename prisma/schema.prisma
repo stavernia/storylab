@@ -161,3 +161,34 @@ model ThemeNote {
 
   @@unique([chapterId, themeId])
 }
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  links TagLink[]
+
+  @@unique([bookId, name])
+  @@index([bookId])
+}
+
+model TagLink {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  createdAt  DateTime @default(now())
+
+  bookId String
+  tagId  String
+  book   Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, entityType, entityId])
+  @@index([bookId])
+}
