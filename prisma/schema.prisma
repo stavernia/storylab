@@ -80,6 +80,9 @@ model Book {
   themes     Theme[]
   characters Character[]
 
+  tags       Tag[]
+  tagLinks   TagLink[]
+
   @@index([userId])
 }
 
