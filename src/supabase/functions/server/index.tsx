@@ -264,100 +264,10 @@ app.delete('/make-server-841a689e/character/:id', async (c) => {
   }
 });
 
-// ========== CORKBOARD CARDS ==========
+// ========== CORKBOARD (DEPRECATED - moved to Next.js API routes) ==========
 
-// Get all corkboard cards
-app.get('/make-server-841a689e/corkboard/cards', async (c) => {
-  try {
-    const cards = await kv.getByPrefix('storycraft:corkboard:card:');
-    console.log('Loaded corkboard cards:', cards.length);
-    return c.json({ cards: cards || [] });
-  } catch (error) {
-    console.error('Error fetching corkboard cards:', error);
-    return c.json({ error: 'Failed to fetch cards', details: String(error) }, 500);
-  }
-});
-
-// Create new corkboard card
-app.post('/make-server-841a689e/corkboard/card', async (c) => {
-  try {
-    const card = await c.req.json();
-    const key = `storycraft:corkboard:card:${card.id}`;
-    console.log('Creating corkboard card:', card.id);
-    await kv.set(key, card);
-    return c.json({ success: true, card });
-  } catch (error) {
-    console.error('Error creating corkboard card:', error);
-    return c.json({ error: 'Failed to create card', details: String(error) }, 500);
-  }
-});
-
-// Update corkboard card
-app.put('/make-server-841a689e/corkboard/card/:id', async (c) => {
-  try {
-    const id = c.req.param('id');
-    const updates = await c.req.json();
-    const key = `storycraft:corkboard:card:${id}`;
-    const existing = await kv.get(key);
-    
-    if (!existing) {
-      return c.json({ error: 'Card not found' }, 404);
-    }
-    
-    const updated = { 
-      ...existing, 
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    await kv.set(key, updated);
-    console.log('Updated corkboard card:', id);
-    return c.json({ success: true, card: updated });
-  } catch (error) {
-    console.error('Error updating corkboard card:', error);
-    return c.json({ error: 'Failed to update card', details: String(error) }, 500);
-  }
-});
-
-// Delete corkboard card
-app.delete('/make-server-841a689e/corkboard/card/:id', async (c) => {
-  try {
-    const id = c.req.param('id');
-    await kv.del(`storycraft:corkboard:card:${id}`);
-    console.log('Deleted corkboard card:', id);
-    return c.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting corkboard card:', error);
-    return c.json({ error: 'Failed to delete card', details: String(error) }, 500);
-  }
-});
-
-// ========== CORKBOARD BOARDS ==========
-
-// Get all corkboard boards
-app.get('/make-server-841a689e/corkboard/boards', async (c) => {
-  try {
-    const boards = await kv.getByPrefix('storycraft:corkboard:board:');
-    console.log('Loaded corkboard boards:', boards.length);
-    return c.json({ boards: boards || [] });
-  } catch (error) {
-    console.error('Error fetching corkboard boards:', error);
-    return c.json({ error: 'Failed to fetch boards', details: String(error) }, 500);
-  }
-});
-
-// Save corkboard board (create or update)
-app.post('/make-server-841a689e/corkboard/board', async (c) => {
-  try {
-    const board = await c.req.json();
-    const key = `storycraft:corkboard:board:${board.id}`;
-    console.log('Saving corkboard board:', board.id);
-    await kv.set(key, board);
-    return c.json({ success: true, board });
-  } catch (error) {
-    console.error('Error saving corkboard board:', error);
-    return c.json({ error: 'Failed to save board', details: String(error) }, 500);
-  }
-});
+// Corkboard boards and cards are now stored via Prisma-backed Next.js API routes.
+// The legacy KV-powered endpoints have been removed to prevent drift.
 
 // ========== TAGS ==========
 

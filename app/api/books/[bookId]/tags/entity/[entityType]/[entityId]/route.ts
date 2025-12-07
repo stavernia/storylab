@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireUser } from "@/src/server/auth/requireUser";
 
-type EntityScope = "chapter" | "theme" | "character";
+type EntityScope = "chapter" | "theme" | "character" | "card" | "grid_cell";
 
 async function resolveEntity(
   entityType: EntityScope,
@@ -21,6 +21,12 @@ async function resolveEntity(
 
   if (entityType === "character") {
     return prisma.character.findFirst({ where: { id: entityId, bookId, book: { userId } } });
+  }
+
+  if (entityType === "card") {
+    return prisma.corkboardCard.findFirst({
+      where: { id: entityId, bookId, book: { userId } },
+    });
   }
 
   return null;
