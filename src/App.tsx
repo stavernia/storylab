@@ -344,16 +344,22 @@ function AppContent() {
   }, []);
 
   const updateChapter = async (id: string, content: string) => {
+    const chapter = chapters.find(ch => ch.id === id);
+    if (!chapter) {
+      console.error('Cannot update chapter: chapter not found');
+      return;
+    }
+
     const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
-    setChapters(chapters.map(ch => 
-      ch.id === id 
+    setChapters(chapters.map(ch =>
+      ch.id === id
         ? { ...ch, content, wordCount, lastEdited: new Date() }
         : ch
     ));
     
     try {
       console.log('Updating chapter:', id, 'Word count:', wordCount);
-      await manuscriptApi.updateChapter(id, {
+      await manuscriptApi.updateChapter(chapter.bookId, id, {
         content,
         wordCount,
         lastEdited: new Date(),
@@ -389,36 +395,54 @@ function AppContent() {
   };
 
   const deleteChapter = async (id: string) => {
+    const chapter = chapters.find(ch => ch.id === id);
+    if (!chapter) {
+      console.error('Cannot delete chapter: chapter not found');
+      return;
+    }
+
     setChapters(chapters.filter(ch => ch.id !== id));
     setThemeNotes(themeNotes.filter(note => note.chapterId !== id));
-    
+
     try {
       console.log('Deleting chapter:', id);
-      await manuscriptApi.deleteChapter(id);
+      await manuscriptApi.deleteChapter(chapter.bookId, id);
     } catch (error) {
       console.error('Error deleting chapter:', error);
     }
   };
 
   const updateChapterTitle = async (id: string, title: string) => {
+    const chapter = chapters.find(ch => ch.id === id);
+    if (!chapter) {
+      console.error('Cannot update chapter title: chapter not found');
+      return;
+    }
+
     setChapters(chapters.map(ch => ch.id === id ? { ...ch, title } : ch));
-    
+
     try {
       console.log('Updating chapter title:', id, title);
-      await manuscriptApi.updateChapter(id, { title });
+      await manuscriptApi.updateChapter(chapter.bookId, id, { title });
     } catch (error) {
       console.error('Error updating chapter title:', error);
     }
   };
 
   const updateChapterDetails = async (id: string, updates: Partial<Chapter>) => {
+    const chapter = chapters.find(ch => ch.id === id);
+    if (!chapter) {
+      console.error('Cannot update chapter details: chapter not found');
+      return;
+    }
+
     // CRITICAL: Never allow bookId to be overwritten
     const { bookId: _, ...safeUpdates } = updates as any;
     setChapters(chapters.map(ch => ch.id === id ? { ...ch, ...safeUpdates } : ch));
-    
+
     try {
       console.log('Updating chapter details:', id, safeUpdates);
-      await manuscriptApi.updateChapter(id, safeUpdates);
+      await manuscriptApi.updateChapter(chapter.bookId, id, safeUpdates);
     } catch (error) {
       console.error('Error updating chapter details:', error);
     }
@@ -437,7 +461,7 @@ function AppContent() {
       // Save all chapter orders AND partId (in case chapters moved between parts)
       await Promise.all(
         chaptersWithOrder.map((ch) =>
-          manuscriptApi.updateChapter(ch.id, {
+          manuscriptApi.updateChapter(ch.bookId, ch.id, {
             sortOrder: ch.sortOrder,
             partId: ch.partId || null,
           }),
@@ -698,18 +722,33 @@ function AppContent() {
   };
 
   const updatePartName = async (id: string, name: string) => {
-    const updated = await partService.updatePart(id, { title: name });
+    const part = parts.find(p => p.id === id);
+    if (!part) {
+      throw new Error('Part not found');
+    }
+
+    const updated = await partService.updatePart(part.bookId, id, { title: name });
     setParts(parts.map(p => p.id === id ? updated : p));
   };
 
   const updatePartDetails = async (id: string, data: Partial<Pick<Part, 'title' | 'notes'>>) => {
-    const updated = await partService.updatePart(id, data);
+    const part = parts.find(p => p.id === id);
+    if (!part) {
+      throw new Error('Part not found');
+    }
+
+    const updated = await partService.updatePart(part.bookId, id, data);
     setParts(parts.map(p => p.id === id ? updated : p));
     return updated;
   };
 
   const deletePart = async (id: string) => {
-    await partService.deletePart(id);
+    const part = parts.find(p => p.id === id);
+    if (!part) {
+      throw new Error('Part not found');
+    }
+
+    await partService.deletePart(part.bookId, id);
     setParts(parts.filter(p => p.id !== id));
     // Also clear partId from affected chapters
     setChapters(chapters.map(ch => ch.partId === id ? { ...ch, partId: null } : ch));
@@ -758,12 +797,16 @@ function AppContent() {
     setParts(reorderedParts);
     
     // Persist to backend (async, but state is already updated)
-    await partService.reorderParts(reorderedParts);
+    if (!currentBookId) {
+      throw new Error('Cannot reorder parts without a selected book');
+    }
+
+    await partService.reorderParts(currentBookId, reorderedParts);
     
     try {
       await Promise.all(
-        chaptersWithNewOrder.map(ch => 
-          api.updateChapter(ch.id, { 
+        chaptersWithNewOrder.map(ch =>
+          manuscriptApi.updateChapter(ch.bookId, ch.id, {
             sortOrder: ch.sortOrder,
             partId: ch.partId || null
           })

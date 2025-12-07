@@ -5,6 +5,7 @@ export interface ChapterData {
   title: string;
   content: string;
   wordCount: number;
+  bookId: string;
   sortOrder?: number;
   wordQuota?: number;
   notes?: string;
@@ -34,12 +35,21 @@ export const chapterService = {
   },
 
   async update(id: string, values: Partial<ChapterData>): Promise<void> {
-    await manuscriptApi.updateChapter(id, values);
+    if (!values.bookId) {
+      throw new Error("bookId is required to update a chapter");
+    }
+
+    await manuscriptApi.updateChapter(values.bookId, id, values);
   },
 
   async create(values: Partial<ChapterData>): Promise<string> {
+    if (!values.bookId) {
+      throw new Error("bookId is required to create a chapter");
+    }
+
     const newChapter = {
       id: String(Date.now()),
+      bookId: values.bookId,
       title: values.title || 'New Chapter',
       content: values.content || '',
       wordCount: values.wordCount || 0,
@@ -67,6 +77,13 @@ export const chapterService = {
   },
 
   async remove(id: string): Promise<void> {
-    await manuscriptApi.deleteChapter(id);
+    const data = await manuscriptApi.loadData();
+    const chapter = data.chapters.find(ch => ch.id === id);
+
+    if (!chapter) {
+      throw new Error("Chapter not found");
+    }
+
+    await manuscriptApi.deleteChapter(chapter.bookId, id);
   },
 };

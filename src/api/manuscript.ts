@@ -1,5 +1,8 @@
-import { fetchJson } from "./client";
 import type { Chapter, Theme, ThemeNote, Character, Part } from "../App";
+import { booksApi } from "./books";
+import { fetchJson } from "./client";
+import { chaptersApi } from "./chapters";
+import { partsApi } from "./parts";
 
 export async function loadData(bookId?: string): Promise<{
   chapters: Chapter[];
@@ -8,28 +11,60 @@ export async function loadData(bookId?: string): Promise<{
   characters: Character[];
   parts: Part[];
 }> {
-  const endpoint = bookId ? `/data?bookId=${bookId}` : "/data";
-  return fetchJson(endpoint);
+  let resolvedBookId = bookId;
+
+  if (!resolvedBookId) {
+    const existingBooks = await booksApi.listAll();
+
+    if (existingBooks.length > 0) {
+      resolvedBookId = existingBooks[0].id;
+    } else {
+      const created = await booksApi.create({ title: "My Book", description: "" });
+      resolvedBookId = created.id;
+    }
+  }
+
+  if (!resolvedBookId) {
+    throw new Error("Unable to resolve book context");
+  }
+
+  const [chapterData, partData, legacyData] = await Promise.all([
+    chaptersApi.list(resolvedBookId),
+    partsApi.list(resolvedBookId),
+    fetchJson(`/data?bookId=${resolvedBookId}`).catch(() => ({
+      themes: [],
+      themeNotes: [],
+      characters: [],
+    } as Partial<{ themes: Theme[]; themeNotes: ThemeNote[]; characters: Character[] }>),
+  ]);
+
+  const themes = legacyData?.themes || [];
+  const themeNotes = legacyData?.themeNotes || [];
+  const characters = legacyData?.characters || [];
+
+  return {
+    chapters: chapterData,
+    themes,
+    themeNotes,
+    characters,
+    parts: partData,
+  };
 }
 
 export async function saveChapter(chapter: Chapter): Promise<void> {
-  await fetchJson("/chapter", {
-    method: "POST",
-    body: JSON.stringify(chapter),
-  });
+  await chaptersApi.create(chapter.bookId, chapter);
 }
 
-export async function updateChapter(id: string, updates: Partial<Chapter>): Promise<void> {
-  await fetchJson(`/chapter/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(updates),
-  });
+export async function updateChapter(
+  bookId: string,
+  id: string,
+  updates: Partial<Chapter>,
+): Promise<void> {
+  await chaptersApi.update(bookId, id, updates);
 }
 
-export async function deleteChapter(id: string): Promise<void> {
-  await fetchJson(`/chapter/${id}`, {
-    method: "DELETE",
-  });
+export async function deleteChapter(bookId: string, id: string): Promise<void> {
+  await chaptersApi.remove(bookId, id);
 }
 
 export async function saveTheme(theme: Theme): Promise<void> {
