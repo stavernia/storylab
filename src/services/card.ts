@@ -1,20 +1,24 @@
-import { corkboardApi, type CorkboardCard } from "../api/corkboard";
+import { corkboardApi, type CorkboardCard, type CreateCardInput } from "../api/corkboard";
 
 export const cardService = {
-  async getById(id: string): Promise<CorkboardCard | null> {
-    const cards = await corkboardApi.loadCards();
+  async getById(bookId: string, id: string): Promise<CorkboardCard | null> {
+    const cards = await corkboardApi.loadCards(bookId);
     return cards.find(c => c.id === id) || null;
   },
 
-  async update(id: string, values: Partial<CorkboardCard>): Promise<void> {
-    await corkboardApi.updateCard(id, values);
+  async update(
+    bookId: string,
+    id: string,
+    values: Partial<CorkboardCard>,
+  ): Promise<CorkboardCard> {
+    return corkboardApi.updateCard(bookId, id, values);
   },
 
-  async create(values: CorkboardCard): Promise<void> {
-    await corkboardApi.createCard(values);
+  async create(bookId: string, values: CreateCardInput): Promise<CorkboardCard> {
+    return corkboardApi.createCard(bookId, values);
   },
 
-  async remove(id: string): Promise<void> {
-    await corkboardApi.deleteCard(id);
+  async remove(bookId: string, id: string): Promise<void> {
+    await corkboardApi.deleteCard(bookId, id);
   },
 };

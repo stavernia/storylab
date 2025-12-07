@@ -24,6 +24,7 @@ import { CorkboardRow } from './CorkboardRow';
 import { CorkboardListView } from './CorkboardListView';
 
 interface CorkboardProps {
+  bookId: string | null;
   chapters: Chapter[];
   parts?: Part[];
   bookTitle?: string; // Add book title prop
@@ -64,7 +65,8 @@ type CorkboardRowType =
   | { type: 'part'; partId: string; partTitle: string }
   | { type: 'chapter'; chapterId: string; chapterTitle: string; partId?: string | null };
 
-export function Corkboard({ 
+export function Corkboard({
+  bookId,
   chapters,
   parts = [],
   bookTitle, // Add book title prop
@@ -241,7 +243,7 @@ export function Corkboard({
     // Load tags for this chapter
     let tags: Tag[] = [];
     try {
-      tags = await tagService.listForEntity('chapter', chapter.id);
+      tags = bookId ? await tagService.listForEntity('chapter', chapter.id, bookId) : [];
     } catch (error) {
       console.error('Failed to load chapter tags:', error);
     }
@@ -286,7 +288,9 @@ export function Corkboard({
             onTagsSave={async (newTags) => {
               setIsSaving(true);
               try {
-                await tagService.syncEntityTags('card', selectedCard.id, newTags);
+                if (bookId) {
+                  await tagService.syncEntityTags('card', selectedCard.id, newTags, bookId);
+                }
               } finally {
                 setIsSaving(false);
               }
@@ -297,10 +301,15 @@ export function Corkboard({
         ),
       });
     }
-  }, [selectedCard?.id]); // Only re-run when card ID changes
+  }, [selectedCard?.id, bookId]); // Only re-run when card ID changes
 
   // Handle save from Inspector
   const handleSaveCard = async () => {
+    if (!bookId) {
+      toast.error('Select a book before saving cards');
+      return;
+    }
+
     if (!selectedCard) return;
     if (!cardFormValues.title?.trim()) {
       toast.error('Title is required');
@@ -312,7 +321,9 @@ export function Corkboard({
       await handleUpdateCard(selectedCard.id, cardFormValues);
       
       // Sync tags
-      await tagService.syncEntityTags('card', selectedCard.id, cardTags);
+      if (bookId) {
+        await tagService.syncEntityTags('card', selectedCard.id, cardTags, bookId);
+      }
       
       setSelectedCard(null);
       closeInspector();
@@ -332,7 +343,7 @@ export function Corkboard({
     } else {
       setCardTags([]);
     }
-  }, [selectedCard?.id]);
+  }, [selectedCard?.id, bookId]);
 
   const loadCardTags = async (cardId: string) => {
     // Guard: don't load if cardId is empty or invalid
@@ -342,7 +353,7 @@ export function Corkboard({
     }
     
     try {
-      const tags = await tagService.listForEntity('card', cardId);
+      const tags = bookId ? await tagService.listForEntity('card', cardId, bookId) : [];
       setCardTags(tags);
     } catch (error) {
       console.error('Failed to load card tags:', error);
@@ -350,28 +361,52 @@ export function Corkboard({
     }
   };
 
-  // Load cards on mount
+  // Load cards and boards when book changes
   useEffect(() => {
-    loadCards();
-  }, []);
+    let isMounted = true;
 
-  // Load boards and initialize
-  useEffect(() => {
-    loadBoardsAndInit();
-  }, []);
+    const initialize = async () => {
+      if (!bookId) {
+        setCards([]);
+        setBoards([]);
+        setCurrentBoardId(null);
+        setLoading(false);
+        return;
+      }
 
-  const loadBoardsAndInit = async () => {
+      setLoading(true);
+
+      try {
+        await loadBoardsAndInit(bookId);
+        await loadCards(bookId);
+      } catch (error) {
+        console.error('Error loading corkboard data:', error);
+        toast.error('Failed to load corkboard');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initialize();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [bookId, chapters.length]);
+
+  const loadBoardsAndInit = async (activeBookId: string) => {
     try {
-      const loadedBoards = await corkboardApi.loadBoards();
-      
+      const loadedBoards = await corkboardApi.loadBoards(activeBookId);
+
       // If no boards, create default main board
       if (loadedBoards.length === 0) {
-        const mainBoard: CorkboardBoard = {
-          id: 'main-board',
+        const mainBoard = await corkboardApi.createBoard(activeBookId, {
           name: 'Main Board',
           description: 'Default story board',
-        };
-        await corkboardApi.saveBoard(mainBoard);
+          sortOrder: 0,
+        });
         setBoards([mainBoard]);
         setCurrentBoardId(mainBoard.id);
       } else {
@@ -382,6 +417,7 @@ export function Corkboard({
       console.error('Error loading boards:', error);
       // Fallback to default board in state only
       const mainBoard: CorkboardBoard = {
+        bookId: activeBookId,
         id: 'main-board',
         name: 'Main Board',
         description: 'Default story board',
@@ -412,10 +448,10 @@ export function Corkboard({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const loadCards = async () => {
+  const loadCards = async (activeBookId: string) => {
     try {
-      const loadedCards = await corkboardApi.loadCards();
-      
+      const loadedCards = await corkboardApi.loadCards(activeBookId);
+
       // Ensure backward compatibility: set default scope to 'chapter' if not present
       const normalizedCards = loadedCards.map(card => ({
         ...card,
@@ -423,12 +459,12 @@ export function Corkboard({
       }));
       
       setCards(normalizedCards);
-      
+
       // Seed demo cards if empty and we have chapters
       if (loadedCards.length === 0 && chapters.length > 0) {
-        await seedCorkboard(chapters.map(ch => ch.id));
+        await seedCorkboard(activeBookId, chapters.map(ch => ch.id));
         // Reload cards after seeding
-        const newCards = await corkboardApi.loadCards();
+        const newCards = await corkboardApi.loadCards(activeBookId);
         const normalizedNewCards = newCards.map(card => ({
           ...card,
           scope: card.scope || 'chapter' as const,
@@ -438,8 +474,6 @@ export function Corkboard({
     } catch (error) {
       console.error('Error loading cards:', error);
       toast.error('Failed to load cards');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -448,6 +482,16 @@ export function Corkboard({
     partId: string | null,
     chapterId: string | null
   ) => {
+    if (!bookId) {
+      toast.error('Select a book before creating cards');
+      return;
+    }
+
+    if (!currentBoardId) {
+      toast.error('Create a board before adding cards');
+      return;
+    }
+
     // Get existing cards for this row to calculate rank
     const rowCards = cards.filter(c => {
       if (scope === 'book') {
@@ -463,16 +507,19 @@ export function Corkboard({
       ? getBetweenRank(rowCards[rowCards.length - 1].laneRank, undefined)
       : getInitialRank();
 
+    const tempId = crypto.randomUUID();
+    const now = new Date().toISOString();
     const newCard: CorkboardCard = {
-      id: crypto.randomUUID(),
+      id: tempId,
+      bookId,
       title: 'New Card',
       scope,
       partId,
       chapterId: scope === 'chapter' ? chapterId : null,
       laneRank: newRank,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      boardId: currentBoardId || undefined,
+      createdAt: now,
+      updatedAt: now,
+      boardId: currentBoardId || null,
       x: null,
       y: null,
     };
@@ -480,31 +527,50 @@ export function Corkboard({
     // Optimistic update
     setCards([...cards, newCard]);
 
+    const originalCards = [...cards];
+
     try {
-      await corkboardApi.createCard(newCard);
+      const created = await corkboardApi.createCard(bookId, {
+        title: newCard.title,
+        scope: newCard.scope,
+        partId: newCard.partId,
+        chapterId: newCard.chapterId,
+        laneRank: newCard.laneRank,
+        boardId: newCard.boardId,
+        x: newCard.x,
+        y: newCard.y,
+      });
+      setCards(prev => prev.map(card => card.id === tempId ? created : card));
       toast.success('Card created');
-      
+
       // Open inspector for new card
-      handleOpenCardInspector(newCard);
+      handleOpenCardInspector(created);
     } catch (error) {
       console.error('Error creating card:', error);
-      setCards(cards);
+      setCards(originalCards);
       toast.error('Failed to create card');
     }
   };
 
   const handleUpdateCard = async (cardId: string, updates: Partial<CorkboardCard>) => {
+    if (!bookId) {
+      toast.error('Select a book before updating cards');
+      return;
+    }
+
     const originalCards = [...cards];
-    
+
     // Optimistic update
     const updatedCards = cards.map(c => c.id === cardId ? { ...c, ...updates } : c);
     setCards(updatedCards);
-    
+
     // Don't update selectedCard here - let CardInfoForm manage its own state
     // This prevents the useEffect from re-running and re-opening the inspector
 
     try {
-      await corkboardApi.updateCard(cardId, updates);
+      const updated = await corkboardApi.updateCard(bookId, cardId, updates);
+      setCards(prev => prev.map(c => c.id === cardId ? { ...c, ...updated } : c));
+      setSelectedCard(prev => prev && prev.id === cardId ? { ...prev, ...updated } : prev);
     } catch (error) {
       console.error('Error updating card:', error);
       setCards(originalCards);
@@ -513,13 +579,18 @@ export function Corkboard({
   };
 
   const handleDeleteCard = async (cardId: string) => {
+    if (!bookId) {
+      toast.error('Select a book before deleting cards');
+      return;
+    }
+
     const originalCards = [...cards];
-    
+
     // Optimistic update
     setCards(cards.filter(c => c.id !== cardId));
 
     try {
-      await corkboardApi.deleteCard(cardId);
+      await corkboardApi.deleteCard(bookId, cardId);
       toast.success('Card deleted');
     } catch (error) {
       console.error('Error deleting card:', error);
@@ -534,6 +605,11 @@ export function Corkboard({
     targetPartId: string | null,
     targetChapterId: string | null
   ) => {
+    if (!bookId) {
+      toast.error('Select a book before moving cards');
+      return;
+    }
+
     const card = cards.find(c => c.id === cardId);
     if (!card) return;
 
@@ -586,7 +662,7 @@ export function Corkboard({
     setCards(cards.map(c => c.id === cardId ? { ...c, ...updates } : c));
 
     try {
-      await corkboardApi.updateCard(cardId, updates);
+      await corkboardApi.updateCard(bookId, cardId, updates);
     } catch (error) {
       console.error('Error moving card:', error);
       setCards(originalCards);
@@ -602,6 +678,11 @@ export function Corkboard({
     targetPartId: string | null,
     targetChapterId: string | null
   ) => {
+    if (!bookId) {
+      toast.error('Select a book before reordering cards');
+      return;
+    }
+
     const card = cards.find(c => c.id === cardId);
     if (!card) return;
 
@@ -645,14 +726,14 @@ export function Corkboard({
     if (needsRebalance) {
       // Rebalance all ranks in this row
       const rebalancedRanks = rebalanceRanks(targetRowCards.length);
-      const updates: Promise<void>[] = [];
+      const updates: Promise<unknown>[] = [];
       
       for (let i = 0; i < targetRowCards.length; i++) {
         const newRank = rebalancedRanks[i];
         targetRowCards[i] = { ...targetRowCards[i], laneRank: newRank };
         
         // Queue API update
-        updates.push(corkboardApi.updateCard(targetRowCards[i].id, { laneRank: newRank }));
+        updates.push(corkboardApi.updateCard(bookId, targetRowCards[i].id, { laneRank: newRank }));
       }
       
       // Wait for all updates
@@ -765,7 +846,7 @@ export function Corkboard({
     setCards(cards.map(c => c.id === cardId ? { ...c, ...updates } : c));
 
     try {
-      await corkboardApi.updateCard(cardId, updates);
+      await corkboardApi.updateCard(bookId, cardId, updates);
     } catch (error) {
       console.error('Error reordering card:', error);
       setCards(originalCards);
@@ -774,8 +855,8 @@ export function Corkboard({
   };
 
   // Filter cards by current board
-  const filteredCards = cards.filter(c => 
-    c.boardId === currentBoardId || (!c.boardId && currentBoardId === 'main-board')
+  const filteredCards = cards.filter(c =>
+    c.boardId === currentBoardId || (!c.boardId && boards.length <= 1)
   );
 
   // Get cards for a specific row

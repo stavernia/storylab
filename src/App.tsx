@@ -1564,7 +1564,8 @@ function AppContent() {
             onPartInfoClick={handlePartInfoClick}
           >
             {(filteredChapters) => (
-              <Corkboard 
+              <Corkboard
+                bookId={currentBookId}
                 chapters={filteredChapters}
                 parts={bookParts}
                 bookTitle={currentBook?.title}

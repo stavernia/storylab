@@ -83,6 +83,9 @@ model Book {
   tags     Tag[]
   tagLinks TagLink[]
 
+  corkboardBoards CorkboardBoard[]
+  corkboardCards  CorkboardCard[]
+
   @@index([userId])
 }
 
@@ -163,6 +166,54 @@ model ThemeNote {
   theme   Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@unique([chapterId, themeId])
+}
+
+model CorkboardBoard {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  sortOrder   Int?     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  cards CorkboardCard[]
+
+  @@index([bookId])
+}
+
+model CorkboardCard {
+  id           String    @id @default(uuid())
+  title        String
+  summary      String?   @db.Text
+  notes        String?   @db.Text
+  status       String?
+  color        String?
+  laneRank     String
+  wordEstimate Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  x            Int?
+  y            Int?
+  scope        String?
+
+  chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  partId String?
+  part   Part? @relation(fields: [partId], references: [id], onDelete: SetNull)
+
+  boardId String?
+  board   CorkboardBoard? @relation(fields: [boardId], references: [id], onDelete: SetNull)
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+  @@index([boardId])
+  @@index([chapterId])
 }
 
 model Tag {

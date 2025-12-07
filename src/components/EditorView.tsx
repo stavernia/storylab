@@ -8,7 +8,6 @@ import { useTagFilter } from '../contexts/TagFilterContext';
 import { useEntityTags } from '../hooks/useEntityTags';
 import { useChapterNumbering } from '../contexts/ChapterNumberingContext';
 import { toast } from 'sonner';
-import { corkboardApi } from "../api/corkboard";
 
 type EditorViewProps = {
   chapters: Chapter[];  // Pre-filtered chapters from BinderWrapper

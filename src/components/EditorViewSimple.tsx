@@ -13,6 +13,7 @@ import { corkboardApi } from "../api/corkboard";
 import { X } from 'lucide-react';
 
 type EditorViewProps = {
+  bookId?: string;
   chapters: Chapter[];  // Pre-filtered chapters from BinderWrapper
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
@@ -26,6 +27,7 @@ type EditorViewProps = {
 };
 
 export function EditorView({
+  bookId,
   chapters,
   currentChapterId,
   setCurrentChapterId,
@@ -61,10 +63,15 @@ export function EditorView({
   // NEW: Board Mini-Pack - Handler to create board card from current chapter
   const handleCreateBoardCardForCurrentChapter = async () => {
     if (!currentChapter) return;
+    if (!bookId) {
+      toast.error('Select a book before creating a board card');
+      return;
+    }
 
     try {
       const { alreadyExists } = await corkboardApi.createCardFromChapter(
         currentChapter,
+        bookId,
       );
       if (alreadyExists) {
         toast.success('This chapter is already on the board');
