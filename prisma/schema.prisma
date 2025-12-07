@@ -10,6 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 /// NextAuth base models (Prisma adapter)
 model User {
   id            String    @id @default(uuid())
@@ -17,9 +22,11 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  role          Role      @default(USER)
 
   accounts Account[]
   sessions Session[]
+  books    Book[]
 }
 
 model Account {
@@ -65,11 +72,15 @@ model Book {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   isArchived  Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   chapters   Chapter[]
   parts      Part[]
   themes     Theme[]
   characters Character[]
+
+  @@index([userId])
 }
 
 model Part {
