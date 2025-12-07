@@ -30,18 +30,18 @@ model User {
 }
 
 model Account {
-  id                 String  @id @default(uuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -80,53 +80,53 @@ model Book {
   themes     Theme[]
   characters Character[]
 
-  tags       Tag[]
-  tagLinks   TagLink[]
+  tags     Tag[]
+  tagLinks TagLink[]
 
   @@index([userId])
 }
 
 model Part {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   title     String
-  notes     String?  @db.Text
-  sortOrder Int      @default(0)
+  notes     String? @db.Text
+  sortOrder Int     @default(0)
   bookId    String
-  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  book      Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
   chapters Chapter[]
 }
 
 model Chapter {
-  id         String   @id @default(uuid())
-  title      String
-  content    String   @db.Text
-  outline    String?  @db.Text
-  outlinePOV String?
-  outlinePurpose String?
-  outlineEstimate Int?
-  outlineGoal     String?
-  outlineConflict String?
-  outlineStakes   String?
+  id                  String    @id @default(uuid())
+  title               String
+  content             String    @db.Text
+  outline             String?   @db.Text
+  outlinePOV          String?
+  outlinePurpose      String?
+  outlineEstimate     Int?
+  outlineGoal         String?
+  outlineConflict     String?
+  outlineStakes       String?
   customOutlineFields Json?
-  sortOrder  Int?    @default(0)
-  wordCount  Int     @default(0)
-  lastEdited DateTime? @db.Timestamptz(6)
-  partId     String?
-  bookId     String
-  book       Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  part       Part?   @relation(fields: [partId], references: [id], onDelete: SetNull)
+  sortOrder           Int?      @default(0)
+  wordCount           Int       @default(0)
+  lastEdited          DateTime? @db.Timestamptz(6)
+  partId              String?
+  bookId              String
+  book                Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  part                Part?     @relation(fields: [partId], references: [id], onDelete: SetNull)
 
   themeNotes ThemeNote[]
 }
 
 model Theme {
-  id        String   @id @default(uuid())
-  name      String
-  color     String
-  kind      String?
-  source    String?
-  mode      String?
+  id          String   @id @default(uuid())
+  name        String
+  color       String
+  kind        String?
+  source      String?
+  mode        String?
   sourceRefId String?
   description String?
   aiGuide     String?
@@ -134,29 +134,29 @@ model Theme {
   isHidden    Boolean? @default(false)
   threadLabel String?
 
-  bookId  String
-  book    Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  notes   ThemeNote[]
+  bookId String
+  book   Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  notes  ThemeNote[]
 }
 
 model Character {
-  id     String  @id @default(uuid())
-  name   String
-  color  String
-  role   String?
-  notes  String? @db.Text
+  id    String  @id @default(uuid())
+  name  String
+  color String
+  role  String?
+  notes String? @db.Text
 
   bookId String
   book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model ThemeNote {
-  id        String   @id @default(uuid())
-  chapterId String
-  themeId   String
-  note      String   @db.Text
-  presence  Boolean? @default(false)
-  intensity Int?
+  id         String   @id @default(uuid())
+  chapterId  String
+  themeId    String
+  note       String   @db.Text
+  presence   Boolean? @default(false)
+  intensity  Int?
   threadRole String?
 
   chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -189,8 +189,8 @@ model TagLink {
 
   bookId String
   tagId  String
-  book   Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([tagId, entityType, entityId])
   @@index([bookId])
