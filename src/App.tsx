@@ -35,7 +35,7 @@ import type { TourStep } from './onboarding/tourConfig';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './components/ui/tooltip';
 import { Toaster } from './components/ui/sonner';
 import { User as UserIcon, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
-const StoryLabLogo = "/next.svg";
+const StoryLabLogo = "/storylab-logo.png";
 import { APP_VIEWS, type AppViewId, type PaneId } from './config/views';
 import { EditorProjectInfoPanel } from './components/info-panels/EditorProjectInfoPanel';
 import { FeedbackModal } from './components/FeedbackModal';
