@@ -375,8 +375,9 @@ function AppContent() {
       return '';
     }
     
+    const tempId = String(Date.now());
     const newChapter: Chapter = {
-      id: String(Date.now()),
+      id: tempId,
       bookId: currentBookId,
       title: title || `Chapter ${bookChapters.length + 1}`,
       content: '',
@@ -385,13 +386,18 @@ function AppContent() {
     setChapters([...chapters, newChapter]);
     
     try {
-      console.log('Adding new chapter:', newChapter);
-      await manuscriptApi.saveChapter(newChapter);
+      const saved = await manuscriptApi.saveChapter(newChapter);
+      setChapters((prev) =>
+        prev.map((ch) => (ch.id === tempId ? { ...saved, bookId: currentBookId } : ch)),
+      );
+      return saved.id;
     } catch (error) {
       console.error('Error adding chapter:', error);
+      // Remove optimistic chapter on failure
+      setChapters((prev) => prev.filter((ch) => ch.id !== tempId));
     }
     
-    return newChapter.id;
+    return '';
   };
 
   const deleteChapter = async (id: string) => {
