@@ -10,6 +10,7 @@ CREATE TABLE kv_store_841a689e (
 // View at https://supabase.com/dashboard/project/qmxfmnfpwfczoxfvyyml/database/tables
 
 // This file provides a simple key-value interface for storing Figma Make data. It should be adequate for most small-scale use cases.
+// NOTE: Book storage has moved to Prisma-backed Next.js API routes; this KV layer remains only for other legacy entities.
 import { createClient } from "jsr:@supabase/supabase-js";
 
 const client = () => createClient(
