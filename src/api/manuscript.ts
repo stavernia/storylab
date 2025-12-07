@@ -49,6 +49,10 @@ export async function loadData(bookId?: string): Promise<{
 export async function saveChapter(chapter: Chapter): Promise<void> {
   const { bookId, ...chapterData } = chapter;
 
+  if (!bookId) {
+    throw new Error("bookId is required to save a chapter");
+  }
+
   await chaptersApi.create(bookId, chapterData);
 }
 

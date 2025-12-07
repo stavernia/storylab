@@ -35,7 +35,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { bookId: string } },
+  { params }: { params: { bookId: string; chapterId?: string; partId?: string } },
 ) {
   try {
     const user = await requireUser();
@@ -46,6 +46,13 @@ export async function POST(
     }
 
     const body = await request.json();
+    const bodyBookId = typeof body.bookId === "string" ? body.bookId.trim() : "";
+    if (bodyBookId && bodyBookId !== params.bookId) {
+      return NextResponse.json(
+        { error: "Mismatched bookId for part creation" },
+        { status: 400 },
+      );
+    }
     const title = typeof body.title === "string" ? body.title.trim() : "";
     const notes = typeof body.notes === "string" ? body.notes : undefined;
 

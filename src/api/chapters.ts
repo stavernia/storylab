@@ -10,6 +10,10 @@ export const chaptersApi = {
   },
 
   async create(bookId: string, data: Partial<Chapter>): Promise<Chapter> {
+    if (!bookId) {
+      throw new Error("bookId is required to create a chapter");
+    }
+
     const { bookId: _bookId, id: _id, ...payload } = data as Partial<
       Chapter
     > & { bookId?: string; id?: string };

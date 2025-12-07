@@ -13,6 +13,10 @@ export const partsApi = {
     bookId: string,
     data: { title: string; notes?: string },
   ): Promise<Part> {
+    if (!bookId) {
+      throw new Error("bookId is required to create a part");
+    }
+
     const { part } = await fetchLocalJson<{ part: Part }>(
       `/api/books/${bookId}/parts`,
       {
