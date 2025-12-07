@@ -2,15 +2,16 @@ import { Hono } from 'npm:hono';
 import { cors } from 'npm:hono/cors';
 import { logger } from 'npm:hono/logger';
 import * as kv from './kv_store.tsx';
-import { booksRouter, migrateDataToBook } from './books.tsx'; // NEW: Multi-book support
+import { migrateDataToBook } from './books.tsx'; // DEPRECATED: Books now handled via Next.js API
 
 const app = new Hono();
 
 app.use('*', cors());
 app.use('*', logger(console.log));
 
-// NEW: Multi-book support - Mount books router
-app.route('/make-server-841a689e', booksRouter);
+// DEPRECATED: Books are now served via Next.js /api/books (see app/api/books)
+// Legacy Supabase routes remain commented out to avoid accidental usage.
+// app.route('/make-server-841a689e', booksRouter);
 
 // Helper to ensure default book exists and migrate data
 async function ensureDefaultBookAndMigrate() {

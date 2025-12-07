@@ -1,3 +1,5 @@
+// DEPRECATED: Legacy Supabase Edge Function book routes.
+// Books are now handled through Next.js API routes backed by Prisma.
 import { Hono } from 'npm:hono';
 import * as kv from './kv_store.tsx';
 

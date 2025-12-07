@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Book } from '../App';
+import type { Book } from '../types/book';
 import { X, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
