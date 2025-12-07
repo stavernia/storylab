@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Search, Plus, LayoutGrid, LayoutList, ChevronLeft, ChevronRight, BookOpenText } from 'lucide-react';
@@ -1666,12 +1667,7 @@ function AppContent() {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
-                    onClick={() => console.log('Profile coming soon')}
-                    className="w-11 h-11 rounded-xl flex items-center justify-center transition-all text-slate-300 hover:bg-[#4a6370] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60818E] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(96,129,142)]"
-                  >
-                    <UserIcon className="w-5 h-5" />
-                  </button>
+                  <ProfileMenu />
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>Profile</p>
@@ -1776,7 +1772,7 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function ProtectedApp() {
   const [activePaneId, setActivePaneId] = useState<PaneId>("primary");
 
   return (
@@ -1794,5 +1790,178 @@ export default function App() {
         </FilterProvider>
       </TagFilterProvider>
     </OnboardingTourProvider>
+  );
+}
+
+function LandingPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-black text-white">
+      <div className="mx-auto max-w-5xl px-6 py-16">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-12">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
+              StoryLab
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">
+              The writer&apos;s OS for outlining, drafting, and story structure.
+            </h1>
+            <p className="mt-3 text-slate-300 max-w-2xl">
+              Multi-view workspace (manuscript, outline, grid, corkboard), rich tagging, parts/chapters, and inspectors—built for long-form writing.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="/api/auth/signin"
+              className="text-sm text-slate-300 hover:text-white underline underline-offset-4"
+            >
+              Go to sign-in
+            </a>
+            <button
+              onClick={() => signIn("google")}
+              className="inline-flex items-center justify-center rounded-lg bg-white text-slate-900 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/30 transition"
+            >
+              Sign in with Google
+            </button>
+          </div>
+        </header>
+
+        <div className="grid gap-6 md:grid-cols-3 mb-12">
+          {[
+            { title: "Manuscript + Outline", desc: "Dual-pane binder, outline fields, parts/chapters with drag and drop." },
+            { title: "Grid & Themes", desc: "Track themes/threads, intensity, and notes per chapter with filters." },
+            { title: "Corkboard & Tags", desc: "Cards by book/part/chapter scopes, tag filtering, inspector-driven editing." },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-5 shadow-[0_20px_60px_-35px_rgba(0,0,0,0.8)]"
+            >
+              <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+              <p className="text-sm text-slate-300 leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-3xl border border-slate-800/60 bg-slate-900/50 p-8 shadow-[0_20px_80px_-40px_rgba(0,0,0,0.8)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-white">Ready to write?</h2>
+              <p className="text-slate-300">
+                Sign in with Google to open your workspace. More providers and billing will follow.
+              </p>
+            </div>
+            <button
+              onClick={() => signIn("google")}
+              className="inline-flex items-center justify-center rounded-lg bg-cyan-500 text-slate-900 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-cyan-500/25 hover:bg-cyan-400 transition"
+            >
+              Sign in with Google
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const { status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600">
+        Checking session...
+      </div>
+    );
+  }
+
+  if (status !== "authenticated") {
+    return <LandingPage />;
+  }
+
+  return <ProtectedApp />;
+}
+
+function ProfileMenu() {
+  const { data } = useSession();
+  const user = data?.user;
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((p) => p[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "?";
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="relative" ref={ref}>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="w-11 h-11 rounded-xl flex items-center justify-center transition-all text-slate-300 hover:bg-[#4a6370] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60818E] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(96,129,142)]"
+          >
+            {user?.image ? (
+              <img
+                src={user.image}
+                alt={user.name || "User"}
+                className="w-9 h-9 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-lg bg-slate-700 text-white flex items-center justify-center text-sm font-semibold">
+                {initials}
+              </div>
+            )}
+          </button>
+
+          {open && (
+            <div className="absolute left-14 bottom-0 translate-y-[-12px] z-50 w-64 rounded-xl border border-slate-700 bg-slate-900/95 shadow-xl shadow-black/40 backdrop-blur p-3 text-left">
+              <div className="flex items-center gap-3 mb-3">
+                {user?.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name || "User"}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-slate-700 text-white flex items-center justify-center text-sm font-semibold">
+                    {initials}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm text-white font-semibold truncate">
+                    {user?.name || "Signed in"}
+                  </p>
+                  <p className="text-xs text-slate-300 truncate">
+                    {user?.email || ""}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="w-full rounded-lg bg-slate-800 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="right">
+        <p>Profile</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }

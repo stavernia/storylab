@@ -1,7 +1,12 @@
 "use client";
 
 import App from "@/src/App";
+import { SessionProvider } from "next-auth/react";
 
 export default function HomePage() {
-  return <App />;
+  return (
+    <SessionProvider>
+      <App />
+    </SessionProvider>
+  );
 }

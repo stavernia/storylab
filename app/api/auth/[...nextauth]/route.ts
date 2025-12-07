@@ -1,21 +1,18 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import NextAuth, { type NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { prisma } from "@/src/lib/prisma";
 
-// Placeholder config: replace with real providers (e.g., Google/GitHub) and Prisma adapter
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  session: { strategy: "database" }, // persist sessions in Postgres
   providers: [
-    Credentials({
-      name: "Placeholder",
-      credentials: {
-        email: { label: "Email", type: "email" },
-      },
-      async authorize() {
-        // Always return null until real auth is configured
-        return null;
-      },
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     }),
   ],
-  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);
