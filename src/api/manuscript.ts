@@ -2,7 +2,8 @@ import type { Chapter, Theme, ThemeNote, Character, Part } from "../App";
 import { booksApi } from "./books";
 import { chaptersApi } from "./chapters";
 import { partsApi } from "./parts";
-import { fetchJson } from "./client";
+import { themesApi, themeNotesApi } from "./themes";
+import { charactersApi } from "./characters";
 
 export async function loadData(bookId?: string): Promise<{
   chapters: Chapter[];
@@ -28,20 +29,20 @@ export async function loadData(bookId?: string): Promise<{
     throw new Error("Unable to resolve book context");
   }
 
-  const [chapterData, partData] = await Promise.all([
-    chaptersApi.list(resolvedBookId),
-    partsApi.list(resolvedBookId),
-  ]);
-
-  const themes: Theme[] = [];
-  const themeNotes: ThemeNote[] = [];
-  const characters: Character[] = [];
+  const [chapterData, partData, themeData, themeNoteData, characterData] =
+    await Promise.all([
+      chaptersApi.list(resolvedBookId),
+      partsApi.list(resolvedBookId),
+      themesApi.list(resolvedBookId),
+      themeNotesApi.list(resolvedBookId),
+      charactersApi.list(resolvedBookId),
+    ]);
 
   return {
     chapters: chapterData,
-    themes,
-    themeNotes,
-    characters,
+    themes: themeData,
+    themeNotes: themeNoteData,
+    characters: characterData,
     parts: partData,
   };
 }
@@ -73,43 +74,55 @@ export async function deleteChapter(bookId: string, id: string): Promise<void> {
 }
 
 export async function saveTheme(theme: Theme): Promise<void> {
-  await fetchJson("/theme", {
-    method: "POST",
-    body: JSON.stringify(theme),
-  });
+  if (!theme.bookId) {
+    throw new Error("bookId is required to save a theme");
+  }
+
+  await themesApi.create(theme.bookId, theme);
 }
 
-export async function updateTheme(id: string, updates: Partial<Theme>): Promise<void> {
-  await fetchJson(`/theme/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(updates),
-  });
+export async function updateTheme(
+  bookId: string,
+  id: string,
+  updates: Partial<Theme>,
+): Promise<void> {
+  if (!bookId) {
+    throw new Error("bookId is required to update a theme");
+  }
+
+  await themesApi.update(bookId, id, updates);
 }
 
-export async function deleteTheme(id: string): Promise<void> {
-  await fetchJson(`/theme/${id}`, {
-    method: "DELETE",
-  });
+export async function deleteTheme(bookId: string, id: string): Promise<void> {
+  if (!bookId) {
+    throw new Error("bookId is required to delete a theme");
+  }
+
+  await themesApi.remove(bookId, id);
 }
 
-export async function saveThemeNote(note: ThemeNote): Promise<void> {
-  await fetchJson("/note", {
-    method: "POST",
-    body: JSON.stringify(note),
-  });
+export async function saveThemeNote(bookId: string, note: ThemeNote): Promise<void> {
+  if (!bookId) {
+    throw new Error("bookId is required to save a theme note");
+  }
+
+  await themeNotesApi.save(bookId, note);
 }
 
 export async function saveCharacter(character: Character): Promise<void> {
-  await fetchJson("/character", {
-    method: "POST",
-    body: JSON.stringify(character),
-  });
+  if (!character.bookId) {
+    throw new Error("bookId is required to save a character");
+  }
+
+  await charactersApi.create(character.bookId, character);
 }
 
-export async function deleteCharacter(id: string): Promise<void> {
-  await fetchJson(`/character/${id}`, {
-    method: "DELETE",
-  });
+export async function deleteCharacter(bookId: string, id: string): Promise<void> {
+  if (!bookId) {
+    throw new Error("bookId is required to delete a character");
+  }
+
+  await charactersApi.remove(bookId, id);
 }
 
 export const manuscriptApi = {

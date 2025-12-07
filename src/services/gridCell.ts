@@ -18,7 +18,7 @@ export const gridCellService = {
     return themeNote || { chapterId, themeId, note: '' };
   },
 
-  async update(chapterId: string, themeId: string, note: string): Promise<void> {
-    await manuscriptApi.saveThemeNote({ chapterId, themeId, note });
+  async update(bookId: string, chapterId: string, themeId: string, note: string): Promise<void> {
+    await manuscriptApi.saveThemeNote(bookId, { chapterId, themeId, note });
   },
 };

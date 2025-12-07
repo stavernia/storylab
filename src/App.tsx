@@ -544,23 +544,33 @@ function AppContent() {
   };
 
   const updateTheme = async (id: string, name: string) => {
+    if (!currentBookId) {
+      console.error('Cannot update theme: no book selected');
+      return;
+    }
+
     setThemes(themes.map(t => t.id === id ? { ...t, name } : t));
-    
+
     try {
       console.log('Updating theme:', id, name);
-      await manuscriptApi.updateTheme(id, { name });
+      await manuscriptApi.updateTheme(currentBookId, id, { name });
     } catch (error) {
       console.error('Error updating theme:', error);
     }
   };
 
   const deleteTheme = async (id: string) => {
+    if (!currentBookId) {
+      console.error('Cannot delete theme: no book selected');
+      return;
+    }
+
     setThemes(themes.filter(t => t.id !== id));
     setThemeNotes(themeNotes.filter(note => note.themeId !== id));
-    
+
     try {
       console.log('Deleting theme:', id);
-      await manuscriptApi.deleteTheme(id);
+      await manuscriptApi.deleteTheme(currentBookId, id);
     } catch (error) {
       console.error('Error deleting theme:', error);
     }
@@ -589,7 +599,10 @@ function AppContent() {
     
     try {
       console.log('Updating theme note:', chapterId, themeId, note);
-      await manuscriptApi.saveThemeNote({ chapterId, themeId, note });
+      if (!currentBookId) {
+        throw new Error('No book selected');
+      }
+      await manuscriptApi.saveThemeNote(currentBookId, { chapterId, themeId, note });
     } catch (error) {
       console.error('Error updating theme note:', error);
     }
@@ -633,7 +646,10 @@ function AppContent() {
     };
 
     try {
-      await manuscriptApi.saveThemeNote(cellData);
+      if (!currentBookId) {
+        throw new Error('No book selected');
+      }
+      await manuscriptApi.saveThemeNote(currentBookId, cellData);
     } catch (error) {
       console.error('Error updating theme cell:', error);
     }
@@ -685,11 +701,16 @@ function AppContent() {
   };
 
   const deleteCharacter = async (id: string) => {
+    if (!currentBookId) {
+      console.error('Cannot delete character: no book selected');
+      return;
+    }
+
     setCharacters(characters.filter(c => c.id !== id));
 
     try {
       console.log('Deleting character:', id);
-      await manuscriptApi.deleteCharacter(id);
+      await manuscriptApi.deleteCharacter(currentBookId, id);
     } catch (error) {
       console.error('Error deleting character:', error);
     }
@@ -703,7 +724,10 @@ function AppContent() {
 
     try {
       console.log('Updating theme details:', id, safeValues);
-      await manuscriptApi.updateTheme(id, safeValues);
+      if (!currentBookId) {
+        throw new Error('No book selected');
+      }
+      await manuscriptApi.updateTheme(currentBookId, id, safeValues);
     } catch (error) {
       console.error('Error updating theme details:', error);
     }
