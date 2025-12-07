@@ -1,91 +1,24 @@
-import type { Part } from '../App';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import type { Part } from "../App";
+import { partsApi } from "../api/parts";
 
-const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-841a689e`;
-
-export async function fetchParts(): Promise<Part[]> {
-  const response = await fetch(`${SERVER_URL}/parts`, {
-    headers: {
-      'Authorization': `Bearer ${publicAnonKey}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch parts');
-  }
-
-  const parts = await response.json();
-  return parts;
-}
-
-export async function createPart(data: { title: string; notes?: string; bookId: string }): Promise<Part> {
-  const response = await fetch(`${SERVER_URL}/part`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${publicAnonKey}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to create part');
-  }
-
-  const part = await response.json();
-  return part;
+export async function createPart(
+  data: { title: string; notes?: string; bookId: string },
+): Promise<Part> {
+  return partsApi.create(data.bookId, data);
 }
 
 export async function updatePart(
+  bookId: string,
   id: string,
-  data: Partial<Pick<Part, 'title' | 'notes'>>
+  data: Partial<Pick<Part, "title" | "notes" | "sortOrder">>,
 ): Promise<Part> {
-  const response = await fetch(`${SERVER_URL}/part/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${publicAnonKey}`,
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to update part');
-  }
-
-  const part = await response.json();
-  return part;
+  return partsApi.update(bookId, id, data);
 }
 
-export async function deletePart(id: string): Promise<void> {
-  const response = await fetch(`${SERVER_URL}/part/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${publicAnonKey}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to delete part');
-  }
+export async function deletePart(bookId: string, id: string): Promise<void> {
+  await partsApi.remove(bookId, id);
 }
 
-export async function reorderParts(parts: Part[]): Promise<void> {
-  const reorderData = parts.map((part, index) => ({
-    id: part.id,
-    sortOrder: index,
-  }));
-
-  const response = await fetch(`${SERVER_URL}/parts/reorder`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${publicAnonKey}`,
-    },
-    body: JSON.stringify(reorderData),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to reorder parts');
-  }
+export async function reorderParts(bookId: string, parts: Part[]): Promise<void> {
+  await partsApi.reorder(bookId, parts);
 }
