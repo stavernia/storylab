@@ -13,17 +13,18 @@ async function assertChapterScope(bookId: string, chapterId: string) {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { bookId: string; chapterId: string } },
+  { params }: { params: Promise<{ bookId: string; chapterId: string }> },
 ) {
   try {
+    const { bookId, chapterId } = await params;
     const user = await requireUser();
-    const book = await assertBookAccess(params.bookId, user.id);
+    const book = await assertBookAccess(bookId, user.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    const existing = await assertChapterScope(params.bookId, params.chapterId);
+    const existing = await assertChapterScope(bookId, chapterId);
 
     if (!existing) {
       return NextResponse.json({ error: "Chapter not found" }, { status: 404 });
@@ -35,7 +36,7 @@ export async function PATCH(
 
     if (nextPartId) {
       const part = await prisma.part.findFirst({
-        where: { id: nextPartId, bookId: params.bookId },
+        where: { id: nextPartId, bookId },
       });
 
       if (!part) {
@@ -70,7 +71,7 @@ export async function PATCH(
       updates.customOutlineFields = body.customOutlineFields;
 
     const updated = await prisma.chapter.update({
-      where: { id: params.chapterId },
+      where: { id: chapterId },
       data: updates,
     });
 
@@ -85,23 +86,24 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { bookId: string; chapterId: string } },
+  { params }: { params: Promise<{ bookId: string; chapterId: string }> },
 ) {
   try {
+    const { bookId, chapterId } = await params;
     const user = await requireUser();
-    const book = await assertBookAccess(params.bookId, user.id);
+    const book = await assertBookAccess(bookId, user.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    const existing = await assertChapterScope(params.bookId, params.chapterId);
+    const existing = await assertChapterScope(bookId, chapterId);
 
     if (!existing) {
       return NextResponse.json({ error: "Chapter not found" }, { status: 404 });
     }
 
-    await prisma.chapter.delete({ where: { id: params.chapterId } });
+    await prisma.chapter.delete({ where: { id: chapterId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

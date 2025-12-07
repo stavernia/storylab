@@ -5,9 +5,10 @@ import { requireUser } from "@/src/server/auth/requireUser";
 
 export async function PUT(
   _request: Request,
-  { params }: { params: { bookId: string } },
+  { params }: { params: Promise<{ bookId: string }> },
 ) {
   try {
+    const { bookId } = await params;
     const user = await requireUser();
     const updates = await _request.json();
     const title = typeof updates.title === "string" ? updates.title.trim() : undefined;
@@ -15,7 +16,7 @@ export async function PUT(
       typeof updates.description === "string" ? updates.description : undefined;
 
     const result = await prisma.book.updateMany({
-      where: { id: params.bookId, userId: user.id },
+      where: { id: bookId, userId: user.id },
       data: {
         title,
         description,
@@ -26,7 +27,7 @@ export async function PUT(
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    const book = await prisma.book.findUnique({ where: { id: params.bookId } });
+    const book = await prisma.book.findUnique({ where: { id: bookId } });
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
@@ -43,13 +44,14 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { bookId: string } },
+  { params }: { params: Promise<{ bookId: string }> },
 ) {
   try {
+    const { bookId } = await params;
     const user = await requireUser();
 
     const result = await prisma.book.updateMany({
-      where: { id: params.bookId, userId: user.id },
+      where: { id: bookId, userId: user.id },
       data: { isArchived: true },
     });
 
