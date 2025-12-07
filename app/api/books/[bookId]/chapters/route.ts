@@ -9,18 +9,19 @@ async function assertBookAccess(bookId: string, userId: string) {
 
 export async function GET(
   _request: Request,
-  { params }: { params: { bookId: string } },
+  { params }: { params: Promise<{ bookId: string }> },
 ) {
   try {
+    const { bookId } = await params;
     const user = await requireUser();
-    const book = await assertBookAccess(params.bookId, user.id);
+    const book = await assertBookAccess(bookId, user.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
     const chapters = await prisma.chapter.findMany({
-      where: { bookId: params.bookId },
+      where: { bookId },
       orderBy: { sortOrder: "asc" },
     });
 
@@ -35,11 +36,12 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { bookId: string; chapterId?: string; partId?: string } },
+  { params }: { params: Promise<{ bookId: string; chapterId?: string; partId?: string }> },
 ) {
   try {
+    const { bookId } = await params;
     const user = await requireUser();
-    const book = await assertBookAccess(params.bookId, user.id);
+    const book = await assertBookAccess(bookId, user.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
@@ -47,7 +49,7 @@ export async function POST(
 
     const body = await request.json();
     const bodyBookId = typeof body.bookId === "string" ? body.bookId.trim() : "";
-    if (bodyBookId && bodyBookId !== params.bookId) {
+    if (bodyBookId && bodyBookId !== bookId) {
       return NextResponse.json(
         { error: "Mismatched bookId for chapter creation" },
         { status: 400 },
@@ -64,7 +66,7 @@ export async function POST(
 
     if (partId) {
       const part = await prisma.part.findFirst({
-        where: { id: partId, bookId: params.bookId },
+        where: { id: partId, bookId },
       });
 
       if (!part) {
@@ -80,7 +82,7 @@ export async function POST(
         title,
         content,
         sortOrder,
-        bookId: params.bookId,
+        bookId,
         partId,
         outline: typeof body.outline === "string" ? body.outline : undefined,
         outlinePOV:

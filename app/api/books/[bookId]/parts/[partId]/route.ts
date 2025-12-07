@@ -13,17 +13,18 @@ async function assertPartScope(bookId: string, partId: string) {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { bookId: string; partId: string } },
+  { params }: { params: Promise<{ bookId: string; partId: string }> },
 ) {
   try {
+    const { bookId, partId } = await params;
     const user = await requireUser();
-    const book = await assertBookAccess(params.bookId, user.id);
+    const book = await assertBookAccess(bookId, user.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    const existing = await assertPartScope(params.bookId, params.partId);
+    const existing = await assertPartScope(bookId, partId);
 
     if (!existing) {
       return NextResponse.json({ error: "Part not found" }, { status: 404 });
@@ -37,7 +38,7 @@ export async function PATCH(
     if (Number.isFinite(body.sortOrder)) updates.sortOrder = body.sortOrder;
 
     const part = await prisma.part.update({
-      where: { id: params.partId },
+      where: { id: partId },
       data: updates,
     });
 
@@ -52,23 +53,24 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { bookId: string; partId: string } },
+  { params }: { params: Promise<{ bookId: string; partId: string }> },
 ) {
   try {
+    const { bookId, partId } = await params;
     const user = await requireUser();
-    const book = await assertBookAccess(params.bookId, user.id);
+    const book = await assertBookAccess(bookId, user.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    const existing = await assertPartScope(params.bookId, params.partId);
+    const existing = await assertPartScope(bookId, partId);
 
     if (!existing) {
       return NextResponse.json({ error: "Part not found" }, { status: 404 });
     }
 
-    await prisma.part.delete({ where: { id: params.partId } });
+    await prisma.part.delete({ where: { id: partId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
