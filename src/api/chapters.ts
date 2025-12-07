@@ -10,11 +10,15 @@ export const chaptersApi = {
   },
 
   async create(bookId: string, data: Partial<Chapter>): Promise<Chapter> {
+    const { bookId: _bookId, id: _id, ...payload } = data as Partial<
+      Chapter
+    > & { bookId?: string; id?: string };
+
     const { chapter } = await fetchLocalJson<{ chapter: Chapter }>(
       `/api/books/${bookId}/chapters`,
       {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       },
     );
 
@@ -26,11 +30,15 @@ export const chaptersApi = {
     chapterId: string,
     updates: Partial<Chapter>,
   ): Promise<Chapter> {
+    const { bookId: _bookId, id: _id, ...payload } = updates as Partial<
+      Chapter
+    > & { bookId?: string; id?: string };
+
     const { chapter } = await fetchLocalJson<{ chapter: Chapter }>(
       `/api/books/${bookId}/chapters/${chapterId}`,
       {
         method: "PATCH",
-        body: JSON.stringify(updates),
+        body: JSON.stringify(payload),
       },
     );
 

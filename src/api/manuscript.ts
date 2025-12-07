@@ -1,8 +1,8 @@
 import type { Chapter, Theme, ThemeNote, Character, Part } from "../App";
 import { booksApi } from "./books";
-import { fetchJson } from "./client";
 import { chaptersApi } from "./chapters";
 import { partsApi } from "./parts";
+import { fetchJson } from "./client";
 
 export async function loadData(bookId?: string): Promise<{
   chapters: Chapter[];
@@ -28,19 +28,14 @@ export async function loadData(bookId?: string): Promise<{
     throw new Error("Unable to resolve book context");
   }
 
-  const [chapterData, partData, legacyData] = await Promise.all([
+  const [chapterData, partData] = await Promise.all([
     chaptersApi.list(resolvedBookId),
     partsApi.list(resolvedBookId),
-    fetchJson(`/data?bookId=${resolvedBookId}`).catch(() => ({
-      themes: [],
-      themeNotes: [],
-      characters: [],
-    } as Partial<{ themes: Theme[]; themeNotes: ThemeNote[]; characters: Character[] }>),
   ]);
 
-  const themes = legacyData?.themes || [];
-  const themeNotes = legacyData?.themeNotes || [];
-  const characters = legacyData?.characters || [];
+  const themes: Theme[] = [];
+  const themeNotes: ThemeNote[] = [];
+  const characters: Character[] = [];
 
   return {
     chapters: chapterData,
@@ -52,7 +47,9 @@ export async function loadData(bookId?: string): Promise<{
 }
 
 export async function saveChapter(chapter: Chapter): Promise<void> {
-  await chaptersApi.create(chapter.bookId, chapter);
+  const { bookId, ...chapterData } = chapter;
+
+  await chaptersApi.create(bookId, chapterData);
 }
 
 export async function updateChapter(
@@ -60,7 +57,11 @@ export async function updateChapter(
   id: string,
   updates: Partial<Chapter>,
 ): Promise<void> {
-  await chaptersApi.update(bookId, id, updates);
+  const { bookId: _bookId, ...sanitizedUpdates } = updates as Partial<
+    Chapter
+  > & { bookId?: string };
+
+  await chaptersApi.update(bookId, id, sanitizedUpdates);
 }
 
 export async function deleteChapter(bookId: string, id: string): Promise<void> {
