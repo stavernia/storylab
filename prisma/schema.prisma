@@ -1,0 +1,104 @@
+// Placeholder schema for upcoming normalized Supabase Postgres database.
+// Update the datasource with your DATABASE_URL before running migrations.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isArchived  Boolean  @default(false)
+
+  chapters   Chapter[]
+  parts      Part[]
+  themes     Theme[]
+  characters Character[]
+}
+
+model Part {
+  id        String   @id @default(uuid())
+  title     String
+  notes     String?  @db.Text
+  sortOrder Int      @default(0)
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  chapters Chapter[]
+}
+
+model Chapter {
+  id         String   @id @default(uuid())
+  title      String
+  content    String   @db.Text
+  outline    String?  @db.Text
+  outlinePOV String?
+  outlinePurpose String?
+  outlineEstimate Int?
+  outlineGoal     String?
+  outlineConflict String?
+  outlineStakes   String?
+  customOutlineFields Json?
+  sortOrder  Int?    @default(0)
+  wordCount  Int     @default(0)
+  lastEdited DateTime? @db.Timestamptz(6)
+  partId     String?
+  bookId     String
+  book       Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  part       Part?   @relation(fields: [partId], references: [id], onDelete: SetNull)
+
+  themeNotes ThemeNote[]
+}
+
+model Theme {
+  id        String   @id @default(uuid())
+  name      String
+  color     String
+  kind      String?
+  source    String?
+  mode      String?
+  sourceRefId String?
+  description String?
+  aiGuide     String?
+  rowOrder    Int?
+  isHidden    Boolean? @default(false)
+  threadLabel String?
+
+  bookId  String
+  book    Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  notes   ThemeNote[]
+}
+
+model Character {
+  id     String  @id @default(uuid())
+  name   String
+  color  String
+  role   String?
+  notes  String? @db.Text
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model ThemeNote {
+  id        String   @id @default(uuid())
+  chapterId String
+  themeId   String
+  note      String   @db.Text
+  presence  Boolean? @default(false)
+  intensity Int?
+  threadRole String?
+
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  theme   Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([chapterId, themeId])
+}
