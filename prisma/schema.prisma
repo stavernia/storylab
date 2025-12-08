@@ -142,9 +142,9 @@ model Theme {
   isHidden    Boolean? @default(false)
   threadLabel String?
 
-  bookId String
-  book   Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  notes  ThemeNote[]
+  bookId    String
+  book      Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  notes     ThemeNote[]
   gridCells GridCell[]
 }
 
@@ -254,13 +254,13 @@ model TagLink {
 }
 
 model GridCell {
-  id        String  @id @default(cuid())
-  bookId    String
-  chapterId String
-  themeId   String
-  presence  Boolean @default(false)
-  intensity Int     @default(0)
-  note      String?
+  id         String  @id @default(cuid())
+  bookId     String
+  chapterId  String
+  themeId    String
+  presence   Boolean @default(false)
+  intensity  Int     @default(0)
+  note       String?
   threadRole String?
 
   book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
