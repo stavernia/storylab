@@ -54,7 +54,7 @@ export async function GET(
     const entity = await resolveEntity(normalizedType, entityId, bookId, user.id);
 
     if (!entity) {
-      return NextResponse.json({ error: "Entity not found" }, { status: 404 });
+      return NextResponse.json({ tags: [] });
     }
 
     const links = await prisma.tagLink.findMany({
