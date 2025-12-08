@@ -1,6 +1,3 @@
-// Placeholder schema for upcoming normalized Supabase Postgres database.
-// Update the datasource with your DATABASE_URL before running migrations.
-
 generator client {
   provider = "prisma-client-js"
 }
