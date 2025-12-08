@@ -208,6 +208,10 @@ app.delete('/make-server-841a689e/theme/:id', async (c) => {
   }
 });
 
+// DEPRECATED: Grid/theme notes have moved to Next.js API routes backed by Prisma.
+// Frontend calls now hit `/api/books/[bookId]/grid` for creates/updates/deletes.
+// This legacy handler is retained only for historical reference and should not
+// be used for active grid/timeline features.
 // Save or update theme note
 app.post('/make-server-841a689e/note', async (c) => {
   try {

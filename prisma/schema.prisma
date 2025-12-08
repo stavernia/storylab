@@ -80,6 +80,8 @@ model Book {
   themes     Theme[]
   characters Character[]
 
+  gridCells GridCell[]
+
   tags     Tag[]
   tagLinks TagLink[]
 
@@ -122,6 +124,7 @@ model Chapter {
   part                Part?     @relation(fields: [partId], references: [id], onDelete: SetNull)
 
   themeNotes    ThemeNote[]
+  gridCells     GridCell[]
   CorkboardCard CorkboardCard[]
 }
 
@@ -142,6 +145,7 @@ model Theme {
   bookId String
   book   Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
   notes  ThemeNote[]
+  gridCells GridCell[]
 }
 
 model Character {
@@ -247,4 +251,24 @@ model TagLink {
 
   @@unique([tagId, entityType, entityId])
   @@index([bookId])
+}
+
+model GridCell {
+  id        String  @id @default(cuid())
+  bookId    String
+  chapterId String
+  themeId   String
+  presence  Boolean @default(false)
+  intensity Int     @default(0)
+  note      String?
+  threadRole String?
+
+  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  theme   Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, chapterId, themeId])
+  @@index([bookId])
+  @@index([chapterId])
+  @@index([themeId])
 }
