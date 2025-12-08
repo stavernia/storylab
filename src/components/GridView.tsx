@@ -245,7 +245,7 @@ type GridViewProps = {
   characters: Character[];
   updateThemeNote: (chapterId: string, themeId: string, note: string) => void;
   updateThemeCell: (chapterId: string, themeId: string, changes: Partial<ThemeNote>) => void;
-  addTheme: (name?: string) => Promise<string>;
+  addTheme: (name?: string) => Promise<Theme>;
   updateTheme: (id: string, name: string) => void;
   updateThemeDetails: (id: string, values: Partial<Theme>) => void;
   deleteTheme: (id: string) => void;

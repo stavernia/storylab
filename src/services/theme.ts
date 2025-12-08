@@ -55,8 +55,8 @@ export const themeService = {
       purpose: values.purpose,
       notes: values.notes,
     };
-    await manuscriptApi.saveTheme(newTheme);
-    return newTheme.id;
+    const created = await manuscriptApi.saveTheme(newTheme);
+    return created.id;
   },
 
   async remove(id: string): Promise<void> {

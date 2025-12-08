@@ -518,12 +518,12 @@ function AppContent() {
   // NEW: Parts v1 - Get ordered chapters for display (parts ordering)
   const orderedChapters = getOrderedChapters(sortedChapters, bookParts);
 
-  const addTheme = async (name?: string) => {
+  const addTheme = async (name?: string): Promise<Theme> => {
     if (!currentBookId) {
       console.error('Cannot add theme: no book selected');
-      return '';
+      throw new Error('No book selected');
     }
-    
+
     const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#ef4444'];
     const newTheme: Theme = {
       id: String(Date.now()),
@@ -531,16 +531,16 @@ function AppContent() {
       name: name || `Theme ${bookThemes.length + 1}`,
       color: colors[bookThemes.length % colors.length]
     };
-    setThemes([...themes, newTheme]);
-    
+
     try {
       console.log('Adding new theme:', newTheme);
-      await manuscriptApi.saveTheme(newTheme);
+      const created = await manuscriptApi.saveTheme(newTheme);
+      setThemes(prevThemes => [...prevThemes, created]);
+      return created;
     } catch (error) {
       console.error('Error adding theme:', error);
+      throw error;
     }
-    
-    return newTheme.id;
   };
 
   const updateTheme = async (id: string, name: string) => {

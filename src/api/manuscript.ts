@@ -73,12 +73,12 @@ export async function deleteChapter(bookId: string, id: string): Promise<void> {
   await chaptersApi.remove(bookId, id);
 }
 
-export async function saveTheme(theme: Theme): Promise<void> {
+export async function saveTheme(theme: Theme): Promise<Theme> {
   if (!theme.bookId) {
     throw new Error("bookId is required to save a theme");
   }
 
-  await themesApi.create(theme.bookId, theme);
+  return themesApi.create(theme.bookId, theme);
 }
 
 export async function updateTheme(

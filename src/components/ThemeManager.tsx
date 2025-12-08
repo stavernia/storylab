@@ -11,7 +11,7 @@ import { Tag, tagService } from '../services/tag';
 interface ThemeManagerProps {
   themes: Theme[];
   characters: Character[];
-  addTheme: (name?: string) => Promise<string>;
+  addTheme: (name?: string) => Promise<Theme>;
   updateThemeDetails: (id: string, values: Partial<Theme>) => Promise<void>;
   deleteTheme: (id: string) => Promise<void>;
   // NEW: UI Cohesion - Lifted state for Context Bar controls
@@ -160,11 +160,16 @@ export function ThemeManager({
   }, [selectedTheme, themeTags]); // Update when theme data OR tags change
 
   const handleCreateTheme = async (values: any) => {
-    const id = await addTheme(values.name);
-    // Update with full details including Grid 2.0 fields
-    await updateThemeDetails(id, values);
-    setIsCreating(false);
-    (setShowAddDialog ?? setIsCreating)(false);
+    try {
+      const createdTheme = await addTheme(values.name);
+      // Update with full details including Grid 2.0 fields
+      await updateThemeDetails(createdTheme.id, values);
+    } catch (error) {
+      console.error('Failed to create theme:', error);
+    } finally {
+      setIsCreating(false);
+      (setShowAddDialog ?? setIsCreating)(false);
+    }
   };
 
   const handleUpdateTheme = async (values: any) => {
