@@ -4,6 +4,7 @@ import { chaptersApi } from "./chapters";
 import { partsApi } from "./parts";
 import { themesApi, themeNotesApi } from "./themes";
 import { charactersApi } from "./characters";
+import { fetchLocalJson } from "./http";
 
 export async function loadData(bookId?: string): Promise<{
   chapters: Chapter[];
@@ -67,6 +68,47 @@ export async function updateChapter(
   > & { bookId?: string };
 
   await chaptersApi.update(bookId, id, sanitizedUpdates);
+}
+
+type ManuscriptPayload = {
+  content?: string;
+  wordCount?: number;
+  lastEdited?: Date | string;
+};
+
+type ManuscriptResponse = {
+  chapterId: string;
+  bookId: string;
+  content: string;
+  wordCount?: number;
+  lastEdited?: string;
+};
+
+async function fetchManuscript(
+  bookId: string,
+  chapterId: string,
+): Promise<ManuscriptResponse> {
+  const { manuscript } = await fetchLocalJson<{ manuscript: ManuscriptResponse }>(
+    `/api/books/${bookId}/chapters/${chapterId}/manuscript`,
+  );
+
+  return manuscript;
+}
+
+async function saveManuscript(
+  bookId: string,
+  chapterId: string,
+  payload: ManuscriptPayload,
+): Promise<ManuscriptResponse> {
+  const { manuscript } = await fetchLocalJson<{ manuscript: ManuscriptResponse }>(
+    `/api/books/${bookId}/chapters/${chapterId}/manuscript`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+
+  return manuscript;
 }
 
 export async function deleteChapter(bookId: string, id: string): Promise<void> {
@@ -136,4 +178,6 @@ export const manuscriptApi = {
   saveThemeNote,
   saveCharacter,
   deleteCharacter,
+  fetchManuscript,
+  saveManuscript,
 };

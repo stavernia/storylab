@@ -191,6 +191,9 @@ function AppContent() {
   const [paneSelections, setPaneSelections] = useState<Record<PaneId, ManuscriptSelection>>({
     primary: { kind: 'manuscript' }
   });
+
+  // Track which manuscripts have been loaded via the API
+  const loadedManuscripts = useRef<Set<string>>(new Set());
   
   // Helper to update selection for a pane
   const setSelectionForPane = (paneId: PaneId, selection: ManuscriptSelection) => {
@@ -283,7 +286,7 @@ function AppContent() {
           
           // Switch to editor view
           setPanes(prev => prev.map(p => 
-            p.id === 'primary' ? { ...p, activeViewId: 'editor' } : p
+            p.id === 'primary' ? { ...p, activeViewId: 'manuscript' } : p
           ));
           
           // Load book data
@@ -315,7 +318,7 @@ function AppContent() {
             
             // Switch to editor view
             setPanes(prev => prev.map(p => 
-              p.id === 'primary' ? { ...p, activeViewId: 'editor' } : p
+              p.id === 'primary' ? { ...p, activeViewId: 'manuscript' } : p
             ));
           }
           
@@ -351,19 +354,35 @@ function AppContent() {
     }
 
     const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+    const lastEdited = new Date();
     setChapters(chapters.map(ch =>
       ch.id === id
-        ? { ...ch, content, wordCount, lastEdited: new Date() }
+        ? { ...ch, content, wordCount, lastEdited }
         : ch
     ));
-    
+
     try {
       console.log('Updating chapter:', id, 'Word count:', wordCount);
-      await manuscriptApi.updateChapter(chapter.bookId, id, {
+      const manuscript = await manuscriptApi.saveManuscript(chapter.bookId, id, {
         content,
         wordCount,
-        lastEdited: new Date(),
+        lastEdited,
       });
+
+      setChapters((prev) =>
+        prev.map((ch) =>
+          ch.id === id
+            ? {
+                ...ch,
+                content: manuscript.content ?? content,
+                wordCount: manuscript.wordCount ?? wordCount,
+                lastEdited: manuscript.lastEdited
+                  ? new Date(manuscript.lastEdited)
+                  : lastEdited,
+              }
+            : ch,
+        ),
+      );
     } catch (error) {
       console.error('Error updating chapter:', error);
     }
@@ -850,10 +869,11 @@ function AppContent() {
   // NEW: Multi-book support - Book handlers
   const handleSelectBook = async (bookId: string) => {
     setCurrentBookId(bookId);
-    
+    loadedManuscripts.current.clear();
+
     // Switch to editor view
-    setPanes(prev => prev.map(p => 
-      p.id === 'primary' ? { ...p, activeViewId: 'editor' } : p
+    setPanes(prev => prev.map(p =>
+      p.id === 'primary' ? { ...p, activeViewId: 'manuscript' } : p
     ));
     
     // Load book data
@@ -943,6 +963,61 @@ function AppContent() {
     }),
     [],
   );
+
+  // Load manuscript content for currently selected chapters via the dedicated API
+  useEffect(() => {
+    if (!currentBookId) return;
+
+    const chapterIds = Array.from(
+      new Set(
+        panes
+          .map((p) => p.selectedChapterId)
+          .filter((id): id is string => !!id && !loadedManuscripts.current.has(id)),
+      ),
+    );
+
+    if (chapterIds.length === 0) return;
+
+    const loadManuscripts = async () => {
+      await Promise.all(
+        chapterIds.map(async (chapterId) => {
+          const targetChapter = chapters.find(
+            (ch) => ch.id === chapterId && ch.bookId === currentBookId,
+          );
+
+          if (!targetChapter) return;
+
+          try {
+            const manuscript = await manuscriptApi.fetchManuscript(
+              targetChapter.bookId,
+              chapterId,
+            );
+
+            loadedManuscripts.current.add(chapterId);
+
+            setChapters((prev) =>
+              prev.map((ch) =>
+                ch.id === chapterId
+                  ? {
+                      ...ch,
+                      content: manuscript.content ?? "",
+                      wordCount: manuscript.wordCount ?? ch.wordCount,
+                      lastEdited: manuscript.lastEdited
+                        ? new Date(manuscript.lastEdited)
+                        : ch.lastEdited,
+                    }
+                  : ch,
+              ),
+            );
+          } catch (error) {
+            console.error('Error loading manuscript:', error);
+          }
+        }),
+      );
+    };
+
+    loadManuscripts();
+  }, [panes, currentBookId, chapters]);
   
   // NEW: UI Cohesion - Helper to create a card for corkboard
   const handleCreateCorkboardCard = () => {
@@ -953,7 +1028,7 @@ function AppContent() {
   // NEW: UI Cohesion - Function to render Context Bar for a view
   const renderContextBarForView = (viewId: AppViewId): React.ReactNode => {
     switch (viewId) {
-      case 'editor':
+      case 'manuscript':
         // UI Cohesion Pass - Empty Context Bar (to be populated in future phases)
         return <></>;
       
@@ -1315,7 +1390,7 @@ function AppContent() {
           primary: manuscriptSelection,
           secondary: manuscriptSelection
         }));
-      } else if (step.viewId === 'editor') {
+    } else if (step.viewId === 'manuscript') {
         // For single pane editor, update primary only
         setPaneSelections(prev => ({
           ...prev,
@@ -1328,7 +1403,7 @@ function AppContent() {
         const hasSecondary = panes.some((p) => p.id === 'secondary');
         
         if (!hasSecondary) {
-          const leftView = step.leftViewId ?? 'editor';
+          const leftView = step.leftViewId ?? 'manuscript';
           const rightView = step.rightViewId ?? 'outline';
           setPanes((prev) => {
             const primary = prev.find((p) => p.id === 'primary');
@@ -1340,7 +1415,7 @@ function AppContent() {
           });
         } else {
           // Update existing panes
-          const leftView = step.leftViewId ?? 'editor';
+          const leftView = step.leftViewId ?? 'manuscript';
           const rightView = step.rightViewId ?? 'outline';
           setPanes((prev) => 
             prev.map((p) => {
@@ -1358,7 +1433,7 @@ function AppContent() {
         setPanes((prev) => {
           const primary = prev.find((p) => p.id === 'primary');
           if (!primary) return prev;
-          const view = step.viewId ?? 'editor';
+          const view = step.viewId ?? 'manuscript';
           
           return [{ ...primary, activeViewId: view as AppViewId, selectedChapterId }];
         });
@@ -1424,7 +1499,7 @@ function AppContent() {
             onDeleteBook={handleDeleteBook}
           />
         );
-      case 'editor':
+      case 'manuscript':
         return (
           <BinderWrapper
             chapters={orderedChapters}
