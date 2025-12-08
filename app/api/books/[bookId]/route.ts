@@ -50,16 +50,20 @@ export async function DELETE(
     const { bookId } = await params;
     const user = await requireUser();
 
-    const result = await prisma.book.updateMany({
+    const book = await prisma.book.findFirst({
       where: { id: bookId, userId: user.id },
-      data: { isArchived: true },
     });
 
-    if (result.count === 0) {
+    if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true });
+    const archived = await prisma.book.update({
+      where: { id: bookId },
+      data: { isArchived: true, archivedAt: new Date() },
+    });
+
+    return NextResponse.json({ book: archived });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     const status = message.toLowerCase().includes("unauthorized") ? 401 : 500;
