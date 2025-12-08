@@ -1,5 +1,6 @@
-import { fetchLocalJson } from "./http";
 import type { Theme, ThemeNote } from "../App";
+import { fetchLocalJson } from "./http";
+import { gridApi } from "./grid";
 
 export const themesApi = {
   async list(bookId: string): Promise<Theme[]> {
@@ -63,17 +64,28 @@ export const themesApi = {
 
 export const themeNotesApi = {
   async list(bookId: string): Promise<ThemeNote[]> {
-    const { themeNotes } = await fetchLocalJson<{ themeNotes: ThemeNote[] }>(
-      `/api/books/${bookId}/theme-notes`,
-    );
+    const cells = await gridApi.list(bookId);
 
-    return themeNotes || [];
+    return cells.map((cell) => ({
+      chapterId: cell.chapterId,
+      themeId: cell.themeId,
+      note: cell.note ?? "",
+      presence: cell.presence,
+      intensity: cell.intensity,
+      threadRole: cell.threadRole as ThemeNote["threadRole"],
+    }));
   },
 
   async save(bookId: string, note: ThemeNote): Promise<void> {
-    await fetchLocalJson(`/api/books/${bookId}/theme-notes`, {
-      method: "POST",
-      body: JSON.stringify(note),
-    });
+    await gridApi.upsertMany(bookId, [
+      {
+        chapterId: note.chapterId,
+        themeId: note.themeId,
+        note: note.note,
+        presence: note.presence,
+        intensity: note.intensity,
+        threadRole: note.threadRole,
+      },
+    ]);
   },
 };
