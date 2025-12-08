@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { Prisma } from "@prisma/client";
-
 import { prisma } from "@/src/lib/prisma";
 import { requireUser } from "@/src/server/auth/requireUser";
-
-function isMissingGridTable(error: unknown) {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    (error.code === "P2021" || error.code === "P2010")
-  );
-}
 
 async function assertBookAccess(bookId: string, userId: string) {
   return prisma.book.findFirst({ where: { id: bookId, userId } });
@@ -70,13 +61,6 @@ export async function PATCH(
 
     return NextResponse.json({ cell });
   } catch (error) {
-    if (isMissingGridTable(error)) {
-      return NextResponse.json(
-        { error: "Grid table not found. Run Prisma migrations to create it." },
-        { status: 503 },
-      );
-    }
-
     const message = error instanceof Error ? error.message : "Unknown error";
     const status = message.toLowerCase().includes("unauthorized") ? 401 : 500;
 
@@ -116,13 +100,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (isMissingGridTable(error)) {
-      return NextResponse.json(
-        { error: "Grid table not found. Run Prisma migrations to create it." },
-        { status: 503 },
-      );
-    }
-
     const message = error instanceof Error ? error.message : "Unknown error";
     const status = message.toLowerCase().includes("unauthorized") ? 401 : 500;
 
