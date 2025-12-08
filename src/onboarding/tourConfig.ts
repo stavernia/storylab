@@ -31,11 +31,11 @@ export interface TourStep {
   /** Where the app should be (route) */
   route: TourRouteId;
   /** Optional view + layout hints for manuscript route */
-  viewId?: 'editor' | 'outline' | 'corkboard' | 'grid' | 'themes' | 'characters' | 'parts';
+  viewId?: 'manuscript' | 'outline' | 'corkboard' | 'grid' | 'themes' | 'characters' | 'parts';
   paneLayout?: PaneLayoutMode;
   /** Optional explicit left/right views for dual pane step */
-  leftViewId?: 'editor' | 'outline' | 'corkboard' | 'grid' | 'themes' | 'characters' | 'parts';
-  rightViewId?: 'editor' | 'outline' | 'corkboard' | 'grid' | 'themes' | 'characters' | 'parts';
+  leftViewId?: 'manuscript' | 'outline' | 'corkboard' | 'grid' | 'themes' | 'characters' | 'parts';
+  rightViewId?: 'manuscript' | 'outline' | 'corkboard' | 'grid' | 'themes' | 'characters' | 'parts';
   /** Optional: should inspector be open? */
   inspectorOpen?: boolean;
   /** Optional: which chapter index to select (0-based) */
@@ -65,7 +65,7 @@ export const TOUR_STEPS: TourStep[] = [
     body: 'Use the icons on the left to switch views: Manuscript for writing, Outline for summaries, Corkboard for cards, Grid for themes and characters, and Managers for lists of people, themes, and parts.',
     target: 'appRail',
     route: 'manuscript',
-    viewId: 'editor',
+    viewId: 'manuscript',
     paneLayout: 'single',
     manuscriptSelection: 'manuscript',
   },
@@ -75,7 +75,7 @@ export const TOUR_STEPS: TourStep[] = [
     body: 'Your workspace has three main areas: the Chapters list on the left, your writing canvas in the center, and supporting details on the right.',
     target: 'workspace',
     route: 'manuscript',
-    viewId: 'editor',
+    viewId: 'manuscript',
     paneLayout: 'single',
     inspectorOpen: true,
     selectChapterIndex: 0,
@@ -87,7 +87,7 @@ export const TOUR_STEPS: TourStep[] = [
     body: 'The top bar shows where you are: View → Book → Part → Chapter. You can use these breadcrumbs to quickly jump between parts and chapters. Filters live here too and will grow over time.',
     target: 'breadcrumbs',
     route: 'manuscript',
-    viewId: 'editor',
+    viewId: 'manuscript',
     paneLayout: 'single',
     inspectorOpen: false,
     selectChapterIndex: 0,
@@ -107,7 +107,7 @@ export const TOUR_STEPS: TourStep[] = [
     target: 'workspace',
     route: 'manuscript',
     paneLayout: 'dual',
-    leftViewId: 'editor',
+    leftViewId: 'manuscript',
     rightViewId: 'outline',
     selectChapterIndex: 0,
     manuscriptSelection: 'chapter',
