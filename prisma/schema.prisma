@@ -69,6 +69,7 @@ model Book {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   isArchived  Boolean  @default(false)
+  archivedAt  DateTime?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
