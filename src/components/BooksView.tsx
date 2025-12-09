@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Book } from '@/types/book';
-import { LayoutGrid, List, Plus, Calendar, FolderOpen, Settings } from 'lucide-react';
+import { LayoutGrid, List, Plus, Calendar, FolderOpen, Settings, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { BookManageSheet } from './BookManageSheet';
 import { CreateBookDialog } from './CreateBookDialog';
@@ -56,6 +56,13 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
   const handleDeleteBook = (bookId: string) => {
     if (onDeleteBook) {
       onDeleteBook(bookId);
+    }
+  };
+
+  const handleExportBook = (bookId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onExportBook) {
+      onExportBook(bookId);
     }
   };
 
@@ -169,6 +176,17 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                         <FolderOpen className="w-3 h-3" />
                         Open
                       </Button>
+                      {canExportTemplates && (
+                        <Button
+                          onClick={(e) => handleExportBook(book.id, e)}
+                          variant="secondary"
+                          size="sm"
+                          className="flex items-center justify-center gap-2"
+                        >
+                          <Download className="w-3 h-3" />
+                          Export JSON
+                        </Button>
+                      )}
                       <Button
                         onClick={(e) => handleManageBook(book.id, e)}
                         variant="outline"
@@ -202,6 +220,11 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                   <th className="px-4 py-3 text-left text-xs text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
+                  {canExportTemplates && (
+                    <th className="px-4 py-3 text-left text-xs text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
