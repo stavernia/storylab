@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Book } from '@/types/book';
-import { X, Trash2 } from 'lucide-react';
+import { Download, X, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
@@ -15,9 +15,19 @@ interface BookManageSheetProps {
   onClose: () => void;
   onUpdate: (book: Book) => void;
   onDelete: (bookId: string) => void;
+  onExport?: (bookId: string) => void;
+  canExportTemplates?: boolean;
 }
 
-export function BookManageSheet({ book, isOpen, onClose, onUpdate, onDelete }: BookManageSheetProps) {
+export function BookManageSheet({
+  book,
+  isOpen,
+  onClose,
+  onUpdate,
+  onDelete,
+  onExport,
+  canExportTemplates,
+}: BookManageSheetProps) {
   const [title, setTitle] = useState(book.title);
   const [subtitle, setSubtitle] = useState(''); // Placeholder for future
   const [description, setDescription] = useState(book.description || '');
@@ -76,6 +86,12 @@ export function BookManageSheet({ book, isOpen, onClose, onUpdate, onDelete }: B
       toast.error('Failed to archive book');
     } finally {
       setIsArchiving(false);
+    }
+  };
+
+  const handleExport = () => {
+    if (onExport) {
+      onExport(book.id);
     }
   };
 
@@ -157,6 +173,18 @@ export function BookManageSheet({ book, isOpen, onClose, onUpdate, onDelete }: B
 
         {/* Footer */}
         <div className="flex-shrink-0 border-t border-gray-200 p-4 space-y-3 bg-gray-50">
+          {canExportTemplates && (
+            <Button
+              onClick={handleExport}
+              variant="secondary"
+              className="w-full flex items-center justify-center gap-2"
+              disabled={isSaving || isArchiving}
+            >
+              <Download className="w-4 h-4" />
+              Export as template (JSON)
+            </Button>
+          )}
+
           <div className="flex items-center gap-2">
             <Button
               onClick={handleSave}

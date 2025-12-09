@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { createStarterWorkspaceForUser } from "@/server/books/createStarterWorkspace";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -19,6 +20,14 @@ export const authOptions: AuthOptions = {
     signIn: async ({ user }) => {
       if ((user as { disabled?: boolean } | undefined)?.disabled) {
         return "/disabled";
+      }
+
+      if (user?.id) {
+        const exists = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true } });
+
+        if (exists) {
+          await createStarterWorkspaceForUser(prisma, user.id);
+        }
       }
 
       return true;
@@ -49,6 +58,13 @@ export const authOptions: AuthOptions = {
       }
 
       return session;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      if (user?.id) {
+        await createStarterWorkspaceForUser(prisma, user.id);
+      }
     },
   },
 };

@@ -1,35 +1,18 @@
 import type { Chapter, Theme, Character, Part } from "@/App";
-import { booksApi } from "./books";
 import { chaptersApi } from "./chapters";
 import { partsApi } from "./parts";
 import { themesApi } from "./themes";
 import { charactersApi } from "./characters";
-import { fetchLocalJson } from "./http";
 import { listGridCells } from "@/lib/grid";
 
-export async function loadData(bookId?: string): Promise<{
+export async function loadData(bookId: string): Promise<{
   chapters: Chapter[];
   themes: Theme[];
   gridCells: Awaited<ReturnType<typeof listGridCells>>;
   characters: Character[];
   parts: Part[];
 }> {
-  let resolvedBookId = bookId;
-
-  if (!resolvedBookId) {
-    const existingBooks = await booksApi.listAll();
-
-    if (existingBooks.length > 0) {
-      resolvedBookId = existingBooks[0].id;
-    } else {
-      const created = await booksApi.create({ title: "My Book", description: "" });
-      resolvedBookId = created.id;
-    }
-  }
-
-  if (!resolvedBookId) {
-    throw new Error("Unable to resolve book context");
-  }
+  const resolvedBookId = bookId;
 
   const [chapterData, partData, themeData, themeNoteData, characterData] =
     await Promise.all([

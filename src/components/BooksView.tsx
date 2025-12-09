@@ -12,11 +12,13 @@ interface BooksViewProps {
   onCreateBook: (title: string, description: string) => Promise<void>;
   onUpdateBook?: (book: Book) => void;
   onDeleteBook?: (bookId: string) => void;
+  onExportBook?: (bookId: string) => void;
+  canExportTemplates?: boolean;
 }
 
 type ViewMode = 'cards' | 'table';
 
-export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, onUpdateBook, onDeleteBook }: BooksViewProps) {
+export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, onUpdateBook, onDeleteBook, onExportBook, canExportTemplates }: BooksViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [manageBookId, setManageBookId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -231,9 +233,9 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                           </span>
                         )}
                       </td>
-                    </tr>
-                  );
-                })}
+                  </tr>
+                );
+              })}
               </tbody>
             </table>
           </div>
@@ -248,6 +250,8 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
           onClose={handleCloseManage}
           onUpdate={handleUpdateBook}
           onDelete={handleDeleteBook}
+          onExport={onExportBook}
+          canExportTemplates={canExportTemplates}
         />
       )}
 
