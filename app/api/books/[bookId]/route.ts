@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
@@ -35,6 +36,7 @@ export async function PUT(
 
     return NextResponse.json({ book });
   } catch (error) {
+    Sentry.captureException(error);
     const message = error instanceof Error ? error.message : "Unknown error";
     const status = message.toLowerCase().includes("unauthorized") ? 401 : 500;
 
@@ -65,6 +67,7 @@ export async function DELETE(
 
     return NextResponse.json({ book: archived });
   } catch (error) {
+    Sentry.captureException(error);
     const message = error instanceof Error ? error.message : "Unknown error";
     const status = message.toLowerCase().includes("unauthorized") ? 401 : 500;
 
