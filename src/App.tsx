@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -2016,6 +2017,7 @@ export default function App() {
 function ProfileMenu() {
   const { data } = useSession();
   const user = data?.user;
+  const isAdmin = user?.role === "ADMIN";
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -2082,12 +2084,22 @@ function ProfileMenu() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => signOut()}
-                className="w-full rounded-lg bg-slate-800 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition"
-              >
-                Sign out
-              </button>
+              <div className="space-y-2">
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="w-full rounded-lg bg-slate-800 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition inline-flex items-center justify-center"
+                  >
+                    Admin
+                  </Link>
+                )}
+                <button
+                  onClick={() => signOut()}
+                  className="w-full rounded-lg bg-slate-800 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition"
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -1,18 +1,10 @@
 // Minimal admin dashboard for managing StoryLab users.
-import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/server/auth/requireUser";
 
 import { UserTable } from "./UserTable";
 
 export default async function AdminUsersPage() {
-  try {
-    await requireAdmin();
-  } catch (error) {
-    redirect("/app");
-  }
-
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -26,7 +18,7 @@ export default async function AdminUsersPage() {
   });
 
   return (
-    <div className="px-6 py-8 space-y-6">
+    <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold text-slate-900">User administration</h1>
         <p className="text-slate-600">Review workspace members, toggle access, and grant admin privileges.</p>
