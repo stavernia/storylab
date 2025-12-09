@@ -11,7 +11,7 @@ type OutlineViewProps = {
   selection: ManuscriptSelection; // Add selection prop
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
-  addChapter: (title?: string) => string;
+  addChapter: (title?: string) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
   updateChapter: (id: string, content: string) => void;

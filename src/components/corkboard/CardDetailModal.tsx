@@ -30,18 +30,18 @@ export function CardDetailModal({ card, chapters, onClose, onSave }: CardDetailM
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [chapterId, setChapterId] = useState<string | undefined>(undefined);
-  const [status, setStatus] = useState<'idea' | 'draft' | 'done' | undefined>(undefined);
-  const [color, setColor] = useState<'blue' | 'amber' | 'gray' | 'green' | 'purple' | 'red' | undefined>(undefined);
+  const [status, setStatus] = useState<string | undefined>(undefined);
+  const [color, setColor] = useState<string | undefined>(undefined);
   const [wordEstimate, setWordEstimate] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (card) {
       setTitle(card.title);
       setSummary(card.summary || '');
-      setChapterId(card.chapterId);
-      setStatus(card.status);
-      setColor(card.color);
-      setWordEstimate(card.wordEstimate);
+      setChapterId(card.chapterId ?? undefined);
+      setStatus(card.status ?? undefined);
+      setColor(card.color ?? undefined);
+      setWordEstimate(card.wordEstimate ?? undefined);
     }
   }, [card]);
 

@@ -1,15 +1,23 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
-import { Search, Plus, LayoutGrid, LayoutList, ChevronLeft, ChevronRight, BookOpenText } from 'lucide-react';
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import {
+  Search,
+  Plus,
+  LayoutGrid,
+  LayoutList,
+  ChevronLeft,
+  ChevronRight,
+  BookOpenText,
+} from "lucide-react";
 import { manuscriptApi } from "./api/manuscript";
 import { booksApi } from "./api/books";
-import type { Book } from './types/book';
-import * as partService from './services/part';
-import { seedTags } from './utils/seed-tags';
-import { getOrderedChapters } from './utils/chapter-ordering';
+import type { Book } from "./types/book";
+import * as partService from "./services/part";
+import { seedTags } from "./utils/seed-tags";
+import { getOrderedChapters } from "./utils/chapter-ordering";
 import {
   gridCellHasContent,
   listGridCells,
@@ -18,37 +26,50 @@ import {
   type GridCell,
   type GridKey,
 } from "@/lib/grid";
-import { EditorView } from './components/EditorView';
-import { GridView } from './components/GridView';
-import { OutlineView } from './components/OutlineView';
-import { Corkboard } from './components/corkboard/Corkboard';
-import { ThemeManager } from './components/ThemeManager';
-import { CharacterManager } from './components/CharacterManager';
-import { BooksView } from './components/BooksView';
-import { PartsView } from './components/PartsView';
-import { SettingsOverlay } from './components/SettingsOverlay';
-import { Pane } from './components/layout/Pane';
-import { StatusBar } from './components/layout/StatusBar';
-import { ToolRail } from './components/layout/ToolRail';
-import { InspectorSidebar } from './components/layout/InspectorSidebar';
-import { SearchAndFilterOverlay } from './components/layout/SearchAndFilterOverlay';
-import { SideTab } from './components/layout/SideTab';
-import { BinderWrapper } from './components/shared/BinderWrapper';
-import { TagFilterProvider, useTagFilter } from './contexts/TagFilterContext';
-import { FilterProvider, useFilters } from './contexts/FilterContext';
-import { InspectorProvider, useInspector } from './contexts/InspectorContext';
-import { ChapterNumberingProvider } from './contexts/ChapterNumberingContext';
-import { OnboardingTourProvider, useOnboardingTour } from './onboarding/OnboardingTourContext';
-import { OnboardingTourOverlay } from './onboarding/OnboardingTourOverlay';
-import type { TourStep } from './onboarding/tourConfig';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './components/ui/tooltip';
-import { Toaster } from './components/ui/sonner';
-import { User as UserIcon, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
+import { EditorView } from "./components/EditorView";
+import { GridView } from "./components/GridView";
+import { OutlineView } from "./components/OutlineView";
+import { Corkboard } from "./components/corkboard/Corkboard";
+import { ThemeManager } from "./components/ThemeManager";
+import { CharacterManager } from "./components/CharacterManager";
+import { BooksView } from "./components/BooksView";
+import { PartsView } from "./components/PartsView";
+import { SettingsOverlay } from "./components/SettingsOverlay";
+import { Pane } from "./components/layout/Pane";
+import { StatusBar } from "./components/layout/StatusBar";
+import { ToolRail } from "./components/layout/ToolRail";
+import { InspectorSidebar } from "./components/layout/InspectorSidebar";
+import { SearchAndFilterOverlay } from "./components/layout/SearchAndFilterOverlay";
+import { SideTab } from "./components/layout/SideTab";
+import { BinderWrapper } from "./components/shared/BinderWrapper";
+import { TagFilterProvider, useTagFilter } from "./contexts/TagFilterContext";
+import { FilterProvider, useFilters } from "./contexts/FilterContext";
+import { InspectorProvider, useInspector } from "./contexts/InspectorContext";
+import { ChapterNumberingProvider } from "./contexts/ChapterNumberingContext";
+import {
+  OnboardingTourProvider,
+  useOnboardingTour,
+} from "./onboarding/OnboardingTourContext";
+import { OnboardingTourOverlay } from "./onboarding/OnboardingTourOverlay";
+import type { TourStep } from "./onboarding/tourConfig";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "./components/ui/tooltip";
+import { Toaster } from "./components/ui/sonner";
+import {
+  User as UserIcon,
+  Settings as SettingsIcon,
+  MessageSquare,
+} from "lucide-react";
 const StoryLabLogo = "/storylab-logo.png";
-import { APP_VIEWS, type AppViewId, type PaneId } from './config/views';
-import { EditorProjectInfoPanel } from './components/info-panels/EditorProjectInfoPanel';
-import { FeedbackModal } from './components/FeedbackModal';
-import { APP_STAGE, APP_VERSION } from '@/lib/appMeta';
+import { APP_VIEWS, type AppViewId } from "./config/views";
+import { EditorProjectInfoPanel } from "./components/info-panels/EditorProjectInfoPanel";
+import { FeedbackModal } from "./components/FeedbackModal";
+import { APP_STAGE, APP_VERSION } from "@/lib/appMeta";
+import type { PaneId } from "./contexts/PaneContext";
 
 // NEW: Multi-book support - Book type is now imported from ./types/book
 export type Part = {
@@ -64,8 +85,9 @@ export type Chapter = {
   bookId: string; // NEW: Multi-book support
   title: string;
   content: string;
-  lastEdited?: Date;
+  lastEdited?: Date | string;
   wordCount?: number;
+  wordQuota?: number;
   sortOrder?: number;
   partId?: string | null; // NEW: Parts v1 - reference to Part
   // NEW: Outliner Enhancement Pack - Goal/Conflict/Stakes metadata
@@ -80,9 +102,9 @@ export type Chapter = {
   customOutlineFields?: Record<string, string>;
 };
 
-export type ThreadRole = 'none' | 'seed' | 'buildup' | 'event' | 'aftermath';
-export type ThemeSource = 'theme' | 'character' | 'custom' | 'thread';
-export type ThemeMode = 'presence' | 'heatmap' | 'thread';
+export type ThreadRole = "none" | "seed" | "buildup" | "event" | "aftermath";
+export type ThemeSource = "theme" | "character" | "custom" | "thread";
+export type ThemeMode = "presence" | "heatmap" | "thread";
 
 export type Theme = {
   id: string;
@@ -90,18 +112,18 @@ export type Theme = {
   name: string;
   color: string;
   // NEW: Grid 2.0 fields
-  kind?: 'tracker' | 'info';
+  kind?: "tracker" | "info";
   source?: ThemeSource;
   mode?: ThemeMode;
   sourceRefId?: string | null;
   // NEW: Grid Enhancement Pack - Row Metadata
-  description?: string;   // What this row tracks conceptually
-  notes?: string;         // General notes about this tracker row
-  aiGuide?: string;       // Instructions for future AI analysis
+  description?: string; // What this row tracks conceptually
+  notes?: string; // General notes about this tracker row
+  aiGuide?: string; // Instructions for future AI analysis
   rowOrder?: number | null; // Row position in the Grid (for sorting)
-  isHidden?: boolean;       // Optional persistent hide flag
+  isHidden?: boolean; // Optional persistent hide flag
   // NEW: Thread Lines v1
-  threadLabel?: string;     // Optional label for thread (e.g., "Job loss → starting over")
+  threadLabel?: string; // Optional label for thread (e.g., "Job loss → starting over")
 };
 
 export type Character = {
@@ -111,6 +133,8 @@ export type Character = {
   color: string;
   role?: string;
   notes?: string;
+  motivation?: string;
+  backstory?: string;
 };
 
 // NEW: Dual Pane v1 - Pane state
@@ -122,59 +146,77 @@ type PaneState = {
 
 // NEW: Centralized Selection - Selection types for binder/breadcrumbs
 export type ManuscriptSelection =
-  | { kind: 'manuscript' }
-  | { kind: 'part'; partId: string }
-  | { kind: 'chapter'; chapterId: string };
+  | { kind: "manuscript" }
+  | { kind: "part"; partId: string }
+  | { kind: "chapter"; chapterId: string };
 
 function AppContent() {
   // NEW: Onboarding Tour
-  const { isOpen: tourIsOpen, currentStep: tourCurrentStep } = useOnboardingTour();
-  
+  const { isOpen: tourIsOpen, currentStep: tourCurrentStep } =
+    useOnboardingTour();
+
   // NEW: Multi-book support - Books state
   const [books, setBooks] = useState<Book[]>([]);
   const [currentBookId, setCurrentBookId] = useState<string | null>(null);
   const [currentBook, setCurrentBook] = useState<Book | null>(null);
-  
+
   // NEW: Dual Pane v1 - Replace single view state with pane state
   const [panes, setPanes] = useState<PaneState[]>([
-    { id: 'primary', activeViewId: 'books', selectedChapterId: '' }, // NEW: Start with books view
+    { id: "primary", activeViewId: "books", selectedChapterId: "" }, // NEW: Start with books view
   ]);
-  
+
   // NEW: Unified Search/Filter - Track active pane for filters
-  const [activePaneId, setActivePaneId] = useState<PaneId>('primary');
+  const [activePaneId, setActivePaneId] = useState<PaneId>("primary");
 
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
-  const [gridCellsByKey, setGridCellsByKey] = useState<Record<GridKey, GridCell>>({});
+  const [gridCellsByKey, setGridCellsByKey] = useState<
+    Record<GridKey, GridCell>
+  >({});
   const [characters, setCharacters] = useState<Character[]>([]);
   const [parts, setParts] = useState<Part[]>([]); // NEW: Parts v1
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingBookData, setIsLoadingBookData] = useState(false); // NEW: Loading state for book switching
-  
+
   // NEW: UI Cohesion - View-specific state for Context Bar controls
-  const [corkboardDisplayMode, setCorkboardDisplayMode] = useState<'cards' | 'list'>('cards');
-  const [corkboardSearchQuery, setCorkboardSearchQuery] = useState('');
-  const [charactersDisplayMode, setCharactersDisplayMode] = useState<'cards' | 'list'>('cards');
-  const [charactersSearchQuery, setCharactersSearchQuery] = useState('');
-  const [themesDisplayMode, setThemesDisplayMode] = useState<'cards' | 'list'>('cards');
-  const [themesSearchQuery, setThemesSearchQuery] = useState('');
+  const [corkboardDisplayMode, setCorkboardDisplayMode] = useState<
+    "cards" | "list"
+  >("cards");
+  const [corkboardSearchQuery, setCorkboardSearchQuery] = useState("");
+  const [charactersDisplayMode, setCharactersDisplayMode] = useState<
+    "cards" | "list"
+  >("cards");
+  const [charactersSearchQuery, setCharactersSearchQuery] = useState("");
+  const [themesDisplayMode, setThemesDisplayMode] = useState<"cards" | "list">(
+    "cards",
+  );
+  const [themesSearchQuery, setThemesSearchQuery] = useState("");
   const [gridShowAddThemeDialog, setGridShowAddThemeDialog] = useState(false);
-  const [gridShowAddChapterDialog, setGridShowAddChapterDialog] = useState(false);
-  const [themeManagerShowAddDialog, setThemeManagerShowAddDialog] = useState(false);
-  const [characterManagerShowAddDialog, setCharacterManagerShowAddDialog] = useState(false);
+  const [gridShowAddChapterDialog, setGridShowAddChapterDialog] =
+    useState(false);
+  const [themeManagerShowAddDialog, setThemeManagerShowAddDialog] =
+    useState(false);
+  const [characterManagerShowAddDialog, setCharacterManagerShowAddDialog] =
+    useState(false);
   const [partsViewShowAddDialog, setPartsViewShowAddDialog] = useState(false);
   // Settings overlay state
   const [settingsOverlayOpen, setSettingsOverlayOpen] = useState(false);
   // Feedback modal state
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   // Phase 3: Grid Cleanup - Column Size Control
-  type GridColumnSize = 'minimal' | 'compact' | 'full';
-  const [gridColumnSize, setGridColumnSize] = useState<GridColumnSize>('compact');
+  type GridColumnSize = "minimal" | "compact" | "full";
+  const [gridColumnSize, setGridColumnSize] =
+    useState<GridColumnSize>("compact");
   // Left sidebar state
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-  
+
   const [breadcrumbData, setBreadcrumbData] = useState<
-    Record<PaneId, import("./components/layout/Pane").BreadcrumbData | undefined>
+    Partial<
+      Record<
+        PaneId,
+        import("./components/layout/Pane").BreadcrumbData | undefined
+      >
+    >
   >({});
   const breadcrumbSetters = useMemo(
     () => ({
@@ -185,10 +227,12 @@ function AppContent() {
     }),
     [],
   );
-  
+
   // NEW: Centralized Selection - Selection state per pane
-  const [paneSelections, setPaneSelections] = useState<Record<PaneId, ManuscriptSelection>>({
-    primary: { kind: 'manuscript' }
+  const [paneSelections, setPaneSelections] = useState<
+    Partial<Record<PaneId, ManuscriptSelection>>
+  >({
+    primary: { kind: "manuscript" },
   });
 
   // Track which manuscripts have been loaded via the API
@@ -196,55 +240,68 @@ function AppContent() {
 
   const applyGridCells = (bookId: string, cells: GridCell[]) => {
     setGridCellsByKey(
-      cells.reduce((acc, cell) => {
-        const key = makeGridKey(bookId, cell.chapterId, cell.themeId);
-        acc[key] = cell;
-        return acc;
-      }, {} as Record<GridKey, GridCell>),
+      cells.reduce(
+        (acc, cell) => {
+          const key = makeGridKey(bookId, cell.chapterId, cell.themeId);
+          acc[key] = cell;
+          return acc;
+        },
+        {} as Record<GridKey, GridCell>,
+      ),
     );
   };
-  
+
   // Helper to update selection for a pane
-  const setSelectionForPane = (paneId: PaneId, selection: ManuscriptSelection) => {
-    setPaneSelections(prev => ({ ...prev, [paneId]: selection }));
+  const setSelectionForPane = (
+    paneId: PaneId,
+    selection: ManuscriptSelection,
+  ) => {
+    setPaneSelections((prev) => ({ ...prev, [paneId]: selection }));
   };
 
   // Tag filter state
   const tagFilter = useTagFilter();
-  
+
   // NEW: Unified Search/Filter
   const { openOverlay } = useFilters();
-  
+
   // NEW: Inspector context
   const { openInspector, closeInspector } = useInspector();
-  
+
   // Handler to open inspector for a chapter
   const handleChapterInfoClick = (chapter: Chapter) => {
     // Phase 1.5: Use NEW structured data API
     // Filter parts by current book
-    const currentBookParts = currentBookId ? parts.filter(p => p.bookId === currentBookId) : [];
-    
-    openInspector({
-      type: 'chapter',
-      id: chapter.id,
-      data: {
-        chapter: chapter,
-        tags: [], // Tags will be loaded by the inspector component
-        parts: currentBookParts || [],
-        updateChapterTitle: updateChapterTitle,
-        deleteChapter: deleteChapter,
-      }
-    }, 'inspector');
+    const currentBookParts = currentBookId
+      ? parts.filter((p) => p.bookId === currentBookId)
+      : [];
+
+    openInspector(
+      {
+        type: "chapter",
+        id: chapter.id,
+        data: {
+          chapter: chapter,
+          tags: [], // Tags will be loaded by the inspector component
+          parts: currentBookParts || [],
+          updateChapterTitle: updateChapterTitle,
+          deleteChapter: deleteChapter,
+        },
+      },
+      "inspector",
+    );
   };
 
   // Handler to open inspector for full manuscript project info
   const handleManuscriptInfoClick = () => {
     // Filter chapters by current book
-    const currentBookChapters = currentBookId ? chapters.filter(ch => ch.bookId === currentBookId) : [];
-    
+    const currentBookChapters = currentBookId
+      ? chapters.filter((ch) => ch.bookId === currentBookId)
+      : [];
+
     openInspector({
-      title: 'Manuscript Overview',
-      subtitle: 'Project-wide stats',
+      title: "Manuscript Overview",
+      subtitle: "Project-wide stats",
       icon: <BookOpenText className="w-4 h-4" />,
       content: <EditorProjectInfoPanel chapters={currentBookChapters} />,
     });
@@ -252,26 +309,29 @@ function AppContent() {
 
   // Handler to open inspector for a part
   const handlePartInfoClick = (part: Part) => {
-    openInspector({
-      type: 'part',
-      id: part.id,
-      data: {
-        part: part,
-        updatePartName: updatePartName,
-        deletePart: deletePart,
-      }
-    }, 'inspector');
+    openInspector(
+      {
+        type: "part",
+        id: part.id,
+        data: {
+          part: part,
+          updatePartName: updatePartName,
+          deletePart: deletePart,
+        },
+      },
+      "inspector",
+    );
   };
 
   // Seed tags on first load
   useEffect(() => {
     seedTags();
   }, []);
-  
+
   // NEW: Multi-book support - Update currentBook when currentBookId changes
   useEffect(() => {
     if (currentBookId) {
-      const book = books.find(b => b.id === currentBookId);
+      const book = books.find((b) => b.id === currentBookId);
       setCurrentBook(book || null);
     } else {
       setCurrentBook(null);
@@ -284,39 +344,45 @@ function AppContent() {
       try {
         // NEW: Multi-book support - Load books first
         const loadedBooks = await booksApi.listAll();
-        console.log('Loaded books:', loadedBooks);
+        console.log("Loaded books:", loadedBooks);
         setBooks(loadedBooks);
-        
+
         // Auto-select book based on count
         if (loadedBooks.length === 1) {
           // Single book: auto-select and load its data
           const book = loadedBooks[0];
           setCurrentBookId(book.id);
-          
+
           // Switch to editor view
-          setPanes(prev => prev.map(p => 
-            p.id === 'primary' ? { ...p, activeViewId: 'manuscript' } : p
-          ));
-          
+          setPanes((prev) =>
+            prev.map((p) =>
+              p.id === "primary" ? { ...p, activeViewId: "manuscript" } : p,
+            ),
+          );
+
           // Load book data
           const data = await manuscriptApi.loadData(book.id);
-          console.log('Loaded data from backend:', data);
-          
+          console.log("Loaded data from backend:", data);
+
           setChapters(data.chapters);
           setThemes(data.themes);
           setCharacters(data.characters || []);
           applyGridCells(book.id, data.gridCells);
           setParts(data.parts || []);
-          
+
           // Initialize primary pane with first chapter
-          setPanes(prev => prev.map(p => 
-            p.id === 'primary' ? { ...p, selectedChapterId: data.chapters[0]?.id || '' } : p
-          ));
+          setPanes((prev) =>
+            prev.map((p) =>
+              p.id === "primary"
+                ? { ...p, selectedChapterId: data.chapters[0]?.id || "" }
+                : p,
+            ),
+          );
         } else if (loadedBooks.length === 0) {
           // No books: default book will be created by backend, then load
           const data = await manuscriptApi.loadData(); // This will trigger default book creation
-          console.log('Loaded data (created default book):', data);
-          
+          console.log("Loaded data (created default book):", data);
+
           // Reload books to get the default book
           const reloadedBooks = await booksApi.listAll();
           setBooks(reloadedBooks);
@@ -324,13 +390,15 @@ function AppContent() {
           if (reloadedBooks.length > 0) {
             const book = reloadedBooks[0];
             setCurrentBookId(book.id);
-            
+
             // Switch to editor view
-            setPanes(prev => prev.map(p => 
-              p.id === 'primary' ? { ...p, activeViewId: 'manuscript' } : p
-            ));
+            setPanes((prev) =>
+              prev.map((p) =>
+                p.id === "primary" ? { ...p, activeViewId: "manuscript" } : p,
+              ),
+            );
           }
-          
+
           setChapters(data.chapters);
           setThemes(data.themes);
           setCharacters(data.characters || []);
@@ -338,47 +406,55 @@ function AppContent() {
             applyGridCells(reloadedBooks[0].id, data.gridCells);
           }
           setParts(data.parts || []);
-          
+
           // Initialize primary pane with first chapter
-          setPanes(prev => prev.map(p => 
-            p.id === 'primary' ? { ...p, selectedChapterId: data.chapters[0]?.id || '' } : p
-          ));
+          setPanes((prev) =>
+            prev.map((p) =>
+              p.id === "primary"
+                ? { ...p, selectedChapterId: data.chapters[0]?.id || "" }
+                : p,
+            ),
+          );
         } else {
           // Multiple books: stay on books view (already default)
           // User will select a book manually
         }
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error("Error loading data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     loadInitialData();
   }, []);
 
   const updateChapter = async (id: string, content: string) => {
-    const chapter = chapters.find(ch => ch.id === id);
+    const chapter = chapters.find((ch) => ch.id === id);
     if (!chapter) {
-      console.error('Cannot update chapter: chapter not found');
+      console.error("Cannot update chapter: chapter not found");
       return;
     }
 
     const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
     const lastEdited = new Date();
-    setChapters(chapters.map(ch =>
-      ch.id === id
-        ? { ...ch, content, wordCount, lastEdited }
-        : ch
-    ));
+    setChapters(
+      chapters.map((ch) =>
+        ch.id === id ? { ...ch, content, wordCount, lastEdited } : ch,
+      ),
+    );
 
     try {
-      console.log('Updating chapter:', id, 'Word count:', wordCount);
-      const manuscript = await manuscriptApi.saveManuscript(chapter.bookId, id, {
-        content,
-        wordCount,
-        lastEdited,
-      });
+      console.log("Updating chapter:", id, "Word count:", wordCount);
+      const manuscript = await manuscriptApi.saveManuscript(
+        chapter.bookId,
+        id,
+        {
+          content,
+          wordCount,
+          lastEdited,
+        },
+      );
 
       setChapters((prev) =>
         prev.map((ch) =>
@@ -395,49 +471,51 @@ function AppContent() {
         ),
       );
     } catch (error) {
-      console.error('Error updating chapter:', error);
+      console.error("Error updating chapter:", error);
     }
   };
 
   const addChapter = async (title?: string) => {
     if (!currentBookId) {
-      console.error('Cannot add chapter: no book selected');
-      return '';
+      console.error("Cannot add chapter: no book selected");
+      return "";
     }
-    
+
     const tempId = String(Date.now());
     const newChapter: Chapter = {
       id: tempId,
       bookId: currentBookId,
       title: title || `Chapter ${bookChapters.length + 1}`,
-      content: '',
-      wordCount: 0
+      content: "",
+      wordCount: 0,
     };
     setChapters([...chapters, newChapter]);
-    
+
     try {
       const saved = await manuscriptApi.saveChapter(newChapter);
       setChapters((prev) =>
-        prev.map((ch) => (ch.id === tempId ? { ...saved, bookId: currentBookId } : ch)),
+        prev.map((ch) =>
+          ch.id === tempId ? { ...saved, bookId: currentBookId } : ch,
+        ),
       );
       return saved.id;
     } catch (error) {
-      console.error('Error adding chapter:', error);
+      console.error("Error adding chapter:", error);
       // Remove optimistic chapter on failure
       setChapters((prev) => prev.filter((ch) => ch.id !== tempId));
     }
-    
-    return '';
+
+    return "";
   };
 
   const deleteChapter = async (id: string) => {
-    const chapter = chapters.find(ch => ch.id === id);
+    const chapter = chapters.find((ch) => ch.id === id);
     if (!chapter) {
-      console.error('Cannot delete chapter: chapter not found');
+      console.error("Cannot delete chapter: chapter not found");
       return;
     }
 
-    setChapters(chapters.filter(ch => ch.id !== id));
+    setChapters(chapters.filter((ch) => ch.id !== id));
     setGridCellsByKey((prev) => {
       const next = { ...prev } as Record<GridKey, GridCell>;
 
@@ -451,46 +529,51 @@ function AppContent() {
     });
 
     try {
-      console.log('Deleting chapter:', id);
+      console.log("Deleting chapter:", id);
       await manuscriptApi.deleteChapter(chapter.bookId, id);
     } catch (error) {
-      console.error('Error deleting chapter:', error);
+      console.error("Error deleting chapter:", error);
     }
   };
 
   const updateChapterTitle = async (id: string, title: string) => {
-    const chapter = chapters.find(ch => ch.id === id);
+    const chapter = chapters.find((ch) => ch.id === id);
     if (!chapter) {
-      console.error('Cannot update chapter title: chapter not found');
+      console.error("Cannot update chapter title: chapter not found");
       return;
     }
 
-    setChapters(chapters.map(ch => ch.id === id ? { ...ch, title } : ch));
+    setChapters(chapters.map((ch) => (ch.id === id ? { ...ch, title } : ch)));
 
     try {
-      console.log('Updating chapter title:', id, title);
+      console.log("Updating chapter title:", id, title);
       await manuscriptApi.updateChapter(chapter.bookId, id, { title });
     } catch (error) {
-      console.error('Error updating chapter title:', error);
+      console.error("Error updating chapter title:", error);
     }
   };
 
-  const updateChapterDetails = async (id: string, updates: Partial<Chapter>) => {
-    const chapter = chapters.find(ch => ch.id === id);
+  const updateChapterDetails = async (
+    id: string,
+    updates: Partial<Chapter>,
+  ) => {
+    const chapter = chapters.find((ch) => ch.id === id);
     if (!chapter) {
-      console.error('Cannot update chapter details: chapter not found');
+      console.error("Cannot update chapter details: chapter not found");
       return;
     }
 
     // CRITICAL: Never allow bookId to be overwritten
     const { bookId: _bookId, ...safeUpdates } = updates;
-    setChapters(chapters.map(ch => ch.id === id ? { ...ch, ...safeUpdates } : ch));
+    setChapters(
+      chapters.map((ch) => (ch.id === id ? { ...ch, ...safeUpdates } : ch)),
+    );
 
     try {
-      console.log('Updating chapter details:', id, safeUpdates);
+      console.log("Updating chapter details:", id, safeUpdates);
       await manuscriptApi.updateChapter(chapter.bookId, id, safeUpdates);
     } catch (error) {
-      console.error('Error updating chapter details:', error);
+      console.error("Error updating chapter details:", error);
     }
   };
 
@@ -498,11 +581,11 @@ function AppContent() {
     // Update sortOrder for all chapters
     const chaptersWithOrder = reorderedChapters.map((ch, index) => ({
       ...ch,
-      sortOrder: index
+      sortOrder: index,
     }));
-    
+
     setChapters(chaptersWithOrder);
-    
+
     try {
       // Save all chapter orders AND partId (in case chapters moved between parts)
       await Promise.all(
@@ -514,20 +597,20 @@ function AppContent() {
         ),
       );
     } catch (error) {
-      console.error('Error reordering chapters:', error);
+      console.error("Error reordering chapters:", error);
     }
   };
 
   // NEW: Handler for drag-and-drop reordering from ChapterList
   const handleReorderChapters = async (orderedIds: string[]) => {
     // Reorder the chapters array based on the orderedIds
-    const idToChapter = new Map(chapters.map(ch => [ch.id, ch]));
+    const idToChapter = new Map(chapters.map((ch) => [ch.id, ch]));
     const reordered = orderedIds
-      .map(id => idToChapter.get(id))
+      .map((id) => idToChapter.get(id))
       .filter((ch): ch is Chapter => !!ch);
 
     // Append any chapters that weren't in orderedIds (just in case)
-    const remaining = chapters.filter(ch => !orderedIds.includes(ch.id));
+    const remaining = chapters.filter((ch) => !orderedIds.includes(ch.id));
     const final = [...reordered, ...remaining];
 
     // Call existing reorderChapters function
@@ -535,17 +618,17 @@ function AppContent() {
   };
 
   // NEW: Multi-book support - Filter chapters and parts by current book
-  const bookChapters = currentBookId 
-    ? chapters.filter(ch => ch.bookId === currentBookId)
+  const bookChapters = currentBookId
+    ? chapters.filter((ch) => ch.bookId === currentBookId)
     : [];
   const bookParts = currentBookId
-    ? parts.filter(p => p.bookId === currentBookId)
+    ? parts.filter((p) => p.bookId === currentBookId)
     : [];
   const bookThemes = currentBookId
-    ? themes.filter(t => t.bookId === currentBookId)
+    ? themes.filter((t) => t.bookId === currentBookId)
     : [];
   const bookCharacters = currentBookId
-    ? characters.filter(c => c.bookId === currentBookId)
+    ? characters.filter((c) => c.bookId === currentBookId)
     : [];
 
   // Sort chapters by sortOrder
@@ -560,52 +643,59 @@ function AppContent() {
 
   const addTheme = async (name?: string): Promise<Theme> => {
     if (!currentBookId) {
-      console.error('Cannot add theme: no book selected');
-      throw new Error('No book selected');
+      console.error("Cannot add theme: no book selected");
+      throw new Error("No book selected");
     }
 
-    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#ef4444'];
+    const colors = [
+      "#3b82f6",
+      "#8b5cf6",
+      "#ec4899",
+      "#10b981",
+      "#f59e0b",
+      "#ef4444",
+    ];
     const newTheme: Theme = {
       id: String(Date.now()),
       bookId: currentBookId,
       name: name || `Theme ${bookThemes.length + 1}`,
-      color: colors[bookThemes.length % colors.length]
+      color: colors[bookThemes.length % colors.length],
     };
 
     try {
-      console.log('Adding new theme:', newTheme);
+      console.log("Adding new theme:", newTheme);
       const created = await manuscriptApi.saveTheme(newTheme);
-      setThemes(prevThemes => [...prevThemes, created]);
+      setThemes((prevThemes) => [...prevThemes, created]);
       return created;
     } catch (error) {
-      console.error('Error adding theme:', error);
+      console.error("Error adding theme:", error);
       throw error;
     }
   };
 
   const updateTheme = async (id: string, name: string) => {
     if (!currentBookId) {
-      console.error('Cannot update theme: no book selected');
+      console.error("Cannot update theme: no book selected");
       return;
     }
 
-    setThemes(themes.map(t => t.id === id ? { ...t, name } : t));
+    setThemes(themes.map((t) => (t.id === id ? { ...t, name } : t)));
 
     try {
-      console.log('Updating theme:', id, name);
+      console.log("Updating theme:", id, name);
       await manuscriptApi.updateTheme(currentBookId, id, { name });
     } catch (error) {
-      console.error('Error updating theme:', error);
+      console.error("Error updating theme:", error);
     }
   };
 
   const deleteTheme = async (id: string) => {
     if (!currentBookId) {
-      console.error('Cannot delete theme: no book selected');
+      console.error("Cannot delete theme: no book selected");
       return;
     }
 
-    setThemes(themes.filter(t => t.id !== id));
+    setThemes(themes.filter((t) => t.id !== id));
     setGridCellsByKey((prev) => {
       const next = { ...prev } as Record<GridKey, GridCell>;
 
@@ -619,17 +709,19 @@ function AppContent() {
     });
 
     try {
-      console.log('Deleting theme:', id);
+      console.log("Deleting theme:", id);
       await manuscriptApi.deleteTheme(currentBookId, id);
     } catch (error) {
-      console.error('Error deleting theme:', error);
+      console.error("Error deleting theme:", error);
     }
   };
 
   const updateGridCell = async (
     chapterId: string,
     themeId: string,
-    changes: Partial<Pick<GridCell, "note" | "presence" | "intensity" | "threadRole">>,
+    changes: Partial<
+      Pick<GridCell, "note" | "presence" | "intensity" | "threadRole">
+    >,
   ) => {
     if (!currentBookId) {
       console.error("No book selected");
@@ -691,11 +783,18 @@ function AppContent() {
   // Character CRUD functions
   const addCharacter = async (values?: Partial<Character>) => {
     if (!currentBookId) {
-      console.error('Cannot add character: no book selected');
-      return '';
+      console.error("Cannot add character: no book selected");
+      return "";
     }
-    
-    const colors = ['#3B82F6', '#EC4899', '#F97316', '#10B981', '#8B5CF6', '#EF4444'];
+
+    const colors = [
+      "#3B82F6",
+      "#EC4899",
+      "#F97316",
+      "#10B981",
+      "#8B5CF6",
+      "#EF4444",
+    ];
     const newCharacter: Character = {
       id: String(Date.now()),
       bookId: currentBookId,
@@ -707,10 +806,10 @@ function AppContent() {
     setCharacters([...characters, newCharacter]);
 
     try {
-      console.log('Adding new character:', newCharacter);
+      console.log("Adding new character:", newCharacter);
       await manuscriptApi.saveCharacter(newCharacter);
     } catch (error) {
-      console.error('Error adding character:', error);
+      console.error("Error adding character:", error);
     }
 
     return newCharacter.id;
@@ -719,33 +818,38 @@ function AppContent() {
   const updateCharacter = async (id: string, values: Partial<Character>) => {
     // CRITICAL: Never allow bookId to be overwritten
     const { bookId: _bookId, ...safeValues } = values;
-    setCharacters(characters.map(c => c.id === id ? { ...c, ...safeValues } : c));
+    setCharacters(
+      characters.map((c) => (c.id === id ? { ...c, ...safeValues } : c)),
+    );
 
     try {
-      console.log('Updating character:', id, safeValues);
+      console.log("Updating character:", id, safeValues);
       // Need to get the existing character to preserve bookId
-      const existing = characters.find(c => c.id === id);
+      const existing = characters.find((c) => c.id === id);
       if (existing) {
-        await manuscriptApi.saveCharacter({ ...existing, ...safeValues } as Character);
+        await manuscriptApi.saveCharacter({
+          ...existing,
+          ...safeValues,
+        } as Character);
       }
     } catch (error) {
-      console.error('Error updating character:', error);
+      console.error("Error updating character:", error);
     }
   };
 
   const deleteCharacter = async (id: string) => {
     if (!currentBookId) {
-      console.error('Cannot delete character: no book selected');
+      console.error("Cannot delete character: no book selected");
       return;
     }
 
-    setCharacters(characters.filter(c => c.id !== id));
+    setCharacters(characters.filter((c) => c.id !== id));
 
     try {
-      console.log('Deleting character:', id);
+      console.log("Deleting character:", id);
       await manuscriptApi.deleteCharacter(currentBookId, id);
     } catch (error) {
-      console.error('Error deleting character:', error);
+      console.error("Error deleting character:", error);
     }
   };
 
@@ -753,130 +857,147 @@ function AppContent() {
   const updateThemeDetails = async (id: string, values: Partial<Theme>) => {
     // CRITICAL: Never allow bookId to be overwritten
     const { bookId: _bookId, ...safeValues } = values;
-    setThemes(themes.map(t => t.id === id ? { ...t, ...safeValues } : t));
+    setThemes(themes.map((t) => (t.id === id ? { ...t, ...safeValues } : t)));
 
     try {
-      console.log('Updating theme details:', id, safeValues);
+      console.log("Updating theme details:", id, safeValues);
       if (!currentBookId) {
-        throw new Error('No book selected');
+        throw new Error("No book selected");
       }
       await manuscriptApi.updateTheme(currentBookId, id, safeValues);
     } catch (error) {
-      console.error('Error updating theme details:', error);
+      console.error("Error updating theme details:", error);
     }
   };
 
   // NEW: Parts v1 - CRUD functions
   const addPart = async (data: { title: string; notes?: string }) => {
     if (!currentBookId) {
-      console.error('Cannot add part: no book selected');
-      throw new Error('No book selected');
+      console.error("Cannot add part: no book selected");
+      throw new Error("No book selected");
     }
-    
-    console.log('🎯 Creating part with bookId:', currentBookId, 'title:', data.title);
-    console.log('📚 Current book:', currentBook?.title);
-    
-    const part = await partService.createPart({ ...data, bookId: currentBookId });
-    
-    console.log('✅ Part created:', part);
-    
+
+    console.log(
+      "🎯 Creating part with bookId:",
+      currentBookId,
+      "title:",
+      data.title,
+    );
+    console.log("📚 Current book:", currentBook?.title);
+
+    const part = await partService.createPart({
+      ...data,
+      bookId: currentBookId,
+    });
+
+    console.log("✅ Part created:", part);
+
     setParts([...parts, part]);
     return part;
   };
 
   const updatePartName = async (id: string, name: string) => {
-    const part = parts.find(p => p.id === id);
+    const part = parts.find((p) => p.id === id);
     if (!part) {
-      throw new Error('Part not found');
+      throw new Error("Part not found");
     }
 
-    const updated = await partService.updatePart(part.bookId, id, { title: name });
-    setParts(parts.map(p => p.id === id ? updated : p));
+    const updated = await partService.updatePart(part.bookId, id, {
+      title: name,
+    });
+    setParts(parts.map((p) => (p.id === id ? updated : p)));
   };
 
-  const updatePartDetails = async (id: string, data: Partial<Pick<Part, 'title' | 'notes'>>) => {
-    const part = parts.find(p => p.id === id);
+  const updatePartDetails = async (
+    id: string,
+    data: Partial<Pick<Part, "title" | "notes">>,
+  ) => {
+    const part = parts.find((p) => p.id === id);
     if (!part) {
-      throw new Error('Part not found');
+      throw new Error("Part not found");
     }
 
     const updated = await partService.updatePart(part.bookId, id, data);
-    setParts(parts.map(p => p.id === id ? updated : p));
+    setParts(parts.map((p) => (p.id === id ? updated : p)));
     return updated;
   };
 
   const deletePart = async (id: string) => {
-    const part = parts.find(p => p.id === id);
+    const part = parts.find((p) => p.id === id);
     if (!part) {
-      throw new Error('Part not found');
+      throw new Error("Part not found");
     }
 
     await partService.deletePart(part.bookId, id);
-    setParts(parts.filter(p => p.id !== id));
+    setParts(parts.filter((p) => p.id !== id));
     // Also clear partId from affected chapters
-    setChapters(chapters.map(ch => ch.partId === id ? { ...ch, partId: null } : ch));
+    setChapters(
+      chapters.map((ch) => (ch.partId === id ? { ...ch, partId: null } : ch)),
+    );
   };
 
   const reorderParts = async (reorderedParts: Part[]) => {
     // CRITICAL: When parts are reordered, we must reorder all chapters to maintain correct ordering
     // Build the new chapter order based on the new part order
     const reorderedChapters: Chapter[] = [];
-    
+
     // Get current book's chapters directly from state
     const currentBookChapters = currentBookId
-      ? chapters.filter(ch => ch.bookId === currentBookId)
+      ? chapters.filter((ch) => ch.bookId === currentBookId)
       : [];
-    
+
     // Process chapters in the new part order
     for (const part of reorderedParts) {
       const partChapters = currentBookChapters
-        .filter(ch => ch.partId === part.id)
+        .filter((ch) => ch.partId === part.id)
         .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-      
+
       reorderedChapters.push(...partChapters);
     }
-    
+
     // Add unassigned chapters at the end
     const unassignedChapters = currentBookChapters
-      .filter(ch => !ch.partId)
+      .filter((ch) => !ch.partId)
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    
+
     reorderedChapters.push(...unassignedChapters);
-    
+
     // Assign new sortOrder values
     const chaptersWithNewOrder = reorderedChapters.map((ch, index) => ({
       ...ch,
-      sortOrder: index
+      sortOrder: index,
     }));
-    
+
     // Update chapters state FIRST (synchronously), then update parts
     // This ensures the UI never shows an inconsistent state
-    setChapters(prev => prev.map(ch => {
-      const updated = chaptersWithNewOrder.find(c => c.id === ch.id);
-      return updated || ch;
-    }));
-    
+    setChapters((prev) =>
+      prev.map((ch) => {
+        const updated = chaptersWithNewOrder.find((c) => c.id === ch.id);
+        return updated || ch;
+      }),
+    );
+
     // Now update parts state
     setParts(reorderedParts);
-    
+
     // Persist to backend (async, but state is already updated)
     if (!currentBookId) {
-      throw new Error('Cannot reorder parts without a selected book');
+      throw new Error("Cannot reorder parts without a selected book");
     }
 
     await partService.reorderParts(currentBookId, reorderedParts);
-    
+
     try {
       await Promise.all(
-        chaptersWithNewOrder.map(ch =>
+        chaptersWithNewOrder.map((ch) =>
           manuscriptApi.updateChapter(ch.bookId, ch.id, {
             sortOrder: ch.sortOrder,
-            partId: ch.partId || null
-          })
-        )
+            partId: ch.partId || null,
+          }),
+        ),
       );
     } catch (error) {
-      console.error('Error persisting chapter reorder:', error);
+      console.error("Error persisting chapter reorder:", error);
     }
   };
 
@@ -886,76 +1007,86 @@ function AppContent() {
     loadedManuscripts.current.clear();
 
     // Switch to editor view
-    setPanes(prev => prev.map(p =>
-      p.id === 'primary' ? { ...p, activeViewId: 'manuscript' } : p
-    ));
-    
+    setPanes((prev) =>
+      prev.map((p) =>
+        p.id === "primary" ? { ...p, activeViewId: "manuscript" } : p,
+      ),
+    );
+
     // Load book data
     try {
       setIsLoadingBookData(true);
-    const data = await manuscriptApi.loadData(bookId);
-      console.log('Loaded data for book', bookId, ':', data);
-      
+      const data = await manuscriptApi.loadData(bookId);
+      console.log("Loaded data for book", bookId, ":", data);
+
       setChapters(data.chapters);
       setThemes(data.themes);
       setCharacters(data.characters || []);
       applyGridCells(bookId, data.gridCells);
       setParts(data.parts || []);
-      
+
       // Initialize primary pane with first chapter
-      setPanes(prev => prev.map(p => 
-        p.id === 'primary' ? { ...p, selectedChapterId: data.chapters[0]?.id || '' } : p
-      ));
+      setPanes((prev) =>
+        prev.map((p) =>
+          p.id === "primary"
+            ? { ...p, selectedChapterId: data.chapters[0]?.id || "" }
+            : p,
+        ),
+      );
     } catch (error) {
-      console.error('Error loading book data:', error);
+      console.error("Error loading book data:", error);
     } finally {
       setIsLoadingBookData(false);
     }
   };
-  
+
   const handleCreateBook = async (title: string, description: string) => {
     try {
       const newBook = await booksApi.create({
         title,
-        description
+        description,
       });
-      
+
       setBooks([...books, newBook]);
-      
+
       // Don't auto-navigate to the book - stay on library page
     } catch (error) {
-      console.error('Error creating book:', error);
+      console.error("Error creating book:", error);
       throw error; // Re-throw so dialog can handle it
     }
   };
 
   const handleUpdateBook = (updatedBook: Book) => {
-    setBooks(books.map(b => b.id === updatedBook.id ? updatedBook : b));
+    setBooks(books.map((b) => (b.id === updatedBook.id ? updatedBook : b)));
   };
 
   const handleDeleteBook = (bookId: string) => {
-    setBooks(books.filter(b => b.id !== bookId));
+    setBooks(books.filter((b) => b.id !== bookId));
     // If current book is deleted, navigate to books view
     if (bookId === currentBookId) {
       setCurrentBookId(null);
-      setPanes(prev => prev.map(p => 
-        p.id === 'primary' ? { ...p, activeViewId: 'books' } : p
-      ));
+      setPanes((prev) =>
+        prev.map((p) =>
+          p.id === "primary" ? { ...p, activeViewId: "books" } : p,
+        ),
+      );
     }
   };
 
   const handleNavigateToBooks = () => {
-    setPanes(prev => prev.map(p => 
-      p.id === 'primary' ? { ...p, activeViewId: 'books' } : p
-    ));
+    setPanes((prev) =>
+      prev.map((p) =>
+        p.id === "primary" ? { ...p, activeViewId: "books" } : p,
+      ),
+    );
   };
 
   // NEW: Dual Pane v1 - Handler for App Menu (controls PRIMARY pane only)
   const handleAppMenuClick = (viewId: AppViewId) => {
     setPanes((prev) =>
       prev.map((p) =>
-        p.id === 'primary' ? { ...p, activeViewId: viewId } : p
-      )
+        p.id === "primary" ? { ...p, activeViewId: viewId } : p,
+      ),
     );
   };
 
@@ -986,7 +1117,9 @@ function AppContent() {
       new Set(
         panes
           .map((p) => p.selectedChapterId)
-          .filter((id): id is string => !!id && !loadedManuscripts.current.has(id)),
+          .filter(
+            (id): id is string => !!id && !loadedManuscripts.current.has(id),
+          ),
       ),
     );
 
@@ -1024,7 +1157,7 @@ function AppContent() {
               ),
             );
           } catch (error) {
-            console.error('Error loading manuscript:', error);
+            console.error("Error loading manuscript:", error);
           }
         }),
       );
@@ -1032,43 +1165,47 @@ function AppContent() {
 
     loadManuscripts();
   }, [panes, currentBookId, chapters]);
-  
+
   // NEW: UI Cohesion - Helper to create a card for corkboard
   const handleCreateCorkboardCard = () => {
     // This will be implemented by Corkboard internally
-    console.log('Create card clicked - handled by corkboard');
+    console.log("Create card clicked - handled by corkboard");
   };
-  
+
   // NEW: UI Cohesion - Function to render Context Bar for a view
   const renderContextBarForView = (viewId: AppViewId): React.ReactNode => {
     switch (viewId) {
-      case 'manuscript':
+      case "manuscript":
         // UI Cohesion Pass - Empty Context Bar (to be populated in future phases)
         return <></>;
-      
-      case 'outline':
+
+      case "outline":
         // UI Cohesion Pass - Empty Context Bar (to be populated in future phases)
         return <></>;
-      
-      case 'corkboard':
+
+      case "corkboard":
         return (
           <>
             <div className="flex items-center gap-4">
               {/* Display Mode Toggle */}
               <div className="flex border rounded-lg">
                 <Button
-                  variant={corkboardDisplayMode === 'cards' ? 'default' : 'ghost'}
+                  variant={
+                    corkboardDisplayMode === "cards" ? "default" : "ghost"
+                  }
                   size="sm"
-                  onClick={() => setCorkboardDisplayMode('cards')}
+                  onClick={() => setCorkboardDisplayMode("cards")}
                   className="rounded-r-none h-8"
                 >
                   <LayoutGrid className="w-4 h-4 mr-1.5" />
                   Cards
                 </Button>
                 <Button
-                  variant={corkboardDisplayMode === 'list' ? 'default' : 'ghost'}
+                  variant={
+                    corkboardDisplayMode === "list" ? "default" : "ghost"
+                  }
                   size="sm"
-                  onClick={() => setCorkboardDisplayMode('list')}
+                  onClick={() => setCorkboardDisplayMode("list")}
                   className="rounded-l-none border-l h-8"
                 >
                   <LayoutList className="w-4 h-4 mr-1.5" />
@@ -1087,11 +1224,11 @@ function AppContent() {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <Button 
-                onClick={handleCreateCorkboardCard} 
-                size="sm" 
+              <Button
+                onClick={handleCreateCorkboardCard}
+                size="sm"
                 variant="outline"
                 className="h-8"
               >
@@ -1101,37 +1238,37 @@ function AppContent() {
             </div>
           </>
         );
-      
-      case 'grid':
+
+      case "grid":
         return (
           <>
             <div className="flex items-center gap-4">
               <h2 className="text-gray-900">Theme Tracker</h2>
-              
+
               {/* Column Size Selector */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-600">Column size:</span>
                 <div className="flex border rounded-lg">
                   <Button
-                    variant={gridColumnSize === 'minimal' ? 'default' : 'ghost'}
+                    variant={gridColumnSize === "minimal" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setGridColumnSize('minimal')}
+                    onClick={() => setGridColumnSize("minimal")}
                     className="rounded-r-none h-7 text-xs px-2"
                   >
                     Minimal
                   </Button>
                   <Button
-                    variant={gridColumnSize === 'compact' ? 'default' : 'ghost'}
+                    variant={gridColumnSize === "compact" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setGridColumnSize('compact')}
+                    onClick={() => setGridColumnSize("compact")}
                     className="rounded-none border-l h-7 text-xs px-2"
                   >
                     Compact
                   </Button>
                   <Button
-                    variant={gridColumnSize === 'full' ? 'default' : 'ghost'}
+                    variant={gridColumnSize === "full" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setGridColumnSize('full')}
+                    onClick={() => setGridColumnSize("full")}
                     className="rounded-l-none border-l h-7 text-xs px-2"
                   >
                     Full
@@ -1139,20 +1276,20 @@ function AppContent() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => setGridShowAddThemeDialog(true)} 
-                size="sm" 
+              <Button
+                onClick={() => setGridShowAddThemeDialog(true)}
+                size="sm"
                 variant="default"
                 className="h-8 bg-purple-600 hover:bg-purple-700"
               >
                 <Plus className="w-4 h-4 mr-1.5" />
                 Add Theme
               </Button>
-              <Button 
-                onClick={() => setGridShowAddChapterDialog(true)} 
-                size="sm" 
+              <Button
+                onClick={() => setGridShowAddChapterDialog(true)}
+                size="sm"
                 variant="default"
                 className="h-8 bg-blue-600 hover:bg-blue-700"
               >
@@ -1162,26 +1299,26 @@ function AppContent() {
             </div>
           </>
         );
-      
-      case 'themes':
+
+      case "themes":
         return (
           <>
             <div className="flex items-center gap-4">
               {/* Display Mode Toggle */}
               <div className="flex border rounded-lg">
                 <Button
-                  variant={themesDisplayMode === 'cards' ? 'default' : 'ghost'}
+                  variant={themesDisplayMode === "cards" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setThemesDisplayMode('cards')}
+                  onClick={() => setThemesDisplayMode("cards")}
                   className="rounded-r-none h-8"
                 >
                   <LayoutGrid className="w-4 h-4 mr-1.5" />
                   Cards
                 </Button>
                 <Button
-                  variant={themesDisplayMode === 'list' ? 'default' : 'ghost'}
+                  variant={themesDisplayMode === "list" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setThemesDisplayMode('list')}
+                  onClick={() => setThemesDisplayMode("list")}
                   className="rounded-l-none border-l h-8"
                 >
                   <LayoutList className="w-4 h-4 mr-1.5" />
@@ -1200,11 +1337,11 @@ function AppContent() {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => setThemeManagerShowAddDialog(true)} 
-                size="sm" 
+              <Button
+                onClick={() => setThemeManagerShowAddDialog(true)}
+                size="sm"
                 variant="default"
                 className="h-8"
               >
@@ -1214,26 +1351,30 @@ function AppContent() {
             </div>
           </>
         );
-      
-      case 'characters':
+
+      case "characters":
         return (
           <>
             <div className="flex items-center gap-4">
               {/* Display Mode Toggle */}
               <div className="flex border rounded-lg">
                 <Button
-                  variant={charactersDisplayMode === 'cards' ? 'default' : 'ghost'}
+                  variant={
+                    charactersDisplayMode === "cards" ? "default" : "ghost"
+                  }
                   size="sm"
-                  onClick={() => setCharactersDisplayMode('cards')}
+                  onClick={() => setCharactersDisplayMode("cards")}
                   className="rounded-r-none h-8"
                 >
                   <LayoutGrid className="w-4 h-4 mr-1.5" />
                   Cards
                 </Button>
                 <Button
-                  variant={charactersDisplayMode === 'list' ? 'default' : 'ghost'}
+                  variant={
+                    charactersDisplayMode === "list" ? "default" : "ghost"
+                  }
                   size="sm"
-                  onClick={() => setCharactersDisplayMode('list')}
+                  onClick={() => setCharactersDisplayMode("list")}
                   className="rounded-l-none border-l h-8"
                 >
                   <LayoutList className="w-4 h-4 mr-1.5" />
@@ -1252,11 +1393,11 @@ function AppContent() {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => setCharacterManagerShowAddDialog(true)} 
-                size="sm" 
+              <Button
+                onClick={() => setCharacterManagerShowAddDialog(true)}
+                size="sm"
                 variant="default"
                 className="h-8"
               >
@@ -1266,18 +1407,18 @@ function AppContent() {
             </div>
           </>
         );
-      
-      case 'parts':
+
+      case "parts":
         return (
           <>
             <div className="flex items-center gap-4">
               <h2 className="text-gray-900">Parts & Structure</h2>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => setPartsViewShowAddDialog(true)} 
-                size="sm" 
+              <Button
+                onClick={() => setPartsViewShowAddDialog(true)}
+                size="sm"
                 variant="default"
                 className="h-8"
               >
@@ -1287,8 +1428,8 @@ function AppContent() {
             </div>
           </>
         );
-      
-      case 'settings':
+
+      case "settings":
         // No context bar for settings
         return <></>;
       default:
@@ -1297,14 +1438,14 @@ function AppContent() {
   };
 
   // NEW: Dual Pane v1 - Pane helpers
-  const hasSecondaryPane = panes.some((p) => p.id === 'secondary');
-  const primaryPane = panes.find((p) => p.id === 'primary')!;
-  const secondaryPane = panes.find((p) => p.id === 'secondary') || null;
+  const hasSecondaryPane = panes.some((p) => p.id === "secondary");
+  const primaryPane = panes.find((p) => p.id === "primary")!;
+  const secondaryPane = panes.find((p) => p.id === "secondary") || null;
 
   // NEW: Dual Pane v1 - Handler to change a pane's view
   const handleChangePaneView = (paneId: PaneId, viewId: AppViewId) => {
     setPanes((prev) =>
-      prev.map((p) => (p.id === paneId ? { ...p, activeViewId: viewId } : p))
+      prev.map((p) => (p.id === paneId ? { ...p, activeViewId: viewId } : p)),
     );
   };
 
@@ -1312,30 +1453,36 @@ function AppContent() {
   const handleSplitVertical = () => {
     setPanes((prev) => {
       // if secondary already exists, do nothing
-      if (prev.some((p) => p.id === 'secondary')) return prev;
+      if (prev.some((p) => p.id === "secondary")) return prev;
 
-      const primary = prev.find((p) => p.id === 'primary')!;
+      const primary = prev.find((p) => p.id === "primary")!;
       return [
         ...prev,
-        { id: 'secondary', activeViewId: primary.activeViewId, selectedChapterId: '' },
+        {
+          id: "secondary",
+          activeViewId: primary.activeViewId,
+          selectedChapterId: "",
+        },
       ];
     });
   };
 
   // NEW: Dual Pane v1 - Handler to close secondary pane
   const handleCloseSplit = () => {
-    setPanes((prev) => prev.filter((p) => p.id === 'primary'));
+    setPanes((prev) => prev.filter((p) => p.id === "primary"));
   };
 
   // NEW: Onboarding Tour - Apply tour step layout when tour step changes
   useEffect(() => {
     if (!tourIsOpen || !tourCurrentStep) return;
-    
+
     const applyTourStepLayout = (step: TourStep) => {
-      if (step.route === 'library') {
+      if (step.route === "library") {
         // Navigate to books view
-        setPanes((prev) => 
-          prev.map((p) => p.id === 'primary' ? { ...p, activeViewId: 'books' } : p)
+        setPanes((prev) =>
+          prev.map((p) =>
+            p.id === "primary" ? { ...p, activeViewId: "books" } : p,
+          ),
         );
         return;
       }
@@ -1347,7 +1494,9 @@ function AppContent() {
       }
 
       // Get sorted chapters for consistent selection
-      const currentBookChapters = currentBookId ? chapters.filter(ch => ch.bookId === currentBookId) : [];
+      const currentBookChapters = currentBookId
+        ? chapters.filter((ch) => ch.bookId === currentBookId)
+        : [];
       const sorted = [...currentBookChapters].sort((a, b) => {
         const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
         const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
@@ -1358,12 +1507,15 @@ function AppContent() {
       if (step.inspectorOpen !== undefined) {
         if (step.inspectorOpen) {
           // Open inspector with Full Manuscript info
-          if (step.manuscriptSelection === 'manuscript') {
+          if (step.manuscriptSelection === "manuscript") {
             // Use setTimeout to ensure the DOM is ready
             setTimeout(() => {
               handleManuscriptInfoClick();
             }, 100);
-          } else if (step.selectChapterIndex !== undefined && sorted.length > 0) {
+          } else if (
+            step.selectChapterIndex !== undefined &&
+            sorted.length > 0
+          ) {
             // Open inspector for selected chapter
             const chapterToSelect = sorted[step.selectChapterIndex];
             if (chapterToSelect) {
@@ -1378,78 +1530,93 @@ function AppContent() {
       }
 
       // Handle chapter selection vs manuscript selection
-      let selectedChapterId = '';
-      let manuscriptSelection: ManuscriptSelection = { kind: 'manuscript' };
-      
+      let selectedChapterId = "";
+      let manuscriptSelection: ManuscriptSelection = { kind: "manuscript" };
+
       if (step.selectChapterIndex !== undefined && sorted.length > 0) {
         const chapterToSelect = sorted[step.selectChapterIndex];
         if (chapterToSelect) {
           selectedChapterId = chapterToSelect.id;
           // Set selection to show chapter view
-          if (step.manuscriptSelection !== 'manuscript') {
-            manuscriptSelection = { kind: 'chapter', chapterId: chapterToSelect.id };
+          if (step.manuscriptSelection !== "manuscript") {
+            manuscriptSelection = {
+              kind: "chapter",
+              chapterId: chapterToSelect.id,
+            };
           }
         }
-      } else if (step.manuscriptSelection === 'manuscript') {
+      } else if (step.manuscriptSelection === "manuscript") {
         // Clear chapter selection for manuscript view
-        selectedChapterId = '';
-        manuscriptSelection = { kind: 'manuscript' };
+        selectedChapterId = "";
+        manuscriptSelection = { kind: "manuscript" };
       }
-      
+
       // Update pane selections
-      if (step.paneLayout === 'dual') {
+      if (step.paneLayout === "dual") {
         // For dual pane, update both panes
-        setPaneSelections(prev => ({
+        setPaneSelections((prev) => ({
           ...prev,
           primary: manuscriptSelection,
-          secondary: manuscriptSelection
+          secondary: manuscriptSelection,
         }));
-    } else if (step.viewId === 'manuscript') {
+      } else if (step.viewId === "manuscript") {
         // For single pane editor, update primary only
-        setPaneSelections(prev => ({
+        setPaneSelections((prev) => ({
           ...prev,
-          primary: manuscriptSelection
+          primary: manuscriptSelection,
         }));
       }
 
-      if (step.paneLayout === 'dual') {
+      if (step.paneLayout === "dual") {
         // Enable dual pane mode
-        const hasSecondary = panes.some((p) => p.id === 'secondary');
-        
+        const hasSecondary = panes.some((p) => p.id === "secondary");
+
         if (!hasSecondary) {
-          const leftView = step.leftViewId ?? 'manuscript';
-          const rightView = step.rightViewId ?? 'outline';
+          const leftView = step.leftViewId ?? "manuscript";
+          const rightView = step.rightViewId ?? "outline";
           setPanes((prev) => {
-            const primary = prev.find((p) => p.id === 'primary');
+            const primary = prev.find((p) => p.id === "primary");
             if (!primary) return prev;
             return [
-              { ...primary, activeViewId: leftView as AppViewId, selectedChapterId },
-              { id: 'secondary', activeViewId: rightView as AppViewId, selectedChapterId },
+              {
+                ...primary,
+                activeViewId: leftView as AppViewId,
+                selectedChapterId,
+              },
+              {
+                id: "secondary",
+                activeViewId: rightView as AppViewId,
+                selectedChapterId,
+              },
             ];
           });
         } else {
           // Update existing panes
-          const leftView = step.leftViewId ?? 'manuscript';
-          const rightView = step.rightViewId ?? 'outline';
-          setPanes((prev) => 
+          const leftView = step.leftViewId ?? "manuscript";
+          const rightView = step.rightViewId ?? "outline";
+          setPanes((prev) =>
             prev.map((p) => {
               const updates: Partial<PaneState> = {};
-              if (p.id === 'primary') updates.activeViewId = leftView as AppViewId;
-              if (p.id === 'secondary') updates.activeViewId = rightView as AppViewId;
+              if (p.id === "primary")
+                updates.activeViewId = leftView as AppViewId;
+              if (p.id === "secondary")
+                updates.activeViewId = rightView as AppViewId;
               // Always update selectedChapterId
               updates.selectedChapterId = selectedChapterId;
               return { ...p, ...updates };
-            })
+            }),
           );
         }
       } else {
         // Single pane default - close secondary if open
         setPanes((prev) => {
-          const primary = prev.find((p) => p.id === 'primary');
+          const primary = prev.find((p) => p.id === "primary");
           if (!primary) return prev;
-          const view = step.viewId ?? 'manuscript';
-          
-          return [{ ...primary, activeViewId: view as AppViewId, selectedChapterId }];
+          const view = step.viewId ?? "manuscript";
+
+          return [
+            { ...primary, activeViewId: view as AppViewId, selectedChapterId },
+          ];
         });
       }
     };
@@ -1460,12 +1627,12 @@ function AppContent() {
   // NEW: Dual Pane v1 - Function to render any view by ID with pane-specific state
   const renderViewById = (viewId: AppViewId, paneId: PaneId) => {
     const pane = panes.find((p) => p.id === paneId);
-    const currentChapterId = pane?.selectedChapterId || '';
+    const currentChapterId = pane?.selectedChapterId || "";
     const setCurrentChapterId =
       setCurrentChapterIdByPane[paneId] || setCurrentChapterIdByPane.primary;
 
     // Show loading state while book data is loading (except for books view)
-    if (isLoadingBookData && viewId !== 'books') {
+    if (isLoadingBookData && viewId !== "books") {
       return (
         <div className="h-full flex items-center justify-center bg-white">
           <div className="text-gray-600">Loading book data...</div>
@@ -1474,7 +1641,7 @@ function AppContent() {
     }
 
     switch (viewId) {
-      case 'books':
+      case "books":
         return (
           <BooksView
             books={books}
@@ -1485,14 +1652,16 @@ function AppContent() {
             onDeleteBook={handleDeleteBook}
           />
         );
-      case 'manuscript':
+      case "manuscript":
         return (
           <BinderWrapper
             chapters={orderedChapters}
             parts={bookParts}
             bookTitle={currentBook?.title}
-            selection={paneSelections[paneId] || { kind: 'manuscript' }}
-            onSelectionChange={(selection) => setSelectionForPane(paneId, selection)}
+            selection={paneSelections[paneId] || { kind: "manuscript" }}
+            onSelectionChange={(selection) =>
+              setSelectionForPane(paneId, selection)
+            }
             currentChapterId={currentChapterId}
             setCurrentChapterId={setCurrentChapterId}
             addChapter={addChapter}
@@ -1514,7 +1683,7 @@ function AppContent() {
             {(filteredChapters) => (
               <EditorView
                 chapters={filteredChapters}
-                selection={paneSelections[paneId] || { kind: 'manuscript' }}
+                selection={paneSelections[paneId] || { kind: "manuscript" }}
                 currentChapterId={currentChapterId}
                 setCurrentChapterId={setCurrentChapterId}
                 updateChapter={updateChapter}
@@ -1530,14 +1699,16 @@ function AppContent() {
             )}
           </BinderWrapper>
         );
-      case 'outline':
+      case "outline":
         return (
           <BinderWrapper
             chapters={orderedChapters}
             parts={bookParts}
             bookTitle={currentBook?.title}
-            selection={paneSelections[paneId] || { kind: 'manuscript' }}
-            onSelectionChange={(selection) => setSelectionForPane(paneId, selection)}
+            selection={paneSelections[paneId] || { kind: "manuscript" }}
+            onSelectionChange={(selection) =>
+              setSelectionForPane(paneId, selection)
+            }
             currentChapterId={currentChapterId}
             setCurrentChapterId={setCurrentChapterId}
             addChapter={addChapter}
@@ -1559,10 +1730,12 @@ function AppContent() {
             {(filteredChapters) => (
               <OutlineView
                 chapters={filteredChapters}
-                selection={paneSelections[paneId] || { kind: 'manuscript' }}
+                selection={paneSelections[paneId] || { kind: "manuscript" }}
                 currentChapterId={currentChapterId}
                 setCurrentChapterId={setCurrentChapterId}
-                updateChapter={(id: string, outline: string) => updateChapterDetails(id, { outline })}
+                updateChapter={(id: string, outline: string) =>
+                  updateChapterDetails(id, { outline })
+                }
                 addChapter={addChapter}
                 deleteChapter={deleteChapter}
                 updateChapterTitle={updateChapterTitle}
@@ -1573,10 +1746,10 @@ function AppContent() {
             )}
           </BinderWrapper>
         );
-      case 'grid':
+      case "grid":
         return (
           <GridView
-            bookId={currentBookId || ''}
+            bookId={currentBookId || ""}
             chapters={orderedChapters}
             themes={bookThemes}
             gridCellsByKey={gridCellsByKey}
@@ -1598,14 +1771,16 @@ function AppContent() {
             setColumnSize={setGridColumnSize}
           />
         );
-      case 'corkboard':
+      case "corkboard":
         return (
           <BinderWrapper
             chapters={orderedChapters}
             parts={bookParts}
             bookTitle={currentBook?.title}
-            selection={paneSelections[paneId] || { kind: 'manuscript' }}
-            onSelectionChange={(selection) => setSelectionForPane(paneId, selection)}
+            selection={paneSelections[paneId] || { kind: "manuscript" }}
+            onSelectionChange={(selection) =>
+              setSelectionForPane(paneId, selection)
+            }
             currentChapterId={currentChapterId}
             setCurrentChapterId={setCurrentChapterId}
             addChapter={addChapter}
@@ -1630,8 +1805,10 @@ function AppContent() {
                 chapters={filteredChapters}
                 parts={bookParts}
                 bookTitle={currentBook?.title}
-                selection={paneSelections[paneId] || { kind: 'manuscript' }}
-                onSelectionChange={(selection) => setSelectionForPane(paneId, selection)}
+                selection={paneSelections[paneId] || { kind: "manuscript" }}
+                onSelectionChange={(selection) =>
+                  setSelectionForPane(paneId, selection)
+                }
                 addPart={addPart}
                 deletePart={deletePart}
                 updatePartName={updatePartName}
@@ -1651,7 +1828,7 @@ function AppContent() {
             )}
           </BinderWrapper>
         );
-      case 'themes':
+      case "themes":
         return (
           <ThemeManager
             themes={bookThemes}
@@ -1667,7 +1844,7 @@ function AppContent() {
             onSearchQueryChange={setThemesSearchQuery}
           />
         );
-      case 'characters':
+      case "characters":
         return (
           <CharacterManager
             characters={bookCharacters}
@@ -1682,7 +1859,7 @@ function AppContent() {
             onSearchQueryChange={setCharactersSearchQuery}
           />
         );
-      case 'parts':
+      case "parts":
         return (
           <PartsView
             parts={bookParts}
@@ -1710,32 +1887,46 @@ function AppContent() {
 
   return (
     <TooltipProvider>
-      <ChapterNumberingProvider chapters={orderedChapters} parts={bookParts} currentBook={currentBook}>
+      <ChapterNumberingProvider
+        chapters={orderedChapters}
+        parts={bookParts}
+        currentBook={currentBook}
+      >
         <div className="h-screen flex bg-gray-50">
           <Toaster />
-          
+
           {/* Left Sidebar Navigation */}
-          <div data-tour-id="appRail" className="w-16 bg-[rgb(96,129,142)] border-r border-slate-700 flex flex-col items-center py-4 gap-1.5">
+          <div
+            data-tour-id="appRail"
+            className="w-16 bg-[rgb(96,129,142)] border-r border-slate-700 flex flex-col items-center py-4 gap-1.5"
+          >
             {/* Logo - clickable to navigate to books */}
             <div className="border-b border-slate-700 pb-3 mb-1">
-              <button 
+              <button
                 onClick={handleNavigateToBooks}
                 className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
-                  primaryPane.activeViewId === 'books'
-                    ? 'bg-[#7d9ca8] text-white shadow-lg shadow-black/20'
-                    : 'text-slate-300 hover:bg-[#4a6370] hover:text-white'
+                  primaryPane.activeViewId === "books"
+                    ? "bg-[#7d9ca8] text-white shadow-lg shadow-black/20"
+                    : "text-slate-300 hover:bg-[#4a6370] hover:text-white"
                 }`}
               >
-                <img src={StoryLabLogo} alt="StoryLab" className="w-10 h-10 object-contain" />
+                <img
+                  src={StoryLabLogo}
+                  alt="StoryLab"
+                  className="w-10 h-10 object-contain"
+                />
               </button>
             </div>
-            
+
             {/* Main navigation */}
             <div className="flex-1 flex flex-col gap-1.5">
               {/* NEW: Render navigation from APP_VIEWS registry - hide book-specific views when in Books view */}
-              {APP_VIEWS
-                .filter((viewDef) => viewDef.id !== 'books') // Remove Books button since logo already navigates to books
-                .filter((viewDef) => primaryPane.activeViewId !== 'books' || viewDef.id === 'books')
+              {APP_VIEWS.filter((viewDef) => viewDef.id !== "books") // Remove Books button since logo already navigates to books
+                .filter(
+                  (viewDef) =>
+                    primaryPane.activeViewId !== "books" ||
+                    viewDef.id === "books",
+                )
                 .filter((viewDef) => viewDef.showInNav !== false) // Hide views that shouldn't show in main nav (like settings)
                 .map((viewDef) => {
                   const Icon = viewDef.icon;
@@ -1751,8 +1942,8 @@ function AppContent() {
                             onClick={() => handleAppMenuClick(viewDef.id)}
                             className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60818E] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(96,129,142)] ${
                               isActive
-                                ? 'bg-[#7d9ca8] text-white shadow-lg shadow-black/20'
-                                : 'text-slate-300 hover:bg-[#4a6370] hover:text-white'
+                                ? "bg-[#7d9ca8] text-white shadow-lg shadow-black/20"
+                                : "text-slate-300 hover:bg-[#4a6370] hover:text-white"
                             }`}
                           >
                             {isActive && (
@@ -1770,15 +1961,11 @@ function AppContent() {
                 })}
             </div>
 
-            <div className="mt-2 flex flex-col items-center gap-1 text-center">
-              <span className="px-2 py-0.5 rounded-full bg-[#4a6370] text-[11px] font-semibold uppercase tracking-wide text-white">
-                {APP_STAGE}
-              </span>
-              <span className="text-[10px] text-slate-200 sm:text-[11px]">v{APP_VERSION}</span>
-            </div>
-
             {/* Profile and Settings at bottom */}
-            <div data-tour-id="settings" className="flex flex-col gap-1.5 border-t border-slate-700 pt-3 mt-1">
+            <div
+              data-tour-id="settings"
+              className="flex flex-col gap-1.5 border-t border-slate-700 pt-3 mt-1"
+            >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -1816,6 +2003,21 @@ function AppContent() {
                 </TooltipContent>
               </Tooltip>
             </div>
+
+            {/* App Version Info */}
+            <div
+              data-tour-id="versionInfo"
+              className="flex flex-col gap-1.5 border-t border-slate-700 pt-3 mt-1"
+            >
+              <div className="mt-2 flex flex-col items-center gap-1 text-center">
+                <span className="px-2 py-0.5 rounded-full bg-[#4a6370] text-[11px] font-semibold uppercase tracking-wide text-white">
+                  {APP_STAGE}
+                </span>
+                <span className="text-[10px] text-slate-200 sm:text-[11px]">
+                  v{APP_VERSION}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Main Content Area */}
@@ -1835,9 +2037,11 @@ function AppContent() {
                     onSplitVertical={handleSplitVertical}
                     onCloseSplit={handleCloseSplit}
                     breadcrumbData={breadcrumbData["primary"]}
-                    contextBar={renderContextBarForView(primaryPane.activeViewId)}
+                    contextBar={renderContextBarForView(
+                      primaryPane.activeViewId,
+                    )}
                   >
-                    {renderViewById(primaryPane.activeViewId, 'primary')}
+                    {renderViewById(primaryPane.activeViewId, "primary")}
                   </Pane>
 
                   {/* Optional secondary pane */}
@@ -1853,19 +2057,24 @@ function AppContent() {
                         hasSecondaryPane={hasSecondaryPane}
                         onCloseSplit={handleCloseSplit}
                         breadcrumbData={breadcrumbData["secondary"]}
-                        contextBar={renderContextBarForView(secondaryPane.activeViewId)}
+                        contextBar={renderContextBarForView(
+                          secondaryPane.activeViewId,
+                        )}
                       >
-                        {renderViewById(secondaryPane.activeViewId, 'secondary')}
+                        {renderViewById(
+                          secondaryPane.activeViewId,
+                          "secondary",
+                        )}
                       </Pane>
                     </>
                   )}
-                  
+
                   {/* Phase 1.5 - InspectorSidebar positioned between content and ToolRail */}
-                  {primaryPane.activeViewId !== 'books' && <InspectorSidebar />}
+                  {primaryPane.activeViewId !== "books" && <InspectorSidebar />}
                 </div>
-                
+
                 {/* NEW: UI Cohesion - Status Bar (hidden on books view) */}
-                {primaryPane.activeViewId !== 'books' && (
+                {primaryPane.activeViewId !== "books" && (
                   <StatusBar
                     leftContent={
                       <>
@@ -1875,19 +2084,24 @@ function AppContent() {
                     rightContent={
                       <>
                         <span>{bookChapters.length} chapters</span>
-                        <span>{bookChapters.reduce((sum, ch) => sum + (ch.wordCount || 0), 0).toLocaleString()} words</span>
+                        <span>
+                          {bookChapters
+                            .reduce((sum, ch) => sum + (ch.wordCount || 0), 0)
+                            .toLocaleString()}{" "}
+                          words
+                        </span>
                       </>
                     }
                   />
                 )}
               </div>
-              
+
               {/* Phase 1.5 - Tool Rail at far right, extends full height */}
-              {primaryPane.activeViewId !== 'books' && <ToolRail />}
+              {primaryPane.activeViewId !== "books" && <ToolRail />}
             </div>
           </div>
         </div>
-        
+
         {/* Settings Overlay */}
         <SettingsOverlay
           isOpen={settingsOverlayOpen}
@@ -1896,10 +2110,15 @@ function AppContent() {
           updateBookSettings={async (updates) => {
             if (!currentBook) return;
             try {
-            const updatedBook = await booksApi.update(currentBook.id, updates);
-              setBooks(books.map(b => b.id === updatedBook.id ? updatedBook : b));
+              const updatedBook = await booksApi.update(
+                currentBook.id,
+                updates,
+              );
+              setBooks(
+                books.map((b) => (b.id === updatedBook.id ? updatedBook : b)),
+              );
             } catch (error) {
-              console.error('Error updating book settings:', error);
+              console.error("Error updating book settings:", error);
             }
           }}
         />
@@ -1948,7 +2167,9 @@ function LandingPage() {
               The writer&apos;s OS for outlining, drafting, and story structure.
             </h1>
             <p className="mt-3 text-slate-300 max-w-2xl">
-              Multi-view workspace (manuscript, outline, grid, corkboard), rich tagging, parts/chapters, and inspectors—built for long-form writing.
+              Multi-view workspace (manuscript, outline, grid, corkboard), rich
+              tagging, parts/chapters, and inspectors—built for long-form
+              writing.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -1969,16 +2190,29 @@ function LandingPage() {
 
         <div className="grid gap-6 md:grid-cols-3 mb-12">
           {[
-            { title: "Manuscript + Outline", desc: "Dual-pane binder, outline fields, parts/chapters with drag and drop." },
-            { title: "Grid & Themes", desc: "Track themes/threads, intensity, and notes per chapter with filters." },
-            { title: "Corkboard & Tags", desc: "Cards by book/part/chapter scopes, tag filtering, inspector-driven editing." },
+            {
+              title: "Manuscript + Outline",
+              desc: "Dual-pane binder, outline fields, parts/chapters with drag and drop.",
+            },
+            {
+              title: "Grid & Themes",
+              desc: "Track themes/threads, intensity, and notes per chapter with filters.",
+            },
+            {
+              title: "Corkboard & Tags",
+              desc: "Cards by book/part/chapter scopes, tag filtering, inspector-driven editing.",
+            },
           ].map((item) => (
             <div
               key={item.title}
               className="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-5 shadow-[0_20px_60px_-35px_rgba(0,0,0,0.8)]"
             >
-              <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-              <p className="text-sm text-slate-300 leading-relaxed">{item.desc}</p>
+              <h3 className="text-lg font-semibold text-white mb-2">
+                {item.title}
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                {item.desc}
+              </p>
             </div>
           ))}
         </div>
@@ -1986,9 +2220,12 @@ function LandingPage() {
         <div className="rounded-3xl border border-slate-800/60 bg-slate-900/50 p-8 shadow-[0_20px_80px_-40px_rgba(0,0,0,0.8)]">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold text-white">Ready to write?</h2>
+              <h2 className="text-2xl font-semibold text-white">
+                Ready to write?
+              </h2>
               <p className="text-slate-300">
-                Sign in with Google to open your workspace. More providers and billing will follow.
+                Sign in with Google to open your workspace. More providers and
+                billing will follow.
               </p>
             </div>
             <button

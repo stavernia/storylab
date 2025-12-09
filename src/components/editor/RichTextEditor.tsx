@@ -1,10 +1,12 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useActiveEditorContext, type EditorHandle } from './ActiveEditorContext';
+import type { Chapter } from '@/App';
 
 export type RichTextEditorProps = {
   editorId: string;
   value: string;
   onChange: (html: string) => void;
+  chapter?: Chapter;
   readOnly?: boolean;
   onFocus?: () => void;
   className?: string;

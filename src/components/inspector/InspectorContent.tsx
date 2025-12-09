@@ -8,6 +8,7 @@ import { OutlineMetadataPanel } from '@/components/info-panels/OutlineMetadataPa
 export function InspectorDetails({ payload }: { payload: InspectorPayload | null }) {
   const [outlineMetadataOpen, setOutlineMetadataOpen] = useState(true);
   const [outlineOpen, setOutlineOpen] = useState(true);
+  const data = (payload?.data as Record<string, any>) || {};
   
   // Local state for editable fields
   const [chapterTitleLocal, setChapterTitleLocal] = useState('');
@@ -15,16 +16,16 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
 
   // Sync local state when payload changes
   useEffect(() => {
-    if (payload?.type === 'chapter' && payload.data?.chapter) {
-      setChapterTitleLocal(payload.data.chapter.title);
+    if (payload?.type === 'chapter' && data.chapter) {
+      setChapterTitleLocal(data.chapter.title);
     }
-  }, [payload?.type, payload?.data?.chapter?.id, payload?.data?.chapter?.title]);
+  }, [payload?.type, data.chapter?.id, data.chapter?.title]);
 
   useEffect(() => {
-    if (payload?.type === 'part' && payload.data?.part) {
-      setPartTitleLocal(payload.data.part.title);
+    if (payload?.type === 'part' && data.part) {
+      setPartTitleLocal(data.part.title);
     }
-  }, [payload?.type, payload?.data?.part?.id, payload?.data?.part?.title]);
+  }, [payload?.type, data.part?.id, data.part?.title]);
 
   if (!payload || !payload.data) {
     return (
@@ -36,13 +37,13 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
   }
 
   // Render chapter details
-  if (payload.type === 'chapter' && payload.data.chapter) {
-    const chapter = payload.data.chapter;
-    const tags = payload.data.tags || [];
-    const showOutlineMetadata = payload.data.showOutlineMetadata;
-    const updateChapterDetails = payload.data.updateChapterDetails;
-    const updateChapterTitle = payload.data.updateChapterTitle;
-    const deleteChapter = payload.data.deleteChapter;
+  if (payload.type === 'chapter' && data.chapter) {
+    const chapter = data.chapter;
+    const tags = data.tags || [];
+    const showOutlineMetadata = data.showOutlineMetadata;
+    const updateChapterDetails = data.updateChapterDetails;
+    const updateChapterTitle = data.updateChapterTitle;
+    const deleteChapter = data.deleteChapter;
     
     const handleTitleChange = (newTitle: string) => {
       setChapterTitleLocal(newTitle);
@@ -215,10 +216,10 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
   }
 
   // Render part details
-  if (payload.type === 'part' && payload.data.part) {
-    const part = payload.data.part;
-    const updatePartName = payload.data.updatePartName;
-    const deletePart = payload.data.deletePart;
+  if (payload.type === 'part' && data.part) {
+    const part = data.part;
+    const updatePartName = data.updatePartName;
+    const deletePart = data.deletePart;
     
     const handlePartTitleChange = (newTitle: string) => {
       setPartTitleLocal(newTitle);

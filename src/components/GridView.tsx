@@ -195,7 +195,13 @@ function renderThreadMiniStrip(
     <div className="mt-1 flex items-center gap-[2px]">
       {chapters.map((chapter, index) => {
         const cell = getCellForChapter(chapter.id);
-        const role: ThreadRole = cell?.threadRole ?? 'none';
+        const role: ThreadRole =
+          cell?.threadRole === 'seed' ||
+          cell?.threadRole === 'buildup' ||
+          cell?.threadRole === 'event' ||
+          cell?.threadRole === 'aftermath'
+            ? cell.threadRole
+            : 'none';
 
         if (role === 'none') {
           return (
@@ -1477,8 +1483,8 @@ function FilteredThemeRow({
                 </div>
 
                 {/* Note textarea */}
-                <textarea
-                  value={cellData.note}
+                    <textarea
+                      value={cellData.note ?? ''}
                   onChange={(e) =>
                     updateGridCell(chapter.id, theme.id, { note: e.target.value })
                   }

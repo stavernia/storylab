@@ -12,6 +12,7 @@ import {
 export function InspectorSidebar() {
   const { isOpen, activeTool, payload, openInspector, closeInspector } = useInspector();
   const { getChapterNumber, getPartNumber } = useChapterNumbering();
+  const data = (payload?.data as Record<string, any>) || {};
   
   // Get icon and label for current tool
   const getToolConfig = () => {
@@ -28,21 +29,21 @@ export function InspectorSidebar() {
     switch (activeTool) {
       case 'inspector':
         // If we have chapter data, show chapter number above chapter title
-        if (payload?.type === 'chapter' && payload?.data?.chapter) {
-          const chapterNumber = getChapterNumber(payload.data.chapter.id);
+        if (payload?.type === 'chapter' && data.chapter) {
+          const chapterNumber = getChapterNumber(data.chapter.id);
           return { 
             icon: <Info className="w-4 h-4" />, 
             label: `Chapter ${chapterNumber}`,
-            subtitle: payload.data.chapter.title
+            subtitle: data.chapter.title
           };
         }
         // If we have part data, show part number above part title
-        if (payload?.type === 'part' && payload?.data?.part) {
-          const partNumber = getPartNumber(payload.data.part.id);
+        if (payload?.type === 'part' && data.part) {
+          const partNumber = getPartNumber(data.part.id);
           return { 
             icon: <Info className="w-4 h-4" />, 
             label: `Part ${partNumber}`,
-            subtitle: payload.data.part.title
+            subtitle: data.part.title
           };
         }
         return { icon: <Info className="w-4 h-4" />, label: 'Inspector' };
@@ -137,12 +138,12 @@ export function InspectorSidebar() {
             </div>
             
             {/* Footer - Delete Button (only for chapter/part inspector) */}
-            {activeTool === 'inspector' && payload?.type === 'chapter' && payload?.data?.deleteChapter && (
+            {activeTool === 'inspector' && payload?.type === 'chapter' && data.deleteChapter && (
               <div className="border-t border-slate-200 px-3 py-3 bg-white flex-shrink-0">
                 <button
                   onClick={() => {
-                    if (payload.data.deleteChapter && confirm(`Delete "${payload.data.chapter.title}"? This action cannot be undone.`)) {
-                      payload.data.deleteChapter(payload.data.chapter.id);
+                    if (data.deleteChapter && data.chapter && confirm(`Delete "${data.chapter.title}"? This action cannot be undone.`)) {
+                      data.deleteChapter(data.chapter.id);
                     }
                   }}
                   className="w-full px-3 py-2 text-sm text-red-600 hover:text-red-700 border border-red-300 hover:border-red-400 rounded bg-white hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
@@ -153,12 +154,12 @@ export function InspectorSidebar() {
               </div>
             )}
             
-            {activeTool === 'inspector' && payload?.type === 'part' && payload?.data?.deletePart && (
+            {activeTool === 'inspector' && payload?.type === 'part' && data.deletePart && (
               <div className="border-t border-slate-200 px-3 py-3 bg-white flex-shrink-0">
                 <button
                   onClick={() => {
-                    if (payload.data.deletePart && confirm(`Delete "${payload.data.part.title}"? Chapters in this part will become unassigned.`)) {
-                      payload.data.deletePart(payload.data.part.id);
+                    if (data.deletePart && data.part && confirm(`Delete "${data.part.title}"? Chapters in this part will become unassigned.`)) {
+                      data.deletePart(data.part.id);
                     }
                   }}
                   className="w-full px-3 py-2 text-sm text-red-600 hover:text-red-700 border border-red-300 hover:border-red-400 rounded bg-white hover:bg-red-50 transition-colors flex items-center justify-center gap-2"

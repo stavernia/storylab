@@ -40,20 +40,20 @@ export function CardInfoForm({
 }: CardInfoFormProps) {
   const [title, setTitle] = useState(card.title);
   const [summary, setSummary] = useState(card.summary || '');
-  const [chapterId, setChapterId] = useState<string | undefined>(card.chapterId);
-  const [status, setStatus] = useState<'idea' | 'draft' | 'done' | undefined>(card.status);
-  const [color, setColor] = useState<'blue' | 'amber' | 'gray' | 'green' | 'purple' | 'red' | undefined>(card.color);
-  const [wordEstimate, setWordEstimate] = useState<number | undefined>(card.wordEstimate);
+  const [chapterId, setChapterId] = useState<string | undefined>(card.chapterId ?? undefined);
+  const [status, setStatus] = useState<string | undefined>(card.status ?? undefined);
+  const [color, setColor] = useState<string | undefined>(card.color ?? undefined);
+  const [wordEstimate, setWordEstimate] = useState<number | undefined>(card.wordEstimate ?? undefined);
   const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
 
   // Update local state when card prop changes (for when switching between cards)
   useEffect(() => {
     setTitle(card.title);
     setSummary(card.summary || '');
-    setChapterId(card.chapterId);
-    setStatus(card.status);
-    setColor(card.color);
-    setWordEstimate(card.wordEstimate);
+    setChapterId(card.chapterId ?? undefined);
+    setStatus(card.status ?? undefined);
+    setColor(card.color ?? undefined);
+    setWordEstimate(card.wordEstimate ?? undefined);
   }, [card.id]);
 
   // Debounced save for text fields

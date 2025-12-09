@@ -35,7 +35,7 @@ interface CorkboardProps {
   updateChapterTitle?: (id: string, title: string) => void;
   updateChapterDetails?: (id: string, updates: Partial<Chapter>) => void;
   deleteChapter?: (id: string) => void;
-  addChapter?: (title?: string) => string;
+  addChapter?: (title?: string) => Promise<string>;
   reorderChapters?: (chapters: Chapter[]) => void;
   // NEW: UI Cohesion - Lifted state for Context Bar controls
   displayMode?: CorkboardDisplayMode;
@@ -994,7 +994,7 @@ function CorkboardContent({
   handleCardDrop: (cardId: string, targetRowType: 'book' | 'part' | 'chapter', targetPartId: string | null, targetChapterId: string | null) => void;
   handleCardReorder: (cardId: string, targetCardId: string, position: 'before' | 'after', targetRowType: 'book' | 'part' | 'chapter', targetPartId: string | null, targetChapterId: string | null) => void;
   getCardsForRow: (row: CorkboardRowType) => CorkboardCard[];
-  addChapter?: (title?: string) => string;
+  addChapter?: (title?: string) => Promise<string>;
   deleteChapter?: (id: string) => void;
   updateChapterTitle?: (id: string, title: string) => void;
   updateChapterDetails?: (id: string, updates: Partial<Chapter>) => void;

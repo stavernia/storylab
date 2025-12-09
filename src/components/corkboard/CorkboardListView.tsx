@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { BookOpen, FolderOpen, FileText, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import { CorkboardCard as CardType } from "@/api/corkboard";
@@ -116,7 +116,7 @@ function ListCardRow({ card, onClick, onDrop, isDragging, chapters, tags }: List
       )}
       
       <div
-        ref={preview}
+        ref={preview as unknown as React.Ref<HTMLDivElement>}
         className={`
           grid grid-cols-[auto_minmax(200px,1fr)_100px_150px_80px_100px_120px_200px] gap-4 items-center
           px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors h-[52px]
@@ -125,7 +125,7 @@ function ListCardRow({ card, onClick, onDrop, isDragging, chapters, tags }: List
         onClick={onClick}
       >
         {/* Drag Handle */}
-        <div ref={drag} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+        <div ref={drag as unknown as React.Ref<HTMLDivElement>} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
           <GripVertical className="w-4 h-4" />
         </div>
 
@@ -148,7 +148,7 @@ function ListCardRow({ card, onClick, onDrop, isDragging, chapters, tags }: List
         <div className="text-xs">
           {card.status ? (
             <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
-              {statusLabels[card.status]}
+              {statusLabels[card.status as keyof typeof statusLabels]}
             </span>
           ) : (
             <span className="text-gray-400">—</span>
@@ -158,7 +158,7 @@ function ListCardRow({ card, onClick, onDrop, isDragging, chapters, tags }: List
         {/* Color */}
         <div className="text-xs">
           {card.color ? (
-            <span className={`px-2 py-0.5 rounded-full text-xs ${colorClasses[card.color]}`}>
+            <span className={`px-2 py-0.5 rounded-full text-xs ${colorClasses[card.color as keyof typeof colorClasses] ?? ''}`}>
               {card.color}
             </span>
           ) : (

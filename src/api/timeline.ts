@@ -1,6 +1,6 @@
 import type { Chapter, Theme } from "@/App";
 import { fetchLocalJson } from "./http";
-import type { GridCell } from "./grid";
+import type { GridCell } from "@/lib/grid";
 
 export type TimelineData = {
   chapters: Chapter[];

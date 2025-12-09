@@ -7,7 +7,7 @@ type InfoPanelProps = {
 };
 
 export function InfoPanel({ chapter, chapters }: InfoPanelProps) {
-  const totalWords = chapters.reduce((sum, ch) => sum + ch.wordCount, 0);
+  const totalWords = chapters.reduce((sum, ch) => sum + (ch.wordCount ?? 0), 0);
   const averageWords = chapters.length > 0 ? Math.round(totalWords / chapters.length) : 0;
 
   if (!chapter) {
@@ -34,7 +34,7 @@ export function InfoPanel({ chapter, chapters }: InfoPanelProps) {
           <div className="bg-gray-50 rounded-lg p-3 space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Words</span>
-              <span className="text-sm text-gray-900">{chapter.wordCount}</span>
+              <span className="text-sm text-gray-900">{chapter.wordCount ?? 0}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Characters</span>
@@ -74,7 +74,7 @@ export function InfoPanel({ chapter, chapters }: InfoPanelProps) {
           <div className="space-y-2">
             {chapters.map((ch) => {
               const quota = ch.wordQuota || 3000;
-              const progress = Math.min((ch.wordCount / quota) * 100, 100);
+              const progress = Math.min(((ch.wordCount ?? 0) / quota) * 100, 100);
               
               return (
                 <div key={ch.id} className="bg-gray-50 rounded p-2">

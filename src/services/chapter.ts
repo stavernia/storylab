@@ -4,7 +4,7 @@ export interface ChapterData {
   id: string;
   title: string;
   content: string;
-  wordCount: number;
+  wordCount?: number;
   bookId: string;
   sortOrder?: number;
   wordQuota?: number;
@@ -21,7 +21,7 @@ export interface ChapterData {
   customOutlineFields?: {
     [fieldId: string]: string; // key = field identifier, value = freeform text
   };
-  lastEdited?: string; // ISO timestamp, updated on any content change
+  lastEdited?: Date | string; // ISO timestamp, updated on any content change
   // Binder-ready fields (unused for now)
   type?: 'chapter' | 'scene' | 'part' | 'custom';
   parentId?: string | null;

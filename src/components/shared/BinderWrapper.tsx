@@ -18,7 +18,7 @@ interface BinderWrapperProps {
   // Chapter operations
   currentChapterId?: string;
   setCurrentChapterId?: (id: string) => void;
-  addChapter: (title?: string) => string;
+  addChapter: (title?: string) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
   updateChapterDetails?: (id: string, updates: Partial<Chapter>) => void;

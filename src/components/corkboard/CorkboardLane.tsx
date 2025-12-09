@@ -1,3 +1,4 @@
+import React from 'react';
 import { useDrop } from 'react-dnd';
 import { CorkboardCard as CardType } from "@/api/corkboard";
 import { CorkboardCard } from './CorkboardCard';
@@ -64,7 +65,7 @@ export function CorkboardLane({
       </div>
       
       <div
-        ref={drop}
+        ref={drop as unknown as React.Ref<HTMLDivElement>}
         className={`
           flex-1 overflow-y-auto p-4 space-y-3
           ${isOver ? 'bg-blue-50' : 'bg-gray-50/50'}

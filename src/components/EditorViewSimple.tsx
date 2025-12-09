@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RichTextEditor } from './RichTextEditor';
+import { RichTextEditor } from './editor/RichTextEditor';
 import { BookOpenText } from 'lucide-react';
 import type { Chapter, Part } from '@/App';
 import { useInspector } from '@/contexts/InspectorContext';
@@ -18,7 +18,7 @@ type EditorViewProps = {
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
   updateChapter: (id: string, content: string) => void;
-  addChapter: (title?: string) => string;
+  addChapter: (title?: string) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
   updateChapterDetails: (id: string, updates: Partial<Chapter>) => void;
@@ -155,12 +155,10 @@ export function EditorView({
           // Single-chapter mode
           <div className="h-full">
             <RichTextEditor
-              key={currentChapter.id}
+              editorId={`chapter-${currentChapter.id}`}
+              value={currentChapter.content}
+              onChange={(html) => handleChapterContentChange(currentChapter.id, html)}
               chapter={currentChapter}
-              updateChapter={updateChapter}
-              onAddToBoard={handleCreateBoardCardForCurrentChapter}
-              onChapterInfo={handleOpenCurrentChapterInfo}
-              onProjectInfo={handleOpenProjectInfo}
             />
           </div>
         ) : (
@@ -184,13 +182,12 @@ export function EditorView({
                 </div>
 
                 {/* Chapter content */}
-                <RichTextEditor
-                  chapter={chapter}
-                  updateChapter={(id, content) => handleChapterContentChange(id, content)}
-                  onAddToBoard={undefined}
-                  onChapterInfo={() => handleOpenChapterInspector(chapter)}
-                  onProjectInfo={handleOpenProjectInfo}
-                />
+                  <RichTextEditor
+                    editorId={`chapter-${chapter.id}`}
+                    value={chapter.content}
+                    onChange={(html) => handleChapterContentChange(chapter.id, html)}
+                    chapter={chapter}
+                  />
 
                 {/* Divider between chapters (not on last chapter) */}
                 {index < chapters.length - 1 && (

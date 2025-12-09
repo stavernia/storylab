@@ -24,7 +24,7 @@ type ChapterListProps = {
   chapters: Chapter[];
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
-  addChapter: (title?: string) => string;
+  addChapter: (title?: string) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
   updateChapterDetails?: (id: string, updates: Partial<Chapter>) => void;
@@ -506,7 +506,7 @@ export function ChapterList({
         )}
         
         {groupedChapters.map((group) => {
-          const isCollapsed = group.part && collapsedParts.has(group.part.id);
+          const isCollapsed = !!(group.part && collapsedParts.has(group.part.id));
           
           return (
             <div key={group.part?.id || 'unassigned'}>
