@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SentryErrorBoundary } from "@/src/components/SentryErrorBoundary";
+import { SentryErrorBoundary } from "@/components/SentryErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

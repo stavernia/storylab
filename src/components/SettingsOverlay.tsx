@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Book } from '../types/book';
+import { Book } from '@/types/book';
 import { Info, Play, X } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 import { Button } from './ui/button';
-import { useOnboardingTour } from '../onboarding/OnboardingTourContext';
+import { useOnboardingTour } from '@/onboarding/OnboardingTourContext';
 
 type SettingsOverlayProps = {
   isOpen: boolean;

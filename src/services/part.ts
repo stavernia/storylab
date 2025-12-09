@@ -1,5 +1,5 @@
-import type { Part } from "../App";
-import { partsApi } from "../api/parts";
+import type { Part } from "@/App";
+import { partsApi } from "@/api/parts";
 
 export async function createPart(
   data: { title: string; notes?: string; bookId: string },

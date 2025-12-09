@@ -1,5 +1,5 @@
 import { FileText, BookOpen, Hash } from 'lucide-react';
-import type { Chapter } from '../App';
+import type { Chapter } from '@/App';
 
 type InfoPanelProps = {
   chapter: Chapter;

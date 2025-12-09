@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus, GripVertical, Edit2, Trash2, Check, X, Library } from 'lucide-react';
-import type { Part } from '../App';
+import type { Part } from '@/App';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';

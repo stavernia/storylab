@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Book } from '../App';
+import { Book } from '@/App';
 import { LayoutGrid, List, Plus, Calendar, FolderOpen, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { BookManageSheet } from './BookManageSheet';

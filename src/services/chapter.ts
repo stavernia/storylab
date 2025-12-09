@@ -1,4 +1,4 @@
-import { manuscriptApi } from "../api/manuscript";
+import { manuscriptApi } from "@/api/manuscript";
 
 export interface ChapterData {
   id: string;

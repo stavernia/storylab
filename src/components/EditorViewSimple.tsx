@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { RichTextEditor } from './RichTextEditor';
 import { BookOpenText } from 'lucide-react';
-import type { Chapter, Part } from '../App';
-import { useInspector } from '../contexts/InspectorContext';
+import type { Chapter, Part } from '@/App';
+import { useInspector } from '@/contexts/InspectorContext';
 import { EditorProjectInfoPanel } from './info-panels/EditorProjectInfoPanel';
-import { ChapterData } from '../services/chapter';
-import { tagService, Tag } from '../services/tag';
-import { useTagFilter } from '../contexts/TagFilterContext';
-import { useEntityTags } from '../hooks/useEntityTags';
+import { ChapterData } from '@/services/chapter';
+import { tagService, Tag } from '@/services/tag';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
 import { toast } from 'sonner';
-import { corkboardApi } from "../api/corkboard";
+import { corkboardApi } from "@/api/corkboard";
 import { X } from 'lucide-react';
 
 type EditorViewProps = {

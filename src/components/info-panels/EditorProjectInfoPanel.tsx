@@ -1,4 +1,4 @@
-import { Chapter } from '../../App';
+import { Chapter } from '@/App';
 
 interface EditorProjectInfoPanelProps {
   chapters: Chapter[];

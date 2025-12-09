@@ -1,5 +1,5 @@
 import { fetchLocalJson } from "./http";
-import type { Tag } from "../services/tag";
+import type { Tag } from "@/services/tag";
 
 type EntityScope = "chapter" | "card" | "theme" | "grid_cell" | "character";
 

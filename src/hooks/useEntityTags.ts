@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Tag, tagService } from '../services/tag';
+import { Tag, tagService } from '@/services/tag';
 
 // Module-level cache
 const tagCache = new Map<string, Tag[]>();

@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react';
-import { APP_VIEWS, type AppViewId } from '../../config/views';
+import { APP_VIEWS, type AppViewId } from '@/config/views';
 
 interface BreadcrumbBarProps {
   viewId: AppViewId;

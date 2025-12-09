@@ -1,4 +1,4 @@
-import type { Chapter, Part } from '../App';
+import type { Chapter, Part } from '@/App';
 
 export type ChapterNumberingMode = 'per-book' | 'per-part';
 

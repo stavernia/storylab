@@ -1,8 +1,8 @@
 import { ReactNode, useEffect, useRef } from 'react';
 import { X, Loader2, LayoutPanelLeft, Square } from 'lucide-react';
-import { theme } from '../../theme';
-import { Button } from '../ui/button';
-import { useInfoPanelLayout, InfoPanelLayout } from '../../hooks/useInfoPanelLayout';
+import { theme } from '@/theme';
+import { Button } from '@/components/ui/button';
+import { useInfoPanelLayout, InfoPanelLayout } from '@/hooks/useInfoPanelLayout';
 
 export interface InfoPanelProps {
   isOpen: boolean;

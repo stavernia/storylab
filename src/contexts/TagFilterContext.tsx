@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Tag } from '../services/tag';
+import { Tag } from '@/services/tag';
 
 export type FilterMode = 'dim' | 'hide';
 

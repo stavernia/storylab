@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X, Info, GripVertical, ChevronRight, ChevronDown, BookOpen } from 'lucide-react';
-import type { Chapter, Part } from '../App';
+import type { Chapter, Part } from '@/App';
 import { TagBadges } from './tags/TagBadges';
-import { useTagFilter } from '../contexts/TagFilterContext';
-import { useEntityTags } from '../hooks/useEntityTags';
-import { useChapterNumbering } from '../contexts/ChapterNumberingContext';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 import {
   DropdownMenu,
   DropdownMenuContent,

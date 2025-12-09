@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import type { ThreadRole } from '../../App';
-import { GridCellData } from '../../services/gridCell';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Slider } from '../ui/slider';
-import { TagChipInput } from '../tags/TagChipInput';
-import { Tag } from '../../services/tag';
+import type { ThreadRole } from '@/App';
+import { GridCellData } from '@/services/gridCell';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { TagChipInput } from '@/components/tags/TagChipInput';
+import { Tag } from '@/services/tag';
 
 // NEW: Thread Lines v1 - Thread roles
 const threadRoles: ThreadRole[] = ['none', 'seed', 'buildup', 'event', 'aftermath'];

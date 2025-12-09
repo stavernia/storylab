@@ -1,8 +1,8 @@
 import { Info, Target, BarChart3, MessageSquareMore, Clock3, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
-import { InspectorPayload } from '../../contexts/InspectorContext';
+import { InspectorPayload } from '@/contexts/InspectorContext';
 import { useState, useEffect } from 'react';
-import { timeAgo } from '../../utils/timeAgo';
-import { OutlineMetadataPanel } from '../info-panels/OutlineMetadataPanel';
+import { timeAgo } from '@/utils/timeAgo';
+import { OutlineMetadataPanel } from '@/components/info-panels/OutlineMetadataPanel';
 
 // Placeholder components for each tool mode
 export function InspectorDetails({ payload }: { payload: InspectorPayload | null }) {
