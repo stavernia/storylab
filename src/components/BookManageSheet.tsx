@@ -7,6 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { booksApi } from "../api/books";
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 interface BookManageSheetProps {
   book: Book;
@@ -21,7 +22,7 @@ export function BookManageSheet({ book, isOpen, onClose, onUpdate, onDelete }: B
   const [subtitle, setSubtitle] = useState(''); // Placeholder for future
   const [description, setDescription] = useState(book.description || '');
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   // Reset form when book changes
   useEffect(() => {
@@ -56,21 +57,25 @@ export function BookManageSheet({ book, isOpen, onClose, onUpdate, onDelete }: B
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete "${book.title}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to archive "${book.title}"? This moves the book to Trash for 30 days before permanent deletion.`,
+      )
+    ) {
       return;
     }
 
-    setIsDeleting(true);
+    setIsArchiving(true);
     try {
       await booksApi.archive(book.id);
       onDelete(book.id);
-      toast.success('Book deleted');
+      toast.success('Book archived');
       onClose();
     } catch (error) {
-      console.error('Failed to delete book:', error);
-      toast.error('Failed to delete book');
+      console.error('Failed to archive book:', error);
+      toast.error('Failed to archive book');
     } finally {
-      setIsDeleting(false);
+      setIsArchiving(false);
     }
   };
 
@@ -155,7 +160,7 @@ export function BookManageSheet({ book, isOpen, onClose, onUpdate, onDelete }: B
           <div className="flex items-center gap-2">
             <Button
               onClick={handleSave}
-              disabled={isSaving || isDeleting}
+              disabled={isSaving || isArchiving}
               className="flex-1"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
@@ -163,21 +168,28 @@ export function BookManageSheet({ book, isOpen, onClose, onUpdate, onDelete }: B
             <Button
               onClick={onClose}
               variant="outline"
-              disabled={isSaving || isDeleting}
+              disabled={isSaving || isArchiving}
             >
               Cancel
             </Button>
           </div>
-          
-          <Button
-            onClick={handleDelete}
-            variant="destructive"
-            disabled={isSaving || isDeleting}
-            className="w-full flex items-center justify-center gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            {isDeleting ? 'Deleting...' : 'Delete Book'}
-          </Button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={handleDelete}
+                variant="destructive"
+                disabled={isSaving || isArchiving}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isArchiving ? 'Archiving...' : 'Archive Book'}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-left">
+              Moves this book to Trash. Archived books are kept for 30 days before permanent deletion.
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </>
