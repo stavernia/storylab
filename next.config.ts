@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     config.resolve ??= {};
     config.resolve.alias ??= {};
 
-    config.resolve.alias["@"] = path.resolve(__dirname, "src");
+    config.resolve.alias["@"] = path.resolve(__dirname);
 
     return config;
   },
