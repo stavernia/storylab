@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import type { Book } from '../types/book';
+import type { Book } from '@/types/book';
 import { X, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
-import { booksApi } from "../api/books";
+import { booksApi } from "@/api/books";
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 

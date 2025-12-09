@@ -1,4 +1,4 @@
-import type { Chapter, Theme } from "../App";
+import type { Chapter, Theme } from "@/App";
 import { fetchLocalJson } from "./http";
 import type { GridCell } from "./grid";
 

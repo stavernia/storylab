@@ -1,5 +1,5 @@
-import { useInspector } from '../../contexts/InspectorContext';
-import { useChapterNumbering } from '../../contexts/ChapterNumberingContext';
+import { useInspector } from '@/contexts/InspectorContext';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 import { ChevronLeft, ChevronRight, Info, Target, BarChart3, MessageSquareMore, Clock3, Trash2 } from 'lucide-react';
 import { 
   InspectorDetails, 
@@ -7,7 +7,7 @@ import {
   AnalyticsPanel, 
   CommentsPanel, 
   HistoryPanel 
-} from '../inspector/InspectorContent';
+} from '@/components/inspector/InspectorContent';
 
 export function InspectorSidebar() {
   const { isOpen, activeTool, payload, openInspector, closeInspector } = useInspector();

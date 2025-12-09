@@ -1,4 +1,4 @@
-import { corkboardApi, type CorkboardBoard, type CreateCardInput } from "../api/corkboard";
+import { corkboardApi, type CorkboardBoard, type CreateCardInput } from "@/api/corkboard";
 import { getInitialRank, getBetweenRank } from './lexorank';
 
 export async function seedCorkboard(bookId: string, chapterIds: string[]) {

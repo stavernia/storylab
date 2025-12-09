@@ -1,6 +1,6 @@
 import { Info, Target, BarChart3, MessageSquareMore, Clock3 } from 'lucide-react';
-import { useInspector, type InspectorTool } from '../../contexts/InspectorContext';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { useInspector, type InspectorTool } from '@/contexts/InspectorContext';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function ToolRail() {
   const { activeTool, isOpen, setInspectorTool, openInspector, closeInspector } = useInspector();

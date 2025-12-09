@@ -1,5 +1,5 @@
-import { manuscriptApi } from "../api/manuscript";
-import { booksApi } from "../api/books";
+import { manuscriptApi } from "@/api/manuscript";
+import { booksApi } from "@/api/books";
 
 export interface CharacterData {
   id: string;

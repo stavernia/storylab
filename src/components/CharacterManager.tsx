@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Character } from '../App';
+import { Character } from '@/App';
 import { CharacterInfoForm } from './info-forms/CharacterInfoForm';
 import { InfoPanelModal } from './shared/InfoPanelModal';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Edit2, Trash2, Plus, User, GripVertical, Users } from 'lucide-react';
-import { useInspector } from '../contexts/InspectorContext';
-import { Tag, tagService } from '../services/tag';
+import { useInspector } from '@/contexts/InspectorContext';
+import { Tag, tagService } from '@/services/tag';
 
 interface CharacterManagerProps {
   characters: Character[];

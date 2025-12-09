@@ -1,8 +1,8 @@
 import { useDrop } from 'react-dnd';
-import { CorkboardCard as CardType } from "../../api/corkboard";
+import { CorkboardCard as CardType } from "@/api/corkboard";
 import { CorkboardCard } from './CorkboardCard';
-import { useEntityTags } from '../../hooks/useEntityTags';
-import { useTagFilter } from '../../contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
+import { useTagFilter } from '@/contexts/TagFilterContext';
 
 interface CorkboardLaneProps {
   laneId: string;

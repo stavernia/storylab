@@ -1,5 +1,5 @@
-import { Tag, displayTagName } from '../../services/tag';
-import { theme } from '../../theme';
+import { Tag, displayTagName } from '@/services/tag';
+import { theme } from '@/theme';
 
 interface TagBadgesProps {
   tags: Tag[];

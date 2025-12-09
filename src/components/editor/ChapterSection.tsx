@@ -1,6 +1,6 @@
-import type { Chapter } from '../../App';
+import type { Chapter } from '@/App';
 import { TiptapChapterEditor } from './TiptapChapterEditor';
-import { useChapterNumbering } from '../../contexts/ChapterNumberingContext';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 
 export type ChapterSectionProps = {
   chapter: Chapter;

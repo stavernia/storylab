@@ -3,10 +3,10 @@ import { EditorToolbar } from './editor/EditorToolbar';
 import { TiptapChapterEditor } from './editor/TiptapChapterEditor';
 import { ChapterSection } from './editor/ChapterSection';
 import { X, Info } from 'lucide-react';
-import type { Chapter, Part, ManuscriptSelection } from '../App';
-import { useTagFilter } from '../contexts/TagFilterContext';
-import { useEntityTags } from '../hooks/useEntityTags';
-import { useChapterNumbering } from '../contexts/ChapterNumberingContext';
+import type { Chapter, Part, ManuscriptSelection } from '@/App';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 import { toast } from 'sonner';
 
 type EditorViewProps = {

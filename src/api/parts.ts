@@ -1,5 +1,5 @@
 import { fetchLocalJson } from "./http";
-import type { Part } from "../App";
+import type { Part } from "@/App";
 
 export const partsApi = {
   async list(bookId: string): Promise<Part[]> {
