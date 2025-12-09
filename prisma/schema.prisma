@@ -12,6 +12,13 @@ enum Role {
   ADMIN
 }
 
+enum FeedbackStatus {
+  WAITING
+  IN_PROGRESS
+  CANCELLED
+  COMPLETE
+}
+
 model User {
   id            String    @id @default(uuid())
   name          String?
@@ -271,4 +278,17 @@ model GridCell {
   @@index([bookId])
   @@index([chapterId])
   @@index([themeId])
+}
+
+// TODO: Expand admin feedback reporting with pagination and export options.
+model Feedback {
+  id        String         @id @default(cuid())
+  userId    String?
+  userEmail String?
+  message   String
+  pagePath  String?
+  status    FeedbackStatus @default(WAITING)
+  createdAt DateTime       @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
