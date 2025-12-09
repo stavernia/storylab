@@ -1,3 +1,7 @@
+/**
+ * Read-only database integrity checks. This script surfaces mismatches,
+ * orphaned rows, and cross-book inconsistencies without mutating data.
+ */
 import { prisma } from "../src/lib/prisma";
 
 type CountSummary = {
@@ -186,35 +190,223 @@ async function checkGridAndThemeConsistency() {
     }
   }
 
-  let deletedCells = 0;
-  if (process.env.DELETE_EMPTY_GRID_CELLS === "true" && emptyCellIds.length > 0) {
-    const result = await prisma.gridCell.deleteMany({ where: { id: { in: emptyCellIds } } });
-    deletedCells = result.count;
-    console.log(`Deleted ${deletedCells} empty grid cells.`);
-  }
-
   if (mismatchCount === 0) {
     console.log("No grid/theme book mismatches detected.");
   }
   if (emptyCellIds.length === 0) {
     console.log("No empty grid cells detected.");
-  } else if (deletedCells === 0) {
+  } else {
     console.warn(
-      `${emptyCellIds.length} grid cells have no presence, intensity, note, or threadRole (set DELETE_EMPTY_GRID_CELLS=true to remove automatically).`,
+      `${emptyCellIds.length} grid cells have no presence, intensity, note, or threadRole.`,
     );
   }
 
   console.log(
-    `Grid summary → total: ${gridCells.length}, empty: ${emptyCellIds.length}, mismatches: ${mismatchCount}, deleted: ${deletedCells}`,
+    `Grid summary → total: ${gridCells.length}, empty: ${emptyCellIds.length}, mismatches: ${mismatchCount}`,
   );
 
-  return { total: gridCells.length, mismatches: mismatchCount, emptyCells: emptyCellIds.length, deletedCells };
+  return { total: gridCells.length, mismatches: mismatchCount, emptyCells: emptyCellIds.length, deletedCells: 0 };
+}
+
+function logIssue<T extends { id: string }>(
+  label: string,
+  items: T[],
+  formatter?: (item: T) => string,
+) {
+  console.log(`${label}: count = ${items.length}`);
+  if (items.length > 0) {
+    const samples = items.slice(0, 10).map((item) => formatter?.(item) ?? item.id);
+    console.log(`  sample: ${samples.join(", ")}${items.length > 10 ? " ..." : ""}`);
+  }
+}
+
+async function checkOrphansAndCrossBookMismatches() {
+  console.log("\nRelational integrity:\n---------------------");
+
+  const [books, parts, chapters, themes, characters, boards, cards, tags, tagLinks, themeNotes, gridCells] =
+    await Promise.all([
+      prisma.book.findMany({ select: { id: true, isArchived: true } }),
+      prisma.part.findMany({ select: { id: true, bookId: true } }),
+      prisma.chapter.findMany({ select: { id: true, bookId: true, partId: true } }),
+      prisma.theme.findMany({ select: { id: true, bookId: true } }),
+      prisma.character.findMany({ select: { id: true, bookId: true } }),
+      prisma.corkboardBoard.findMany({ select: { id: true, bookId: true } }),
+      prisma.corkboardCard.findMany({
+        select: { id: true, bookId: true, chapterId: true, partId: true, boardId: true },
+      }),
+      prisma.tag.findMany({ select: { id: true, bookId: true } }),
+      prisma.tagLink.findMany({ select: { id: true, bookId: true, tagId: true, entityType: true, entityId: true } }),
+      prisma.themeNote.findMany({ select: { id: true, chapterId: true, themeId: true } }),
+      prisma.gridCell.findMany({ select: { id: true, bookId: true, chapterId: true, themeId: true } }),
+    ]);
+
+  const bookIds = new Set(books.map((book) => book.id));
+  const partBook = new Map(parts.map((part) => [part.id, part.bookId]));
+  const chapterBook = new Map(chapters.map((chapter) => [chapter.id, chapter.bookId]));
+  const themeBook = new Map(themes.map((theme) => [theme.id, theme.bookId]));
+  const characterBook = new Map(characters.map((character) => [character.id, character.bookId]));
+  const boardBook = new Map(boards.map((board) => [board.id, board.bookId]));
+  const cardBook = new Map(cards.map((card) => [card.id, card.bookId]));
+  const tagBook = new Map(tags.map((tag) => [tag.id, tag.bookId]));
+  const gridBook = new Map(gridCells.map((cell) => [cell.id, cell.bookId]));
+
+  const orphanParts = parts.filter((part) => !bookIds.has(part.bookId));
+  const orphanChapters = chapters.filter(
+    (chapter) => !bookIds.has(chapter.bookId) || (chapter.partId && !partBook.has(chapter.partId)),
+  );
+  const orphanThemes = themes.filter((theme) => !bookIds.has(theme.bookId));
+  const orphanCharacters = characters.filter((character) => !bookIds.has(character.bookId));
+  const orphanBoards = boards.filter((board) => !bookIds.has(board.bookId));
+  const orphanCards = cards.filter(
+    (card) =>
+      !bookIds.has(card.bookId) ||
+      (card.chapterId && !chapterBook.has(card.chapterId)) ||
+      (card.partId && !partBook.has(card.partId)) ||
+      (card.boardId && !boardBook.has(card.boardId)),
+  );
+  const orphanThemeNotes = themeNotes.filter(
+    (note) => !chapterBook.has(note.chapterId) || !themeBook.has(note.themeId),
+  );
+  const orphanGridCells = gridCells.filter(
+    (cell) => !bookIds.has(cell.bookId) || !chapterBook.has(cell.chapterId) || !themeBook.has(cell.themeId),
+  );
+  const orphanTags = tags.filter((tag) => !bookIds.has(tag.bookId));
+  const orphanTagLinks = tagLinks.filter((link) => !bookIds.has(link.bookId) || !tagBook.has(link.tagId));
+
+  logIssue("Orphan parts (missing book)", orphanParts, (part) => `${part.id} → book ${part.bookId}`);
+  logIssue(
+    "Orphan chapters (missing book or part)",
+    orphanChapters,
+    (chapter) => `${chapter.id} → book ${chapter.bookId}${chapter.partId ? `, part ${chapter.partId}` : ""}`,
+  );
+  logIssue("Orphan themes (missing book)", orphanThemes, (theme) => `${theme.id} → book ${theme.bookId}`);
+  logIssue("Orphan characters (missing book)", orphanCharacters, (character) => `${character.id} → book ${character.bookId}`);
+  logIssue("Orphan corkboard boards (missing book)", orphanBoards, (board) => `${board.id} → book ${board.bookId}`);
+  logIssue(
+    "Orphan corkboard cards (missing parent)",
+    orphanCards,
+    (card) =>
+      `${card.id} → book ${card.bookId}${card.chapterId ? `, chapter ${card.chapterId}` : ""}${
+        card.partId ? `, part ${card.partId}` : ""
+      }${card.boardId ? `, board ${card.boardId}` : ""}`,
+  );
+  logIssue(
+    "Orphan theme notes (missing chapter or theme)",
+    orphanThemeNotes,
+    (note) => `${note.id} → chapter ${note.chapterId}, theme ${note.themeId}`,
+  );
+  logIssue(
+    "Orphan grid cells (missing book/chapter/theme)",
+    orphanGridCells,
+    (cell) => `${cell.id} → book ${cell.bookId}, chapter ${cell.chapterId}, theme ${cell.themeId}`,
+  );
+  logIssue("Orphan tags (missing book)", orphanTags, (tag) => `${tag.id} → book ${tag.bookId}`);
+  logIssue(
+    "Orphan tag links (missing book or tag)",
+    orphanTagLinks,
+    (link) => `${link.id} → book ${link.bookId}, tag ${link.tagId}`,
+  );
+
+  const crossBookChapterPart = chapters.filter(
+    (chapter) => chapter.partId && partBook.get(chapter.partId) !== chapter.bookId,
+  );
+  const crossBookCards: typeof cards = cards.filter(
+    (card) =>
+      (card.chapterId && chapterBook.get(card.chapterId) !== card.bookId) ||
+      (card.partId && partBook.get(card.partId) !== card.bookId) ||
+      (card.boardId && boardBook.get(card.boardId) !== card.bookId),
+  );
+  const crossBookThemeNotes = themeNotes.filter((note) => themeBook.get(note.themeId) !== chapterBook.get(note.chapterId));
+  const crossBookGridCells = gridCells.filter(
+    (cell) =>
+      cell.bookId !== chapterBook.get(cell.chapterId) ||
+      cell.bookId !== themeBook.get(cell.themeId) ||
+      chapterBook.get(cell.chapterId) !== themeBook.get(cell.themeId),
+  );
+  const tagLinksWithTagMismatch = tagLinks.filter(
+    (link) => tagBook.get(link.tagId) && tagBook.get(link.tagId) !== link.bookId,
+  );
+
+  const entityBookLookup = (type: string, id: string): string | undefined => {
+    if (type === "chapter") return chapterBook.get(id);
+    if (type === "theme") return themeBook.get(id);
+    if (type === "character") return characterBook.get(id);
+    if (type === "card") return cardBook.get(id);
+    if (type === "grid_cell") return gridBook.get(id);
+    return undefined;
+  };
+
+  const tagLinksWithEntityMismatch = tagLinks.filter((link) => {
+    const entityBookId = entityBookLookup(link.entityType, link.entityId);
+    return entityBookId !== undefined && entityBookId !== link.bookId;
+  });
+
+  logIssue(
+    "Cross-book chapter/part mismatches",
+    crossBookChapterPart,
+    (chapter) => `${chapter.id} → chapter book ${chapter.bookId}, part book ${chapter.partId ? partBook.get(chapter.partId) : ""}`,
+  );
+  logIssue(
+    "Cross-book corkboard cards",
+    crossBookCards,
+    (card) =>
+      `${card.id} → book ${card.bookId}${
+        card.chapterId ? `, chapter book ${chapterBook.get(card.chapterId)}` : ""
+      }${card.partId ? `, part book ${partBook.get(card.partId)}` : ""}${
+        card.boardId ? `, board book ${boardBook.get(card.boardId)}` : ""
+      }`,
+  );
+  logIssue(
+    "Theme notes with mismatched books",
+    crossBookThemeNotes,
+    (note) =>
+      `${note.id} → chapter book ${chapterBook.get(note.chapterId)}, theme book ${themeBook.get(note.themeId)}`,
+  );
+  logIssue(
+    "Grid cells with mismatched books",
+    crossBookGridCells,
+    (cell) =>
+      `${cell.id} → cell book ${cell.bookId}, chapter book ${chapterBook.get(cell.chapterId)}, theme book ${themeBook.get(cell.themeId)}`,
+  );
+  logIssue(
+    "Tag links where tag.bookId differs",
+    tagLinksWithTagMismatch,
+    (link) => `${link.id} → link book ${link.bookId}, tag book ${tagBook.get(link.tagId)}`,
+  );
+  logIssue(
+    "Tag links where entity book differs",
+    tagLinksWithEntityMismatch,
+    (link) => `${link.id} → link book ${link.bookId}, entity book ${entityBookLookup(link.entityType, link.entityId)}`,
+  );
+
+  const archivedBookIds = new Set(books.filter((book) => book.isArchived).map((book) => book.id));
+  const activeChildrenOfArchivedBooks = {
+    parts: parts.filter((part) => archivedBookIds.has(part.bookId)),
+    chapters: chapters.filter((chapter) => archivedBookIds.has(chapter.bookId)),
+    themes: themes.filter((theme) => archivedBookIds.has(theme.bookId)),
+    characters: characters.filter((character) => archivedBookIds.has(character.bookId)),
+    corkboardBoards: boards.filter((board) => archivedBookIds.has(board.bookId)),
+    corkboardCards: cards.filter((card) => archivedBookIds.has(card.bookId)),
+    tags: tags.filter((tag) => archivedBookIds.has(tag.bookId)),
+    gridCells: gridCells.filter((cell) => archivedBookIds.has(cell.bookId)),
+  };
+
+  console.log("\nArchived book children:\n-----------------------");
+  logIssue("Parts under archived books", activeChildrenOfArchivedBooks.parts);
+  logIssue("Chapters under archived books", activeChildrenOfArchivedBooks.chapters);
+  logIssue("Themes under archived books", activeChildrenOfArchivedBooks.themes);
+  logIssue("Characters under archived books", activeChildrenOfArchivedBooks.characters);
+  logIssue("Corkboard boards under archived books", activeChildrenOfArchivedBooks.corkboardBoards);
+  logIssue("Corkboard cards under archived books", activeChildrenOfArchivedBooks.corkboardCards);
+  logIssue("Tags under archived books", activeChildrenOfArchivedBooks.tags);
+  logIssue("Grid cells under archived books", activeChildrenOfArchivedBooks.gridCells);
 }
 
 async function main() {
   await reportBookSummary();
   await checkCorkboardConsistency();
   await checkGridAndThemeConsistency();
+  await checkOrphansAndCrossBookMismatches();
 }
 
 main()

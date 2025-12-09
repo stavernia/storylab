@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/server/auth/requireUser";
-
-async function assertBookAccess(bookId: string, userId: string) {
-  return prisma.book.findFirst({ where: { id: bookId, userId } });
-}
+import { assertBookAccess } from "@/server/auth/bookAccess";
 
 export async function PATCH(
   request: Request,

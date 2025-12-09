@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/server/auth/requireUser";
+import { assertBookAccess } from "@/server/auth/bookAccess";
 
 type EntityScope = "chapter" | "theme" | "character" | "card" | "grid_cell";
 
@@ -30,10 +31,6 @@ async function resolveEntity(
   }
 
   return null;
-}
-
-async function assertBookAccess(bookId: string, userId: string) {
-  return prisma.book.findFirst({ where: { id: bookId, userId } });
 }
 
 export async function GET(
