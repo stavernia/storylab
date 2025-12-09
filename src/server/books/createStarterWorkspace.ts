@@ -20,7 +20,6 @@ export async function createStarterWorkspaceForUser(
       data: {
         title: template.book.title || "My Book",
         description: template.book.description ?? null,
-        chapterNumbering: template.book.chapterNumbering ?? undefined,
         userId,
       },
     });

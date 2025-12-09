@@ -2,7 +2,6 @@ export type BookTemplate = {
   book: {
     title: string;
     description?: string | null;
-    chapterNumbering?: "per-book" | "per-part" | null;
   };
   parts?: Array<{
     title: string;

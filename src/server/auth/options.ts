@@ -23,7 +23,11 @@ export const authOptions: AuthOptions = {
       }
 
       if (user?.id) {
-        await createStarterWorkspaceForUser(prisma, user.id);
+        const exists = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true } });
+
+        if (exists) {
+          await createStarterWorkspaceForUser(prisma, user.id);
+        }
       }
 
       return true;

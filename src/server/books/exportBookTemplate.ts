@@ -10,7 +10,7 @@ export async function exportBookTemplate(
     await prisma.$transaction([
       prisma.book.findUnique({
         where: { id: bookId },
-        select: { title: true, description: true, chapterNumbering: true },
+        select: { title: true, description: true },
       }),
       prisma.part.findMany({ where: { bookId }, orderBy: { sortOrder: "asc" } }),
       prisma.chapter.findMany({ where: { bookId }, orderBy: { sortOrder: "asc" } }),
@@ -136,7 +136,6 @@ export async function exportBookTemplate(
     book: {
       title: book.title,
       description: book.description,
-      chapterNumbering: book.chapterNumbering,
     },
     parts: partTemplates,
     chapters: chapterTemplates,

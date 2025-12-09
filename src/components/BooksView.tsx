@@ -256,22 +256,9 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                           </span>
                         )}
                       </td>
-                      {canExportTemplates && (
-                        <td className="px-4 py-3 text-sm">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="flex items-center gap-2"
-                            onClick={(e) => handleExportBook(book.id, e)}
-                          >
-                            <Download className="w-3 h-3" />
-                            Export JSON
-                          </Button>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
+                  </tr>
+                );
+              })}
               </tbody>
             </table>
           </div>
@@ -286,6 +273,8 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
           onClose={handleCloseManage}
           onUpdate={handleUpdateBook}
           onDelete={handleDeleteBook}
+          onExport={onExportBook}
+          canExportTemplates={canExportTemplates}
         />
       )}
 

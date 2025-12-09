@@ -7,10 +7,10 @@ import { exportBookTemplate } from "@/server/books/exportBookTemplate";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ bookId: string }> },
+  { params }: { params: { bookId: string } },
 ) {
   try {
-    const { bookId } = await params;
+    const { bookId } = params;
     await requireAdmin();
 
     const template = await exportBookTemplate(prisma, bookId);
