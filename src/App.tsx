@@ -17,7 +17,6 @@ import { manuscriptApi } from "./api/manuscript";
 import { booksApi } from "./api/books";
 import type { Book } from "./types/book";
 import * as partService from "./services/part";
-import { seedTags } from "./utils/seed-tags";
 import { getOrderedChapters } from "./utils/chapter-ordering";
 import {
   gridCellHasContent,
@@ -152,6 +151,8 @@ export type ManuscriptSelection =
   | { kind: "chapter"; chapterId: string };
 
 function AppContent() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
   // NEW: Onboarding Tour
   const { isOpen: tourIsOpen, currentStep: tourCurrentStep } =
     useOnboardingTour();
@@ -324,11 +325,6 @@ function AppContent() {
     );
   };
 
-  // Seed tags on first load
-  useEffect(() => {
-    seedTags();
-  }, []);
-
   // NEW: Multi-book support - Update currentBook when currentBookId changes
   useEffect(() => {
     if (currentBookId) {
@@ -343,83 +339,9 @@ function AppContent() {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        // NEW: Multi-book support - Load books first
         const loadedBooks = await booksApi.listAll();
         console.log("Loaded books:", loadedBooks);
         setBooks(loadedBooks);
-
-        // Auto-select book based on count
-        if (loadedBooks.length === 1) {
-          // Single book: auto-select and load its data
-          const book = loadedBooks[0];
-          setCurrentBookId(book.id);
-
-          // Switch to editor view
-          setPanes((prev) =>
-            prev.map((p) =>
-              p.id === "primary" ? { ...p, activeViewId: "manuscript" } : p,
-            ),
-          );
-
-          // Load book data
-          const data = await manuscriptApi.loadData(book.id);
-          console.log("Loaded data from backend:", data);
-
-          setChapters(data.chapters);
-          setThemes(data.themes);
-          setCharacters(data.characters || []);
-          applyGridCells(book.id, data.gridCells);
-          setParts(data.parts || []);
-
-          // Initialize primary pane with first chapter
-          setPanes((prev) =>
-            prev.map((p) =>
-              p.id === "primary"
-                ? { ...p, selectedChapterId: data.chapters[0]?.id || "" }
-                : p,
-            ),
-          );
-        } else if (loadedBooks.length === 0) {
-          // No books: default book will be created by backend, then load
-          const data = await manuscriptApi.loadData(); // This will trigger default book creation
-          console.log("Loaded data (created default book):", data);
-
-          // Reload books to get the default book
-          const reloadedBooks = await booksApi.listAll();
-          setBooks(reloadedBooks);
-
-          if (reloadedBooks.length > 0) {
-            const book = reloadedBooks[0];
-            setCurrentBookId(book.id);
-
-            // Switch to editor view
-            setPanes((prev) =>
-              prev.map((p) =>
-                p.id === "primary" ? { ...p, activeViewId: "manuscript" } : p,
-              ),
-            );
-          }
-
-          setChapters(data.chapters);
-          setThemes(data.themes);
-          setCharacters(data.characters || []);
-          if (reloadedBooks[0]) {
-            applyGridCells(reloadedBooks[0].id, data.gridCells);
-          }
-          setParts(data.parts || []);
-
-          // Initialize primary pane with first chapter
-          setPanes((prev) =>
-            prev.map((p) =>
-              p.id === "primary"
-                ? { ...p, selectedChapterId: data.chapters[0]?.id || "" }
-                : p,
-            ),
-          );
-        } else {
-          // Multiple books: stay on books view (already default)
-          // User will select a book manually
-        }
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
@@ -1074,6 +996,11 @@ function AppContent() {
     }
   };
 
+  const handleExportBookTemplate = (bookId: string) => {
+    const url = `/api/admin/books/${bookId}/export`;
+    window.open(url, "_blank");
+  };
+
   const handleNavigateToBooks = () => {
     setPanes((prev) =>
       prev.map((p) =>
@@ -1651,6 +1578,8 @@ function AppContent() {
             onCreateBook={handleCreateBook}
             onUpdateBook={handleUpdateBook}
             onDeleteBook={handleDeleteBook}
+            onExportBook={handleExportBookTemplate}
+            canExportTemplates={isAdmin}
           />
         );
       case "manuscript":

@@ -26,7 +26,7 @@ export interface TagLink {
 
 let cachedBookId: string | null = null;
 
-async function resolveBookId(bookId?: string): Promise<string> {
+async function resolveBookId(bookId?: string): Promise<string | null> {
   if (bookId) {
     cachedBookId = bookId;
     return bookId;
@@ -37,24 +37,28 @@ async function resolveBookId(bookId?: string): Promise<string> {
   }
 
   const books = await booksApi.listAll();
+  const resolved = books[0]?.id ?? null;
 
-  if (!books[0]?.id) {
-    throw new Error("Unable to resolve book context for tags");
-  }
-
-  cachedBookId = books[0].id;
-  return cachedBookId;
+  cachedBookId = resolved;
+  return resolved;
 }
 
 export const tagService = {
   async listAll(bookId?: string): Promise<Tag[]> {
     const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return [];
+    }
+
     const tags = await tagsApi.list(resolvedBookId);
     return tags.sort((a: Tag, b: Tag) => a.name.localeCompare(b.name));
   },
 
   async create(name: string, color?: string, bookId?: string): Promise<Tag> {
     const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      throw new Error("Cannot create tags without selecting a book");
+    }
     const normalizedName = name.trim().toLowerCase();
     if (!normalizedName) {
       throw new Error('Tag name cannot be empty');
@@ -68,6 +72,9 @@ export const tagService = {
     updates: { name?: string; color?: string; bookId?: string },
   ): Promise<void> {
     const resolvedBookId = await resolveBookId(updates.bookId);
+    if (!resolvedBookId) {
+      throw new Error("Cannot update tags without selecting a book");
+    }
     if (updates.name) {
       updates.name = updates.name.trim().toLowerCase();
       if (!updates.name) {
@@ -80,6 +87,9 @@ export const tagService = {
 
   async remove(id: string, bookId?: string): Promise<void> {
     const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
     await tagsApi.remove(resolvedBookId, id);
   },
 
@@ -94,6 +104,9 @@ export const tagService = {
     }
 
     const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return [];
+    }
     const tags = await tagsApi.listForEntity(resolvedBookId, entityType, entityId);
     return tags.sort((a: Tag, b: Tag) => a.name.localeCompare(b.name));
   },
@@ -105,6 +118,9 @@ export const tagService = {
     bookId?: string,
   ): Promise<void> {
     const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
     await tagsApi.attachToEntity(resolvedBookId, entityType, entityId, tagId);
   },
 
@@ -115,6 +131,9 @@ export const tagService = {
     bookId?: string,
   ): Promise<void> {
     const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
     await tagsApi.detachFromEntity(resolvedBookId, entityType, entityId, tagId);
   },
 
@@ -125,6 +144,9 @@ export const tagService = {
     bookId?: string,
   ): Promise<void> {
     const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
     const currentTags = await this.listForEntity(entityType, entityId, resolvedBookId);
 
     const toAdd = newTags.filter(nt => !currentTags.find(ct => ct.id === nt.id));

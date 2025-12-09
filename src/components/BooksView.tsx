@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Book } from '@/types/book';
-import { LayoutGrid, List, Plus, Calendar, FolderOpen, Settings } from 'lucide-react';
+import { LayoutGrid, List, Plus, Calendar, FolderOpen, Settings, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { BookManageSheet } from './BookManageSheet';
 import { CreateBookDialog } from './CreateBookDialog';
@@ -12,11 +12,13 @@ interface BooksViewProps {
   onCreateBook: (title: string, description: string) => Promise<void>;
   onUpdateBook?: (book: Book) => void;
   onDeleteBook?: (bookId: string) => void;
+  onExportBook?: (bookId: string) => void;
+  canExportTemplates?: boolean;
 }
 
 type ViewMode = 'cards' | 'table';
 
-export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, onUpdateBook, onDeleteBook }: BooksViewProps) {
+export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, onUpdateBook, onDeleteBook, onExportBook, canExportTemplates }: BooksViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [manageBookId, setManageBookId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -54,6 +56,13 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
   const handleDeleteBook = (bookId: string) => {
     if (onDeleteBook) {
       onDeleteBook(bookId);
+    }
+  };
+
+  const handleExportBook = (bookId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onExportBook) {
+      onExportBook(bookId);
     }
   };
 
@@ -167,6 +176,17 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                         <FolderOpen className="w-3 h-3" />
                         Open
                       </Button>
+                      {canExportTemplates && (
+                        <Button
+                          onClick={(e) => handleExportBook(book.id, e)}
+                          variant="secondary"
+                          size="sm"
+                          className="flex items-center justify-center gap-2"
+                        >
+                          <Download className="w-3 h-3" />
+                          Export JSON
+                        </Button>
+                      )}
                       <Button
                         onClick={(e) => handleManageBook(book.id, e)}
                         variant="outline"
@@ -200,6 +220,11 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                   <th className="px-4 py-3 text-left text-xs text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
+                  {canExportTemplates && (
+                    <th className="px-4 py-3 text-left text-xs text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -231,6 +256,19 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                           </span>
                         )}
                       </td>
+                      {canExportTemplates && (
+                        <td className="px-4 py-3 text-sm">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="flex items-center gap-2"
+                            onClick={(e) => handleExportBook(book.id, e)}
+                          >
+                            <Download className="w-3 h-3" />
+                            Export JSON
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

@@ -1,0 +1,85 @@
+{
+  "book": {
+    "title": "StoryLab Starter",
+    "description": "A quick sample project to help you explore StoryLab."
+  },
+  "parts": [
+    {
+      "title": "Part I",
+      "sortOrder": 0,
+      "notes": "Organize your chapters into parts to keep the story tidy."
+    }
+  ],
+  "chapters": [
+    {
+      "title": "Chapter 1: Arrival",
+      "content": "Welcome to your starter project. Use this space to explore the editor and make it your own.",
+      "sortOrder": 0,
+      "partIndex": 0
+    },
+    {
+      "title": "Chapter 2: Next Steps",
+      "content": "Try adding themes, tags, and corkboard cards to organize your ideas.",
+      "sortOrder": 1,
+      "partIndex": 0
+    }
+  ],
+  "themes": [
+    {
+      "name": "Protagonist Arc",
+      "color": "#4f46e5",
+      "description": "Track your hero's journey and choices.",
+      "rowOrder": 0
+    },
+    {
+      "name": "World",
+      "color": "#0ea5e9",
+      "description": "Notes about the setting and stakes.",
+      "rowOrder": 1
+    }
+  ],
+  "tags": [
+    { "name": "starter", "color": "#2563eb" },
+    { "name": "demo", "color": "#10b981" }
+  ],
+  "characters": [
+    {
+      "name": "Alex",
+      "color": "#f59e0b",
+      "role": "Protagonist",
+      "notes": "A placeholder hero for your story."
+    }
+  ],
+  "boards": [
+    {
+      "name": "Ideas",
+      "description": "Quick notes and beats to revisit.",
+      "sortOrder": 0
+    }
+  ],
+  "cards": [
+    {
+      "title": "Opening beat",
+      "summary": "Set the scene and hint at the change to come.",
+      "laneRank": "a|starter-1",
+      "boardIndex": 0,
+      "chapterIndex": 0
+    }
+  ],
+  "gridCells": [
+    {
+      "chapterIndex": 0,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Introduce the protagonist and their goals."
+    },
+    {
+      "chapterIndex": 1,
+      "themeIndex": 1,
+      "presence": true,
+      "intensity": 1,
+      "note": "Highlight the world stakes and open questions."
+    }
+  ]
+}
