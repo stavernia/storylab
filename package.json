@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "data:check": "tsx scripts/dataIntegrity.ts",
+    "data:cleanup": "tsx scripts/cleanupOrphans.ts",
     "data:purge-archived": "tsx scripts/purgeArchivedBooks.ts"
   },
   "dependencies": {
