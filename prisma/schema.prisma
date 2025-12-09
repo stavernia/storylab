@@ -12,7 +12,6 @@ enum Role {
   ADMIN
 }
 
-/// NextAuth base models (Prisma adapter)
 model User {
   id            String    @id @default(uuid())
   name          String?
@@ -22,7 +21,7 @@ model User {
   role          Role      @default(USER)
   disabled      Boolean   @default(false)
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt     DateTime  @default(now())
 
   accounts Account[]
   sessions Session[]
