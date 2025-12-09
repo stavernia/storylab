@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint app src scripts",
     "data:check": "tsx scripts/dataIntegrity.ts",
     "data:cleanup": "tsx scripts/cleanupOrphans.ts",
     "data:purge-archived": "tsx scripts/purgeArchivedBooks.ts"

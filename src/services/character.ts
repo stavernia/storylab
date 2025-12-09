@@ -3,6 +3,7 @@ import { booksApi } from "@/api/books";
 
 export interface CharacterData {
   id: string;
+  bookId: string;
   name: string;
   color: string;
   role?: string;
@@ -22,7 +23,7 @@ export const characterService = {
 
   async create(values: Partial<CharacterData>): Promise<string> {
     const books = await booksApi.listAll();
-    const bookId = (values as any).bookId || books[0]?.id;
+    const bookId = values.bookId || books[0]?.id;
 
     if (!bookId) {
       throw new Error("bookId is required to create a character");
@@ -43,23 +44,24 @@ export const characterService = {
   async update(id: string, values: Partial<CharacterData>): Promise<void> {
     const character = await this.getById(id);
 
-    if (!character || !(character as any).bookId) {
+    if (!character?.bookId) {
       throw new Error("Unable to resolve book for character update");
     }
 
     await manuscriptApi.saveCharacter({
-      ...(character as any),
+      ...character,
       ...values,
-    } as CharacterData & { bookId: string });
+      bookId: values.bookId ?? character.bookId,
+    });
   },
 
   async remove(id: string): Promise<void> {
     const character = await this.getById(id);
 
-    if (!character || !(character as any).bookId) {
+    if (!character?.bookId) {
       throw new Error("Unable to resolve book for character deletion");
     }
 
-    await manuscriptApi.deleteCharacter((character as any).bookId, id);
+    await manuscriptApi.deleteCharacter(character.bookId, id);
   },
 };

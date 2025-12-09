@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Character } from '@/App';
 import { CharacterInfoForm } from './info-forms/CharacterInfoForm';
 import { InfoPanelModal } from './shared/InfoPanelModal';
@@ -53,16 +53,7 @@ export function CharacterManager({
   // NEW: Inspector v2
   const { openInspector, closeInspector } = useInspector();
 
-  // Load tags when character is selected
-  useEffect(() => {
-    if (selectedCharacter) {
-      loadCharacterTags(selectedCharacter.id);
-    } else {
-      setCharacterTags([]);
-    }
-  }, [selectedCharacter?.id]);
-
-  const loadCharacterTags = async (characterId: string) => {
+  const loadCharacterTags = useCallback(async (characterId: string) => {
     // Guard: don't load if characterId is empty or invalid
     if (!characterId || characterId.trim() === '') {
       setCharacterTags([]);
@@ -76,7 +67,16 @@ export function CharacterManager({
       console.error('Failed to load character tags:', error);
       setCharacterTags([]);
     }
-  };
+  }, []);
+
+  // Load tags when character is selected
+  useEffect(() => {
+    if (selectedCharacter) {
+      loadCharacterTags(selectedCharacter.id);
+    } else {
+      setCharacterTags([]);
+    }
+  }, [loadCharacterTags, selectedCharacter?.id]);
 
   // NEW: Inspector handler for character details
   const handleEditCharacter = (character: Character) => {

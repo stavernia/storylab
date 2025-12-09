@@ -19,12 +19,7 @@ export function SearchAndFilterOverlay() {
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const overlayRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
-  // Load all tags
-  useEffect(() => {
-    loadTags();
-  }, []);
-  
+
   const loadTags = async () => {
     try {
       const tags = await tagService.listAll();
@@ -33,6 +28,11 @@ export function SearchAndFilterOverlay() {
       console.error('Failed to load tags:', error);
     }
   };
+  
+  // Load all tags
+  useEffect(() => {
+    loadTags();
+  }, []);
   
   // Focus search input when overlay opens
   useEffect(() => {

@@ -7,6 +7,7 @@ import { useFilters } from '@/contexts/FilterContext';
 import { ContextBar } from './ContextBar';
 import { EditorContext } from '@/components/editor/EditorContext';
 import { useState } from 'react';
+import type { Editor } from '@tiptap/react';
 
 // Breadcrumb data structure for clickable navigation
 export interface BreadcrumbData {
@@ -56,7 +57,7 @@ export function Pane({
 }: PaneProps) {
   const currentView = getViewDefinition(activeViewId);
   const { openOverlay } = useFilters();
-  const [activeEditor, setActiveEditor] = useState<any>(null);
+  const [activeEditor, setActiveEditor] = useState<Editor | null>(null);
   const [partDropdownOpen, setPartDropdownOpen] = useState(false);
   const [chapterDropdownOpen, setChapterDropdownOpen] = useState(false);
 

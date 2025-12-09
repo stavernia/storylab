@@ -159,7 +159,7 @@ export function ThemeManager({
     }
   }, [selectedTheme, themeTags]); // Update when theme data OR tags change
 
-  const handleCreateTheme = async (values: any) => {
+  const handleCreateTheme = async (values: Partial<Theme>) => {
     try {
       const createdTheme = await addTheme(values.name);
       // Update with full details including Grid 2.0 fields
@@ -172,7 +172,7 @@ export function ThemeManager({
     }
   };
 
-  const handleUpdateTheme = async (values: any) => {
+  const handleUpdateTheme = async (values: Partial<Theme>) => {
     if (selectedTheme) {
       await updateThemeDetails(selectedTheme.id, values);
       setSelectedTheme(null);

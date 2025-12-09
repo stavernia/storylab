@@ -117,42 +117,43 @@ export function EditorView({
     openInspector({
       title: 'Manuscript overview',
       subtitle: 'Project-wide stats',
-      icon: <BookOpenText className=\"w-4 h-4\" />,
+      icon: <BookOpenText className="w-4 h-4" />,
       content: <EditorProjectInfoPanel chapters={chapters} />,
     });
   };
 
   if (!currentChapter) {
     return (
-      <div className=\"h-full flex items-center justify-center bg-white\">
-        <div className=\"text-center\">
-          <p className=\"text-gray-600 mb-4\">No chapters to display</p>
+      <div className="h-full flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">No chapters to display</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className=\"h-full flex flex-col overflow-hidden\">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Filter Warning Banner */}
       {currentHidden && showFilterBanner && isSingleChapter && (
-        <div className=\"bg-yellow-50 border-b border-yellow-200 px-4 py-2 flex items-center justify-between\">
-          <p className=\"text-sm text-yellow-800\">
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2 flex items-center justify-between">
+          <p className="text-sm text-yellow-800">
             This chapter is hidden by tag filters. Clear filters to edit.
           </p>
           <button
             onClick={() => setShowFilterBanner(false)}
-            className=\"text-yellow-600 hover:text-yellow-800\">
-            <X className=\"w-4 h-4\" />
+            className="text-yellow-600 hover:text-yellow-800"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* Editor Content */}
-      <div className=\"flex-1 overflow-auto\">
+      <div className="flex-1 overflow-auto">
         {isSingleChapter ? (
           // Single-chapter mode
-          <div className=\"h-full\">
+          <div className="h-full">
             <RichTextEditor
               key={currentChapter.id}
               chapter={currentChapter}
@@ -164,19 +165,19 @@ export function EditorView({
           </div>
         ) : (
           // Multi-chapter / part / full-manuscript mode - Book-style layout
-          <div className=\"max-w-4xl mx-auto py-12 px-8\">
+          <div className="max-w-4xl mx-auto py-12 px-8">
             {chapters.map((chapter, index) => (
               <section
                 key={chapter.id}
-                className=\"relative\"
+                className="relative"
               >
                 {/* Book-style chapter heading */}
-                <div className=\"pt-8 pb-6\">
-                  <div className=\"text-center space-y-2\">
-                    <div className=\"text-sm uppercase tracking-widest text-gray-400\">
+                <div className="pt-8 pb-6">
+                  <div className="text-center space-y-2">
+                    <div className="text-sm uppercase tracking-widest text-gray-400">
                       Chapter {index + 1}
                     </div>
-                    <h2 className=\"text-2xl text-gray-900\">
+                    <h2 className="text-2xl text-gray-900">
                       {chapter.title || 'Untitled'}
                     </h2>
                   </div>
@@ -193,15 +194,15 @@ export function EditorView({
 
                 {/* Divider between chapters (not on last chapter) */}
                 {index < chapters.length - 1 && (
-                  <div className=\"pt-12 pb-4\">
-                    <div className=\"border-t border-gray-200\" />
+                  <div className="pt-12 pb-4">
+                    <div className="border-t border-gray-200" />
                   </div>
                 )}
               </section>
             ))}
 
             {chapters.length === 0 && (
-              <p className=\"text-sm text-gray-500 text-center py-8\">
+              <p className="text-sm text-gray-500 text-center py-8">
                 No chapters found for this selection.
               </p>
             )}

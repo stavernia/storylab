@@ -331,6 +331,42 @@ export function GridView({
   const getCell = (chapterId: string, themeId: string) =>
     gridCellsByKey[makeGridKey(bookId, chapterId, themeId)];
 
+  const getNote = (chapterId: string, themeId: string) =>
+    getCell(chapterId, themeId)?.note || '';
+
+  const loadThemeTags = async (themeId: string) => {
+    // Guard: don't load if themeId is empty or invalid
+    if (!themeId || themeId.trim() === '') {
+      setThemeTags([]);
+      return;
+    }
+    
+    try {
+      const tags = await tagService.listForEntity('theme', themeId);
+      setThemeTags(tags);
+    } catch (error) {
+      console.error(`Failed to load tags for theme ${themeId}:`, error);
+      setThemeTags([]); // Set empty array on error to prevent undefined issues
+    }
+  };
+
+  const loadCellTags = async (chapterId: string, themeId: string) => {
+    // Guard: don't load if chapterId or themeId is empty or invalid
+    if (!chapterId || chapterId.trim() === '' || !themeId || themeId.trim() === '') {
+      setCellTags([]);
+      return;
+    }
+    
+    try {
+      const entityId = `${chapterId}:${themeId}`;
+      const tags = await tagService.listForEntity('grid_cell', entityId);
+      setCellTags(tags);
+    } catch (error) {
+      console.error(`Failed to load tags for cell ${chapterId}:${themeId}:`, error);
+      setCellTags([]); // Set empty array on error to prevent undefined issues
+    }
+  };
+
   // NEW: Inspector handlers for theme row info
   const handleOpenThemeInspector = (theme: Theme) => {
     // If clicking the same theme, don't do anything (let InspectorContext handle the toggle)
@@ -487,43 +523,6 @@ export function GridView({
       setCellTags([]);
     }
   }, [selectedGridCell?.chapterId, selectedGridCell?.themeId]);
-
-  const loadThemeTags = async (themeId: string) => {
-    // Guard: don't load if themeId is empty or invalid
-    if (!themeId || themeId.trim() === '') {
-      setThemeTags([]);
-      return;
-    }
-    
-    try {
-      const tags = await tagService.listForEntity('theme', themeId);
-      setThemeTags(tags);
-    } catch (error) {
-      console.error(`Failed to load tags for theme ${themeId}:`, error);
-      setThemeTags([]); // Set empty array on error to prevent undefined issues
-    }
-  };
-
-  const loadCellTags = async (chapterId: string, themeId: string) => {
-    // Guard: don't load if chapterId or themeId is empty or invalid
-    if (!chapterId || chapterId.trim() === '' || !themeId || themeId.trim() === '') {
-      setCellTags([]);
-      return;
-    }
-    
-    try {
-      const entityId = `${chapterId}:${themeId}`;
-      const tags = await tagService.listForEntity('grid_cell', entityId);
-      setCellTags(tags);
-    } catch (error) {
-      console.error(`Failed to load tags for cell ${chapterId}:${themeId}:`, error);
-      setCellTags([]); // Set empty array on error to prevent undefined issues
-    }
-  };
-
-  const getNote = (chapterId: string, themeId: string) => {
-    return getCell(chapterId, themeId)?.note || '';
-  };
 
   // Grid 2.0: Get complete cell data
   const getCellData = (chapterId: string, themeId: string): GridCell => {

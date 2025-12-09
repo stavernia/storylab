@@ -25,7 +25,7 @@ export interface ChapterData {
   // Binder-ready fields (unused for now)
   type?: 'chapter' | 'scene' | 'part' | 'custom';
   parentId?: string | null;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export const chapterService = {

@@ -1,8 +1,9 @@
+import type React from 'react';
 import { useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X, Info, GripVertical, ChevronRight, ChevronDown, BookOpen } from 'lucide-react';
 import type { Chapter, Part } from '@/App';
 import { TagBadges } from './tags/TagBadges';
-import { useTagFilter } from '@/contexts/TagFilterContext';
+import { useTagFilter, type FilterMode } from '@/contexts/TagFilterContext';
 import { useEntityTags } from '@/hooks/useEntityTags';
 import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 import {
@@ -11,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import type { Tag } from '@/services/tag';
 
 // NEW: Multi-Chapter View - Selection type
 type ManuscriptSelection =
@@ -39,6 +41,59 @@ type ChapterListProps = {
   selection?: ManuscriptSelection; // NEW: Multi-Chapter View
   onManuscriptInfoClick?: () => void; // NEW: Project info for full manuscript
   onPartInfoClick?: (part: Part) => void; // NEW: Part info
+};
+
+type DragPosition = 'before' | 'after' | null;
+
+type PartHeaderProps = {
+  part: Part;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  isEditing: boolean;
+  editTitle: string;
+  setEditTitle: (value: string) => void;
+  saveEdit: () => void;
+  cancelEdit: () => void;
+  startEditing: (id: string, title: string) => void;
+  deletePart?: (id: string) => void;
+  onDragStart: React.DragEventHandler<HTMLDivElement>;
+  onDragEnd: React.DragEventHandler<HTMLDivElement>;
+  onDragOver: React.DragEventHandler<HTMLDivElement>;
+  onDrop: React.DragEventHandler<HTMLDivElement>;
+  isDragging: boolean;
+  isDragOver: boolean;
+  dragPosition: DragPosition;
+  onSelectPart?: (partId: string) => void;
+  selection?: ManuscriptSelection;
+  onPartInfoClick?: (part: Part) => void;
+};
+
+type ChapterRowProps = {
+  chapter: Chapter;
+  index: number;
+  chapters: Chapter[];
+  currentChapterId: string;
+  editingId: string | null;
+  editTitle: string;
+  setEditTitle: (value: string) => void;
+  saveEdit: () => void;
+  cancelEdit: () => void;
+  setCurrentChapterId: (id: string) => void;
+  startEditing: (id: string, title: string) => void;
+  deleteChapter?: (id: string) => void;
+  onChapterInfoClick?: (chapter: Chapter) => void;
+  matches: (tags: Tag[]) => boolean;
+  isActive: boolean;
+  mode: FilterMode;
+  onDragStart: React.DragEventHandler<HTMLDivElement>;
+  onDragEnd: React.DragEventHandler<HTMLDivElement>;
+  onDragOver: React.DragEventHandler<HTMLDivElement>;
+  onDrop: React.DragEventHandler<HTMLDivElement>;
+  isDragging: boolean;
+  isDragOver: boolean;
+  dragPosition: DragPosition;
+  inPart: boolean;
+  selection?: ManuscriptSelection;
 };
 
 export function ChapterList({
@@ -555,7 +610,7 @@ function PartHeader({
   onSelectPart,
   selection,
   onPartInfoClick
-}: any) {
+}: PartHeaderProps) {
   return (
     <div
       className={`group relative ${
@@ -667,7 +722,7 @@ function ChapterRow({
   dragPosition,
   inPart,
   selection
-}: any) {
+}: ChapterRowProps) {
   const { tags } = useEntityTags('chapter', chapter.id);
   const { getChapterNumber } = useChapterNumbering();
   const visible = !isActive || (tags && matches(tags));

@@ -32,11 +32,6 @@ export function TagChipInput({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load all tags
-  useEffect(() => {
-    loadTags();
-  }, []);
-
   const loadTags = async () => {
     try {
       const tags = await tagService.listAll();
@@ -45,6 +40,11 @@ export function TagChipInput({
       console.error('Failed to load tags:', error);
     }
   };
+
+  // Load all tags
+  useEffect(() => {
+    loadTags();
+  }, []);
 
   // Filter tags based on input
   useEffect(() => {
@@ -193,7 +193,9 @@ export function TagChipInput({
               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-blue-600"
             >
               <Plus className="w-4 h-4" />
-              <span>Create "{inputValue}"</span>
+              <span>
+                Create &quot;{inputValue}&quot;
+              </span>
             </button>
           ) : (
             <div className="px-3 py-2 text-sm text-gray-500">No tags found</div>

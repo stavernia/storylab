@@ -8,7 +8,7 @@ export interface InspectorPayload {
   // NEW API: Structured data payload for different entity types
   type?: 'chapter' | 'theme' | 'character' | 'card' | 'gridTheme' | 'gridCell' | 'part';
   id?: string;
-  data?: any;
+  data?: unknown;
   
   // BACKWARD COMPATIBILITY: For EditorProjectInfoPanel, EditorChapterInfoPanel, etc.
   title?: string;

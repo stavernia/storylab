@@ -118,7 +118,7 @@ export function CardInfoForm({
 
   // Handle status change - immediate save
   const handleStatusChange = (val: string) => {
-    const newStatus = val === 'none' ? undefined : val as any;
+    const newStatus: CorkboardCard["status"] | undefined = val === 'none' ? undefined : val;
     setStatus(newStatus);
     onChange({ status: newStatus });
     immediateSave({ status: newStatus });
@@ -126,7 +126,7 @@ export function CardInfoForm({
 
   // Handle color change - immediate save
   const handleColorChange = (val: string) => {
-    const newColor = val === 'none' ? undefined : val as any;
+    const newColor: CorkboardCard["color"] | undefined = val === 'none' ? undefined : val;
     setColor(newColor);
     onChange({ color: newColor });
     immediateSave({ color: newColor });
@@ -159,7 +159,8 @@ export function CardInfoForm({
   };
 
   // Show "Saved" for 2 seconds after save
-  const showSaved = lastSavedTime && (Date.now() - lastSavedTime < 2000);
+  // eslint-disable-next-line react-hooks/purity -- lightweight render-time check for a transient badge
+  const showSaved = lastSavedTime && Date.now() - lastSavedTime < 2000;
 
   return (
     <div className="space-y-4">

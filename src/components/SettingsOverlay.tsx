@@ -95,7 +95,7 @@ export function SettingsOverlay({ isOpen, onClose, currentBook, updateBookSettin
                     <h2 className="text-sm font-semibold text-gray-900">Onboarding Tour</h2>
                   </div>
                   <p className="text-xs text-gray-600 mb-3">
-                    Take a quick tour of StoryLab's main features and interface.
+                    Take a quick tour of StoryLab&apos;s main features and interface.
                   </p>
                   <Button
                     onClick={() => {

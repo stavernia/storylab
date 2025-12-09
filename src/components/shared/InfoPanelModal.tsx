@@ -101,8 +101,8 @@ export function InfoPanelModal({
       }
     };
 
-    modal.addEventListener('keydown', handleTabKey as any);
-    return () => modal.removeEventListener('keydown', handleTabKey as any);
+    modal.addEventListener('keydown', handleTabKey);
+    return () => modal.removeEventListener('keydown', handleTabKey);
   }, [isOpen]);
 
   if (!isOpen) return null;

@@ -131,7 +131,10 @@ export function CardDetailModal({ card, chapters, onClose, onSave }: CardDetailM
               <Label htmlFor="card-status">Status</Label>
               <Select
                 value={status || 'none'}
-                onValueChange={(val) => setStatus(val === 'none' ? undefined : val as any)}
+                onValueChange={(val) => {
+                  const newStatus: CorkboardCard["status"] | undefined = val === 'none' ? undefined : val;
+                  setStatus(newStatus);
+                }}
               >
                 <SelectTrigger id="card-status">
                   <SelectValue placeholder="Select status" />
@@ -151,7 +154,10 @@ export function CardDetailModal({ card, chapters, onClose, onSave }: CardDetailM
               <Label htmlFor="card-color">Color</Label>
               <Select
                 value={color || 'none'}
-                onValueChange={(val) => setColor(val === 'none' ? undefined : val as any)}
+                onValueChange={(val) => {
+                  const newColor: CorkboardCard["color"] | undefined = val === 'none' ? undefined : val;
+                  setColor(newColor);
+                }}
               >
                 <SelectTrigger id="card-color">
                   <SelectValue placeholder="Select color" />

@@ -22,7 +22,6 @@ export function TagFilterProvider({ children }: { children: ReactNode }) {
   // Load from URL on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const tagsParam = params.get('tags');
     const visParam = params.get('vis');
 
     if (visParam === 'dim' || visParam === 'hide') {

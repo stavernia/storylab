@@ -483,7 +483,7 @@ function AppContent() {
     }
 
     // CRITICAL: Never allow bookId to be overwritten
-    const { bookId: _, ...safeUpdates } = updates as any;
+    const { bookId: _bookId, ...safeUpdates } = updates;
     setChapters(chapters.map(ch => ch.id === id ? { ...ch, ...safeUpdates } : ch));
 
     try {
@@ -718,7 +718,7 @@ function AppContent() {
 
   const updateCharacter = async (id: string, values: Partial<Character>) => {
     // CRITICAL: Never allow bookId to be overwritten
-    const { bookId: _, ...safeValues } = values as any;
+    const { bookId: _bookId, ...safeValues } = values;
     setCharacters(characters.map(c => c.id === id ? { ...c, ...safeValues } : c));
 
     try {
@@ -752,7 +752,7 @@ function AppContent() {
   // Enhanced theme update to support all fields
   const updateThemeDetails = async (id: string, values: Partial<Theme>) => {
     // CRITICAL: Never allow bookId to be overwritten
-    const { bookId: _, ...safeValues } = values as any;
+    const { bookId: _bookId, ...safeValues } = values;
     setThemes(themes.map(t => t.id === id ? { ...t, ...safeValues } : t));
 
     try {
@@ -1952,12 +1952,12 @@ function LandingPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <a
+            <Link
               href="/api/auth/signin"
               className="text-sm text-slate-300 hover:text-white underline underline-offset-4"
             >
               Go to sign-in
-            </a>
+            </Link>
             <button
               onClick={() => signIn("google")}
               className="inline-flex items-center justify-center rounded-lg bg-white text-slate-900 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/30 transition"

@@ -9,10 +9,17 @@ export interface Tag {
   createdAt: string;
 }
 
+export type TagEntityType =
+  | "chapter"
+  | "card"
+  | "theme"
+  | "grid_cell"
+  | "character";
+
 export interface TagLink {
   id: string;
   tagId: string;
-  entityType: 'chapter' | 'card' | 'theme' | 'grid_cell' | 'character';
+  entityType: TagEntityType;
   entityId: string;
   createdAt: string;
 }
@@ -76,34 +83,43 @@ export const tagService = {
     await tagsApi.remove(resolvedBookId, id);
   },
 
-  async listForEntity(entityType: string, entityId: string, bookId?: string): Promise<Tag[]> {
+  async listForEntity(
+    entityType: TagEntityType,
+    entityId: string,
+    bookId?: string,
+  ): Promise<Tag[]> {
     if (!entityId || entityId.trim() === '') {
       console.warn(`listForEntity called with empty entityId for entityType: ${entityType}`);
       return [];
     }
 
     const resolvedBookId = await resolveBookId(bookId);
-    const tags = await tagsApi.listForEntity(resolvedBookId, entityType as any, entityId);
+    const tags = await tagsApi.listForEntity(resolvedBookId, entityType, entityId);
     return tags.sort((a: Tag, b: Tag) => a.name.localeCompare(b.name));
   },
 
-  async addToEntity(tagId: string, entityType: string, entityId: string, bookId?: string): Promise<void> {
-    const resolvedBookId = await resolveBookId(bookId);
-    await tagsApi.attachToEntity(resolvedBookId, entityType as any, entityId, tagId);
-  },
-
-  async removeFromEntity(
+  async addToEntity(
     tagId: string,
-    entityType: string,
+    entityType: TagEntityType,
     entityId: string,
     bookId?: string,
   ): Promise<void> {
     const resolvedBookId = await resolveBookId(bookId);
-    await tagsApi.detachFromEntity(resolvedBookId, entityType as any, entityId, tagId);
+    await tagsApi.attachToEntity(resolvedBookId, entityType, entityId, tagId);
+  },
+
+  async removeFromEntity(
+    tagId: string,
+    entityType: TagEntityType,
+    entityId: string,
+    bookId?: string,
+  ): Promise<void> {
+    const resolvedBookId = await resolveBookId(bookId);
+    await tagsApi.detachFromEntity(resolvedBookId, entityType, entityId, tagId);
   },
 
   async syncEntityTags(
-    entityType: string,
+    entityType: TagEntityType,
     entityId: string,
     newTags: Tag[],
     bookId?: string,
