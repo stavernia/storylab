@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   BookOpenText,
+  Tag,
 } from "lucide-react";
 import { manuscriptApi } from "./api/manuscript";
 import { booksApi } from "./api/books";
@@ -2156,88 +2157,146 @@ function ProtectedApp() {
 
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-950 to-black text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-12">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
-              StoryLab
-            </p>
-            <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">
-              The writer&apos;s OS for outlining, drafting, and story structure.
-            </h1>
-            <p className="mt-3 text-slate-300 max-w-2xl">
-              Multi-view workspace (manuscript, outline, grid, corkboard), rich
-              tagging, parts/chapters, and inspectors—built for long-form
-              writing.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/api/auth/signin"
-              className="text-sm text-slate-300 hover:text-white underline underline-offset-4"
-            >
-              Go to sign-in
-            </Link>
-            <button
-              onClick={() => signIn("google")}
-              className="inline-flex items-center justify-center rounded-lg bg-white text-slate-900 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/30 transition"
-            >
-              Sign in with Google
-            </button>
-          </div>
-        </header>
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-950 via-slate-950 to-black text-white">
+      <div className="pointer-events-none absolute inset-x-0 top-[-12rem] h-80 bg-[radial-gradient(circle_at_top,_rgba(94,234,212,0.22),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-y-0 right-[-18rem] w-[28rem] rotate-12 bg-[radial-gradient(circle_at_center,_rgba(56,189,248,0.18),_transparent_60%)] blur-3xl" />
 
-        <div className="grid gap-6 md:grid-cols-3 mb-12">
-          {[
-            {
-              title: "Manuscript + Outline",
-              desc: "Dual-pane binder, outline fields, parts/chapters with drag and drop.",
-            },
-            {
-              title: "Grid & Themes",
-              desc: "Track themes/threads, intensity, and notes per chapter with filters.",
-            },
-            {
-              title: "Corkboard & Tags",
-              desc: "Cards by book/part/chapter scopes, tag filtering, inspector-driven editing.",
-            },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-5 shadow-[0_20px_60px_-35px_rgba(0,0,0,0.8)]"
-            >
-              <h3 className="text-lg font-semibold text-white mb-2">
-                {item.title}
-              </h3>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                {item.desc}
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-20 px-6 pb-20 pt-16 sm:pt-20 lg:pb-28 lg:pt-24">
+        <section className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-8">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-300">
+              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-200">
+                StoryLab
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-slate-800/70 bg-slate-900/70 px-3 py-1 text-[11px] font-semibold text-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+                <span className="uppercase tracking-[0.18em] text-slate-100">{APP_STAGE}</span>
+                <span className="h-3 w-px rounded-full bg-slate-700" aria-hidden />
+                <span className="text-slate-300">v{APP_VERSION}</span>
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              <h1 className="text-4xl font-semibold leading-[1.1] sm:text-5xl lg:text-6xl">
+                The writer&apos;s OS for outlining, drafting, and story structure.
+              </h1>
+              <p className="max-w-2xl text-lg text-slate-300">
+                StoryLab keeps your manuscript, outline, grid, and corkboard in one calm workspace so you can plan arcs, draft chapters, and track every thread without losing momentum.
               </p>
             </div>
-          ))}
-        </div>
 
-        <div className="rounded-3xl border border-slate-800/60 bg-slate-900/50 p-8 shadow-[0_20px_80px_-40px_rgba(0,0,0,0.8)]">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-white">
-                Ready to write?
-              </h2>
-              <p className="text-slate-300">
-                Sign in with Google to open your workspace. More providers and
-                billing will follow.
-              </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button
+                onClick={() => signIn("google")}
+                size="lg"
+                className="w-full sm:w-auto bg-cyan-400 text-slate-950 shadow-[0_15px_50px_-20px_rgba(34,211,238,0.65)] transition hover:bg-cyan-300"
+              >
+                Start writing with Google
+              </Button>
+              <a
+                href="#features"
+                className="inline-flex items-center justify-center text-sm font-medium text-slate-200 underline-offset-6 transition hover:text-white hover:underline"
+              >
+                Learn more
+              </a>
             </div>
-            <button
-              onClick={() => signIn("google")}
-              className="inline-flex items-center justify-center rounded-lg bg-cyan-500 text-slate-900 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-cyan-500/25 hover:bg-cyan-400 transition"
-            >
-              Sign in with Google
-            </button>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              {["Manuscript & outline", "Grid views for every thread", "Corkboard + tags that stay in sync"].map(
+                (item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-4 text-sm text-slate-300 shadow-[0_15px_45px_-30px_rgba(0,0,0,0.8)]"
+                  >
+                    {item}
+                  </div>
+                ),
+              )}
+            </div>
           </div>
-        </div>
+
+          <div className="relative">
+            <div className="absolute -left-6 -top-6 h-24 w-24 rounded-full bg-cyan-500/10 blur-3xl" aria-hidden />
+            <div className="relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/70 shadow-[0_30px_100px_-50px_rgba(0,0,0,0.9)]">
+              <div className="grid gap-4 p-6 sm:p-8">
+                <div className="rounded-2xl border border-slate-800/70 bg-slate-900/80 p-4">
+                  <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+                    <span className="inline-flex items-center gap-2 font-semibold text-slate-100">
+                      <BookOpenText className="h-4 w-4" /> Manuscript
+                    </span>
+                    <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-200">Outline synced</span>
+                  </div>
+                  <div className="h-20 rounded-xl bg-gradient-to-br from-slate-800/70 to-slate-900/60" />
+                </div>
+                <div className="grid gap-4 rounded-2xl border border-slate-800/70 bg-slate-900/80 p-4 sm:grid-cols-2">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-lg bg-cyan-500/15 p-2 text-cyan-200">
+                      <LayoutGrid className="h-4 w-4" />
+                    </div>
+                    <div className="text-sm text-slate-200">
+                      <div className="font-semibold text-white">Grid themes</div>
+                      <p className="text-slate-400">Track POV, tension, and beats chapter by chapter.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-lg bg-cyan-500/15 p-2 text-cyan-200">
+                      <Tag className="h-4 w-4" />
+                    </div>
+                    <div className="text-sm text-slate-200">
+                      <div className="font-semibold text-white">Corkboard tags</div>
+                      <p className="text-slate-400">Pin scenes, label cards, and keep research close.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="space-y-8">
+          <div className="flex flex-col gap-3">
+            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Features</p>
+            <h2 className="text-3xl font-semibold text-white">Everything organized for long-form stories.</h2>
+            <p className="max-w-2xl text-slate-300">
+              Outline, draft, and rearrange chapters with synchronized views built for novel-length projects.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                title: "Manuscript + Outline",
+                description:
+                  "Dual-pane binder, outline fields, and part/chapter hierarchy that stay in sync as you draft.",
+                icon: BookOpenText,
+              },
+              {
+                title: "Grid & Themes",
+                description:
+                  "Track POV, arcs, and intensity per chapter with filters and color-coded themes for every thread.",
+                icon: LayoutGrid,
+              },
+              {
+                title: "Corkboard & Tags",
+                description:
+                  "Flexible cards, tag filters, and inspectors to keep research, beats, and revisions organized.",
+                icon: Tag,
+              },
+            ].map(({ title, description, icon: Icon }) => (
+              <div
+                key={title}
+                className="rounded-2xl border border-slate-800/70 bg-slate-900/60 p-6 shadow-[0_20px_60px_-40px_rgba(0,0,0,0.85)]"
+              >
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-200">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-xl font-semibold text-white">{title}</h3>
+                <p className="mt-2 text-sm text-slate-300 leading-relaxed">{description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
 
