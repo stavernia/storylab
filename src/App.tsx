@@ -48,6 +48,7 @@ const StoryLabLogo = "/storylab-logo.png";
 import { APP_VIEWS, type AppViewId, type PaneId } from './config/views';
 import { EditorProjectInfoPanel } from './components/info-panels/EditorProjectInfoPanel';
 import { FeedbackModal } from './components/FeedbackModal';
+import { APP_STAGE, APP_VERSION } from '@/lib/appMeta';
 
 // NEW: Multi-book support - Book type is now imported from ./types/book
 export type Part = {
@@ -1767,6 +1768,13 @@ function AppContent() {
                     </div>
                   );
                 })}
+            </div>
+
+            <div className="mt-2 flex flex-col items-center gap-1 text-center">
+              <span className="px-2 py-0.5 rounded-full bg-[#4a6370] text-[11px] font-semibold uppercase tracking-wide text-white">
+                {APP_STAGE}
+              </span>
+              <span className="text-[10px] text-slate-200 sm:text-[11px]">v{APP_VERSION}</span>
             </div>
 
             {/* Profile and Settings at bottom */}
