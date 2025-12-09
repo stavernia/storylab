@@ -1,8 +1,6 @@
-import * as Sentry from "@sentry/nextjs";
-import { sentryConfig } from "./sentry.config.shared";
-
 export async function register() {
-  Sentry.init({
-    ...sentryConfig,
-  });
+  // Initialize Sentry on the Node.js server runtime only.
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./sentry.server.config");
+  }
 }
