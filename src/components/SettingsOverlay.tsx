@@ -4,6 +4,7 @@ import { Info, Play, X } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 import { Button } from './ui/button';
 import { useOnboardingTour } from '@/onboarding/OnboardingTourContext';
+import { APP_NAME, APP_STAGE, APP_VERSION } from '@/lib/appMeta';
 
 type SettingsOverlayProps = {
   isOpen: boolean;
@@ -108,6 +109,33 @@ export function SettingsOverlay({ isOpen, onClose, currentBook, updateBookSettin
                     <Play className="w-4 h-4" />
                     Restart Tour
                   </Button>
+                </section>
+
+                {/* App info */}
+                <section className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h2 className="text-sm font-semibold text-gray-900">App info</h2>
+                      <p className="text-xs text-gray-600">About this app</p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-900 text-[10px] font-semibold uppercase tracking-wide">
+                      {APP_STAGE}
+                    </span>
+                  </div>
+                  <dl className="grid grid-cols-1 gap-2 text-xs text-gray-700">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium text-gray-800">Name</dt>
+                      <dd className="text-gray-700">{APP_NAME}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium text-gray-800">Stage</dt>
+                      <dd className="text-gray-700">{APP_STAGE}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium text-gray-800">Version</dt>
+                      <dd className="text-gray-700">v{APP_VERSION}</dd>
+                    </div>
+                  </dl>
                 </section>
               </div>
             </div>
