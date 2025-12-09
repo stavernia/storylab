@@ -8,6 +8,7 @@ export type RequireUserResult = {
   id: string;
   email?: string | null;
   role: SessionUser["role"];
+  disabled: boolean;
 };
 
 /**
@@ -26,7 +27,21 @@ export const requireUser = async (): Promise<RequireUserResult> => {
     throw new Error("Unauthorized: user session not found");
   }
 
-  const { id, email, role } = session.user;
+  if (session.user.disabled) {
+    throw new Error("Unauthorized: user account is disabled");
+  }
 
-  return { id, email, role };
+  const { id, email, role, disabled } = session.user;
+
+  return { id, email, role, disabled };
+};
+
+export const requireAdmin = async (): Promise<RequireUserResult> => {
+  const user = await requireUser();
+
+  if (user.role !== "ADMIN") {
+    throw new Error("Forbidden: admin access required");
+  }
+
+  return user;
 };
