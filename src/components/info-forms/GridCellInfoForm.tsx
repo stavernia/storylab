@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ThreadRole } from '@/App';
-import { GridCellData } from '@/services/gridCell';
+import type { GridCell } from '@/lib/grid';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
@@ -11,7 +11,7 @@ import { Tag } from '@/services/tag';
 const threadRoles: ThreadRole[] = ['none', 'seed', 'buildup', 'event', 'aftermath'];
 
 interface GridCellInfoFormProps {
-  cellData: GridCellData;
+  cellData: GridCell;
   chapterTitle: string;
   themeName: string;
   themeColor: string;
@@ -39,13 +39,13 @@ export function GridCellInfoForm({
   tags,
   onTagsChange,
 }: GridCellInfoFormProps) {
-  const [note, setNote] = useState(cellData.note);
+  const [note, setNote] = useState(cellData.note || "");
   const [presence, setPresence] = useState(cellData.presence || false);
   const [intensity, setIntensity] = useState(cellData.intensity || 0);
 
   // Phase 1.5: Update form when cellData changes (e.g., clicking different cell)
   useEffect(() => {
-    setNote(cellData.note);
+    setNote(cellData.note || "");
     setPresence(cellData.presence || false);
     setIntensity(cellData.intensity || 0);
   }, [cellData.chapterId, cellData.themeId]); // Update when cell identity changes

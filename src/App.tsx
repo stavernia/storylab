@@ -9,6 +9,14 @@ import type { Book } from './types/book';
 import * as partService from './services/part';
 import { seedTags } from './utils/seed-tags';
 import { getOrderedChapters } from './utils/chapter-ordering';
+import {
+  gridCellHasContent,
+  listGridCells,
+  makeGridKey,
+  upsertGridCell,
+  type GridCell,
+  type GridKey,
+} from "@/lib/grid";
 import { EditorView } from './components/EditorView';
 import { GridView } from './components/GridView';
 import { OutlineView } from './components/OutlineView';
@@ -103,17 +111,6 @@ export type Character = {
   notes?: string;
 };
 
-export type ThemeNote = {
-  chapterId: string;
-  themeId: string;
-  note: string;
-  // NEW: Grid 2.0 fields
-  presence?: boolean;
-  intensity?: number; // 0–3
-  // NEW: Thread Lines v1
-  threadRole?: ThreadRole; // if undefined, treat as 'none'
-};
-
 // NEW: Dual Pane v1 - Pane state
 type PaneState = {
   id: PaneId;
@@ -143,10 +140,10 @@ function AppContent() {
   
   // NEW: Unified Search/Filter - Track active pane for filters
   const [activePaneId, setActivePaneId] = useState<PaneId>('primary');
-  
+
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
-  const [themeNotes, setThemeNotes] = useState<ThemeNote[]>([]);
+  const [gridCellsByKey, setGridCellsByKey] = useState<Record<GridKey, GridCell>>({});
   const [characters, setCharacters] = useState<Character[]>([]);
   const [parts, setParts] = useState<Part[]>([]); // NEW: Parts v1
   const [isLoading, setIsLoading] = useState(true);
@@ -194,6 +191,16 @@ function AppContent() {
 
   // Track which manuscripts have been loaded via the API
   const loadedManuscripts = useRef<Set<string>>(new Set());
+
+  const applyGridCells = (bookId: string, cells: GridCell[]) => {
+    setGridCellsByKey(
+      cells.reduce((acc, cell) => {
+        const key = makeGridKey(bookId, cell.chapterId, cell.themeId);
+        acc[key] = cell;
+        return acc;
+      }, {} as Record<GridKey, GridCell>),
+    );
+  };
   
   // Helper to update selection for a pane
   const setSelectionForPane = (paneId: PaneId, selection: ManuscriptSelection) => {
@@ -296,7 +303,7 @@ function AppContent() {
           setChapters(data.chapters);
           setThemes(data.themes);
           setCharacters(data.characters || []);
-          setThemeNotes(data.themeNotes);
+          applyGridCells(book.id, data.gridCells);
           setParts(data.parts || []);
           
           // Initialize primary pane with first chapter
@@ -311,7 +318,7 @@ function AppContent() {
           // Reload books to get the default book
           const reloadedBooks = await booksApi.listAll();
           setBooks(reloadedBooks);
-          
+
           if (reloadedBooks.length > 0) {
             const book = reloadedBooks[0];
             setCurrentBookId(book.id);
@@ -325,7 +332,9 @@ function AppContent() {
           setChapters(data.chapters);
           setThemes(data.themes);
           setCharacters(data.characters || []);
-          setThemeNotes(data.themeNotes);
+          if (reloadedBooks[0]) {
+            applyGridCells(reloadedBooks[0].id, data.gridCells);
+          }
           setParts(data.parts || []);
           
           // Initialize primary pane with first chapter
@@ -427,7 +436,17 @@ function AppContent() {
     }
 
     setChapters(chapters.filter(ch => ch.id !== id));
-    setThemeNotes(themeNotes.filter(note => note.chapterId !== id));
+    setGridCellsByKey((prev) => {
+      const next = { ...prev } as Record<GridKey, GridCell>;
+
+      Object.entries(prev).forEach(([key, cell]) => {
+        if (cell.chapterId === id) {
+          delete next[key as GridKey];
+        }
+      });
+
+      return next;
+    });
 
     try {
       console.log('Deleting chapter:', id);
@@ -585,7 +604,17 @@ function AppContent() {
     }
 
     setThemes(themes.filter(t => t.id !== id));
-    setThemeNotes(themeNotes.filter(note => note.themeId !== id));
+    setGridCellsByKey((prev) => {
+      const next = { ...prev } as Record<GridKey, GridCell>;
+
+      Object.entries(prev).forEach(([key, cell]) => {
+        if (cell.themeId === id) {
+          delete next[key as GridKey];
+        }
+      });
+
+      return next;
+    });
 
     try {
       console.log('Deleting theme:', id);
@@ -595,82 +624,65 @@ function AppContent() {
     }
   };
 
-  const updateThemeNote = async (chapterId: string, themeId: string, note: string) => {
-    const existing = themeNotes.find(
-      tn => tn.chapterId === chapterId && tn.themeId === themeId
-    );
-    
-    if (existing) {
-      if (note === '') {
-        setThemeNotes(themeNotes.filter(
-          tn => !(tn.chapterId === chapterId && tn.themeId === themeId)
-        ));
-      } else {
-        setThemeNotes(themeNotes.map(tn =>
-          tn.chapterId === chapterId && tn.themeId === themeId
-            ? { ...tn, note }
-            : tn
-        ));
-      }
-    } else if (note !== '') {
-      setThemeNotes([...themeNotes, { chapterId, themeId, note }]);
-    }
-    
-    try {
-      console.log('Updating theme note:', chapterId, themeId, note);
-      if (!currentBookId) {
-        throw new Error('No book selected');
-      }
-      await manuscriptApi.saveThemeNote(currentBookId, { chapterId, themeId, note });
-    } catch (error) {
-      console.error('Error updating theme note:', error);
-    }
-  };
-
-  // Grid 2.0: Comprehensive cell update function
-  const updateThemeCell = async (
+  const updateGridCell = async (
     chapterId: string,
     themeId: string,
-    changes: Partial<ThemeNote>
+    changes: Partial<Pick<GridCell, "note" | "presence" | "intensity" | "threadRole">>,
   ) => {
-    setThemeNotes(prev => {
-      const existing = prev.find(tn => tn.chapterId === chapterId && tn.themeId === themeId);
-      if (existing) {
-        const updated = { ...existing, ...changes };
-        return prev.map(tn =>
-          tn.chapterId === chapterId && tn.themeId === themeId ? updated : tn
-        );
-      } else {
-        const newNote: ThemeNote = {
-          chapterId,
-          themeId,
-          note: changes.note ?? '',
-          presence: changes.presence ?? false,
-          intensity: changes.intensity ?? 0,
-          threadRole: changes.threadRole,
-        };
-        return [...prev, newNote];
+    if (!currentBookId) {
+      console.error("No book selected");
+      return;
+    }
+
+    const key = makeGridKey(currentBookId, chapterId, themeId);
+    const previous = gridCellsByKey[key];
+
+    setGridCellsByKey((prev) => {
+      const existing = prev[key];
+      const nextCell: GridCell = {
+        id: existing?.id ?? key,
+        bookId: currentBookId,
+        chapterId,
+        themeId,
+        presence: changes.presence ?? existing?.presence ?? false,
+        intensity: changes.intensity ?? existing?.intensity ?? 0,
+        note: changes.note ?? existing?.note ?? null,
+        threadRole: changes.threadRole ?? existing?.threadRole ?? null,
+      };
+
+      if (!gridCellHasContent(nextCell)) {
+        const { [key]: _removed, ...rest } = prev;
+        return rest;
       }
+
+      return { ...prev, [key]: nextCell } as Record<GridKey, GridCell>;
     });
 
-    // Save to backend
-    const existing = themeNotes.find(tn => tn.chapterId === chapterId && tn.themeId === themeId);
-    const cellData = {
-      chapterId,
-      themeId,
-      note: changes.note ?? existing?.note ?? '',
-      presence: changes.presence ?? existing?.presence ?? false,
-      intensity: changes.intensity ?? existing?.intensity ?? 0,
-      threadRole: changes.threadRole ?? existing?.threadRole,
-    };
-
     try {
-      if (!currentBookId) {
-        throw new Error('No book selected');
-      }
-      await manuscriptApi.saveThemeNote(currentBookId, cellData);
+      const saved = await upsertGridCell({
+        bookId: currentBookId,
+        chapterId,
+        themeId,
+        ...changes,
+      });
+
+      setGridCellsByKey((prev) => {
+        if (!saved || !gridCellHasContent(saved)) {
+          const { [key]: _removed, ...rest } = prev;
+          return rest;
+        }
+
+        return { ...prev, [key]: saved } as Record<GridKey, GridCell>;
+      });
     } catch (error) {
-      console.error('Error updating theme cell:', error);
+      console.error("Error updating grid cell:", error);
+      setGridCellsByKey((prev) => {
+        if (previous) {
+          return { ...prev, [key]: previous } as Record<GridKey, GridCell>;
+        }
+        const { [key]: _removed, ...rest } = prev;
+        return rest;
+      });
     }
   };
 
@@ -885,7 +897,7 @@ function AppContent() {
       setChapters(data.chapters);
       setThemes(data.themes);
       setCharacters(data.characters || []);
-      setThemeNotes(data.themeNotes);
+      applyGridCells(bookId, data.gridCells);
       setParts(data.parts || []);
       
       // Initialize primary pane with first chapter
@@ -1459,34 +1471,6 @@ function AppContent() {
       );
     }
 
-    const commonProps = {
-      chapters,
-      themes,
-      themeNotes,
-      characters,
-      parts,
-      updateChapter,
-      addChapter,
-      deleteChapter,
-      updateChapterTitle,
-      updateChapterDetails,
-      reorderChapters,
-      updateThemeNote,
-      updateThemeCell,
-      addTheme,
-      updateTheme,
-      deleteTheme,
-      updateThemeDetails,
-      addCharacter,
-      updateCharacter,
-      deleteCharacter,
-      addPart,
-      updatePartName,
-      updatePartDetails,
-      deletePart,
-      reorderParts,
-    };
-
     switch (viewId) {
       case 'books':
         return (
@@ -1590,11 +1574,11 @@ function AppContent() {
       case 'grid':
         return (
           <GridView
+            bookId={currentBookId || ''}
             chapters={orderedChapters}
             themes={bookThemes}
-            themeNotes={themeNotes}
-            updateThemeNote={updateThemeNote}
-            updateThemeCell={updateThemeCell}
+            gridCellsByKey={gridCellsByKey}
+            updateGridCell={updateGridCell}
             addTheme={addTheme}
             updateTheme={updateTheme}
             deleteTheme={deleteTheme}

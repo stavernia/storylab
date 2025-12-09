@@ -1,15 +1,16 @@
-import type { Chapter, Theme, ThemeNote, Character, Part } from "@/App";
+import type { Chapter, Theme, Character, Part } from "@/App";
 import { booksApi } from "./books";
 import { chaptersApi } from "./chapters";
 import { partsApi } from "./parts";
-import { themesApi, themeNotesApi } from "./themes";
+import { themesApi } from "./themes";
 import { charactersApi } from "./characters";
 import { fetchLocalJson } from "./http";
+import { listGridCells } from "@/lib/grid";
 
 export async function loadData(bookId?: string): Promise<{
   chapters: Chapter[];
   themes: Theme[];
-  themeNotes: ThemeNote[];
+  gridCells: Awaited<ReturnType<typeof listGridCells>>;
   characters: Character[];
   parts: Part[];
 }> {
@@ -35,14 +36,14 @@ export async function loadData(bookId?: string): Promise<{
       chaptersApi.list(resolvedBookId),
       partsApi.list(resolvedBookId),
       themesApi.list(resolvedBookId),
-      themeNotesApi.list(resolvedBookId),
+      listGridCells(resolvedBookId),
       charactersApi.list(resolvedBookId),
     ]);
 
   return {
     chapters: chapterData,
     themes: themeData,
-    themeNotes: themeNoteData,
+    gridCells: themeNoteData,
     characters: characterData,
     parts: partData,
   };
@@ -143,14 +144,6 @@ export async function deleteTheme(bookId: string, id: string): Promise<void> {
   await themesApi.remove(bookId, id);
 }
 
-export async function saveThemeNote(bookId: string, note: ThemeNote): Promise<void> {
-  if (!bookId) {
-    throw new Error("bookId is required to save a theme note");
-  }
-
-  await themeNotesApi.save(bookId, note);
-}
-
 export async function saveCharacter(character: Character): Promise<void> {
   if (!character.bookId) {
     throw new Error("bookId is required to save a character");
@@ -175,7 +168,6 @@ export const manuscriptApi = {
   saveTheme,
   updateTheme,
   deleteTheme,
-  saveThemeNote,
   saveCharacter,
   deleteCharacter,
   fetchManuscript,

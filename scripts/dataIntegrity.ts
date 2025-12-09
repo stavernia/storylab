@@ -121,6 +121,10 @@ async function checkGridAndThemeConsistency() {
     select: {
       id: true,
       bookId: true,
+      presence: true,
+      intensity: true,
+      note: true,
+      threadRole: true,
       chapter: {
         select: {
           id: true,
@@ -140,12 +144,22 @@ async function checkGridAndThemeConsistency() {
 
   if (gridCells.length === 0) {
     console.log("No grid cells found.");
-    return;
+    return { total: 0, mismatches: 0, emptyCells: 0, deletedCells: 0 };
   }
 
   let mismatchCount = 0;
+  const emptyCellIds: string[] = [];
 
   for (const cell of gridCells) {
+    const noteValue = cell.note?.trim() ?? "";
+    const intensityValue = Number.isFinite(cell.intensity) ? Number(cell.intensity) : 0;
+    const hasContent =
+      noteValue !== "" || cell.presence === true || intensityValue > 0 || !!cell.threadRole;
+
+    if (!hasContent) {
+      emptyCellIds.push(cell.id);
+    }
+
     if (cell.chapter && cell.bookId !== cell.chapter.bookId) {
       mismatchCount += 1;
       console.warn(
@@ -172,9 +186,29 @@ async function checkGridAndThemeConsistency() {
     }
   }
 
+  let deletedCells = 0;
+  if (process.env.DELETE_EMPTY_GRID_CELLS === "true" && emptyCellIds.length > 0) {
+    const result = await prisma.gridCell.deleteMany({ where: { id: { in: emptyCellIds } } });
+    deletedCells = result.count;
+    console.log(`Deleted ${deletedCells} empty grid cells.`);
+  }
+
   if (mismatchCount === 0) {
     console.log("No grid/theme book mismatches detected.");
   }
+  if (emptyCellIds.length === 0) {
+    console.log("No empty grid cells detected.");
+  } else if (deletedCells === 0) {
+    console.warn(
+      `${emptyCellIds.length} grid cells have no presence, intensity, note, or threadRole (set DELETE_EMPTY_GRID_CELLS=true to remove automatically).`,
+    );
+  }
+
+  console.log(
+    `Grid summary → total: ${gridCells.length}, empty: ${emptyCellIds.length}, mismatches: ${mismatchCount}, deleted: ${deletedCells}`,
+  );
+
+  return { total: gridCells.length, mismatches: mismatchCount, emptyCells: emptyCellIds.length, deletedCells };
 }
 
 async function main() {
