@@ -33,6 +33,7 @@ model User {
   accounts Account[]
   sessions Session[]
   books    Book[]
+  Feedback Feedback[]
 }
 
 model Account {
