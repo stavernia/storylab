@@ -1,4 +1,4 @@
-import type { Theme, ThemeNote } from "../App";
+import type { Theme, ThemeNote } from "@/App";
 import { fetchLocalJson } from "./http";
 import { gridApi } from "./grid";
 

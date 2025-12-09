@@ -1,4 +1,4 @@
-import { Chapter } from '../../App';
+import { Chapter } from '@/App';
 import { useMemo, useState } from 'react';
 
 interface ChapterContentPanelProps {

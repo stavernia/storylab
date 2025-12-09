@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
     // Explicitly set the project root to avoid multi-lockfile warnings in the parent workspace
     root: path.join(__dirname),
   },
+  webpack(config) {
+    config.resolve ??= {};
+    config.resolve.alias ??= {};
+
+    config.resolve.alias["@"] = path.resolve(__dirname, "src");
+
+    return config;
+  },
 };
 
 const sentryWebpackPluginOptions = {

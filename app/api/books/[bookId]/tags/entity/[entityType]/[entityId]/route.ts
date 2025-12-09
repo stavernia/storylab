@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/src/lib/prisma";
-import { requireUser } from "@/src/server/auth/requireUser";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/server/auth/requireUser";
 
 type EntityScope = "chapter" | "theme" | "character" | "card" | "grid_cell";
 

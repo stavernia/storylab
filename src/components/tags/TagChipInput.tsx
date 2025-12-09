@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { X, Plus } from 'lucide-react';
-import { Tag, tagService, displayTagName } from '../../services/tag';
-import { theme } from '../../theme';
+import { Tag, tagService, displayTagName } from '@/services/tag';
+import { theme } from '@/theme';
 
 interface TagChipInputProps {
   value: Tag[];

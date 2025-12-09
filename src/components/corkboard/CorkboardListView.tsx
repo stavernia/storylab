@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { BookOpen, FolderOpen, FileText, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
-import { CorkboardCard as CardType } from "../../api/corkboard";
-import { Tag } from '../../services/tag';
-import { Button } from '../ui/button';
+import { CorkboardCard as CardType } from "@/api/corkboard";
+import { Tag } from '@/services/tag';
+import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useChapterNumbering } from '../../contexts/ChapterNumberingContext';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 
 type CorkboardRowType = 
   | { type: 'book' }

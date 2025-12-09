@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Info } from 'lucide-react';
-import type { Chapter, Part, ManuscriptSelection } from '../App';
+import type { Chapter, Part, ManuscriptSelection } from '@/App';
 import { TiptapChapterEditor } from './editor/TiptapChapterEditor';
 import { EditorToolbar } from './editor/EditorToolbar';
-import { useChapterNumbering } from '../contexts/ChapterNumberingContext';
-import { useDebounce } from '../hooks/useDebounce';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
+import { useDebounce } from '@/hooks/useDebounce';
 
 type OutlineViewProps = {
   chapters: Chapter[]; // Pre-filtered chapters from BinderWrapper

@@ -1,4 +1,4 @@
-import type { ThemeNote } from "../App";
+import type { ThemeNote } from "@/App";
 import { fetchLocalJson } from "./http";
 
 export type GridCellPayload = Pick<ThemeNote, "chapterId" | "themeId"> &

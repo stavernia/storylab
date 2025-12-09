@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import type { Chapter } from '../../App';
-import { useDebounce } from '../../hooks/useDebounce';
-import { defaultOutlineFieldConfig } from '../../config/outlineFields';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import type { Chapter } from '@/App';
+import { useDebounce } from '@/hooks/useDebounce';
+import { defaultOutlineFieldConfig } from '@/config/outlineFields';
 
 interface OutlineMetadataPanelProps {
   chapter: Chapter;

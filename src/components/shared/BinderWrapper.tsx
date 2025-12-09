@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { ChapterList } from '../ChapterList';
+import { ChapterList } from '@/components/ChapterList';
 import { ResizableSidebar } from './ResizableSidebar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Chapter, Part, ManuscriptSelection } from '../../App';
-import type { BreadcrumbData } from "../layout/Pane";
+import type { Chapter, Part, ManuscriptSelection } from '@/App';
+import type { BreadcrumbData } from "@/components/layout/Pane";
 
 interface BinderWrapperProps {
   // Data

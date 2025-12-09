@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Plus, Edit2, Check, X, Eye, EyeOff, Settings, Info, AlignJustify, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
-import type { Theme, Chapter, ThemeNote, ThreadRole, Character, Part } from '../App';
-import { Tag, tagService } from '../services/tag';
-import { useInspector } from '../contexts/InspectorContext'; // NEW: Inspector v2
-import { useChapterNumbering } from '../contexts/ChapterNumberingContext';
+import type { Theme, Chapter, ThemeNote, ThreadRole, Character, Part } from '@/App';
+import { Tag, tagService } from '@/services/tag';
+import { useInspector } from '@/contexts/InspectorContext'; // NEW: Inspector v2
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 import { ThemeInfoForm } from './info-forms/ThemeInfoForm';
-import { ThemeData } from '../services/theme';
+import { ThemeData } from '@/services/theme';
 import { GridCellInfoForm } from './info-forms/GridCellInfoForm';
-import { GridCellData } from '../services/gridCell';
+import { GridCellData } from '@/services/gridCell';
 import { ChapterContentPanel } from './info-panels/ChapterContentPanel';
-import { useTagFilter } from '../contexts/TagFilterContext';
-import { useEntityTags } from '../hooks/useEntityTags';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
 import { toast } from 'sonner';
-import { getOrderedChapters } from '../utils/chapter-ordering';
+import { getOrderedChapters } from '@/utils/chapter-ordering';
 import {
   Dialog,
   DialogContent,

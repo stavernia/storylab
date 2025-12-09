@@ -1,6 +1,6 @@
 import { fetchLocalJson } from "./http";
-import { getInitialRank } from "../utils/lexorank";
-import type { Chapter } from "../App";
+import { getInitialRank } from "@/utils/lexorank";
+import type { Chapter } from "@/App";
 
 export type CorkboardBoard = {
   id: string;

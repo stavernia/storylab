@@ -1,9 +1,9 @@
 import { X } from 'lucide-react';
-import { useToolPanel } from '../../contexts/ToolPanelContext';
-import { GoalsPanel } from '../tools/GoalsPanel';
-import { AnalyticsPanel } from '../tools/AnalyticsPanel';
-import { CommentsPanel } from '../tools/CommentsPanel';
-import { HistoryPanel } from '../tools/HistoryPanel';
+import { useToolPanel } from '@/contexts/ToolPanelContext';
+import { GoalsPanel } from '@/components/tools/GoalsPanel';
+import { AnalyticsPanel } from '@/components/tools/AnalyticsPanel';
+import { CommentsPanel } from '@/components/tools/CommentsPanel';
+import { HistoryPanel } from '@/components/tools/HistoryPanel';
 
 export function ToolPanelContainer() {
   const { activeTool, closeTool } = useToolPanel();

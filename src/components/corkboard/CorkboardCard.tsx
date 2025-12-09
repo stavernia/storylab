@@ -1,7 +1,7 @@
 import { useDrag } from 'react-dnd';
-import { CorkboardCard as CardType } from "../../api/corkboard";
-import { Tag } from '../../services/tag';
-import { TagBadges } from '../tags/TagBadges';
+import { CorkboardCard as CardType } from "@/api/corkboard";
+import { Tag } from '@/services/tag';
+import { TagBadges } from '@/components/tags/TagBadges';
 import { Trash2 } from 'lucide-react';
 
 interface CorkboardCardProps {

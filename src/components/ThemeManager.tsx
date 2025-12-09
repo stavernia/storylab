@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Theme, Character } from '../App';
+import { Theme, Character } from '@/App';
 import { ThemeInfoForm } from './info-forms/ThemeInfoForm';
 import { InfoPanelModal } from './shared/InfoPanelModal';
 import { Button } from './ui/button';
 import { Edit2, Trash2, Plus, Info, Palette, GripVertical } from 'lucide-react';
-import { themeService, ThemeData } from '../services/theme';
-import { useInspector } from '../contexts/InspectorContext';
-import { Tag, tagService } from '../services/tag';
+import { themeService, ThemeData } from '@/services/theme';
+import { useInspector } from '@/contexts/InspectorContext';
+import { Tag, tagService } from '@/services/tag';
 
 interface ThemeManagerProps {
   themes: Theme[];

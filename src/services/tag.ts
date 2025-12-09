@@ -1,5 +1,5 @@
-import { tagsApi } from "../api/tags";
-import { booksApi } from "../api/books";
+import { tagsApi } from "@/api/tags";
+import { booksApi } from "@/api/books";
 
 export interface Tag {
   id: string;

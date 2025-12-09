@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo } from 'react';
-import type { Chapter, Part } from '../App';
-import type { Book } from '../types/book';
-import { calculateChapterNumbers, calculatePartNumbers, type ChapterNumberingMode } from '../utils/chapter-numbering';
+import type { Chapter, Part } from '@/App';
+import type { Book } from '@/types/book';
+import { calculateChapterNumbers, calculatePartNumbers, type ChapterNumberingMode } from '@/utils/chapter-numbering';
 
 interface ChapterNumberingContextValue {
   getChapterNumber: (chapterId: string) => number;

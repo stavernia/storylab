@@ -1,4 +1,4 @@
-import type { Chapter, Theme, ThemeNote, Character, Part } from "../App";
+import type { Chapter, Theme, ThemeNote, Character, Part } from "@/App";
 import { booksApi } from "./books";
 import { chaptersApi } from "./chapters";
 import { partsApi } from "./parts";

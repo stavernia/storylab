@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from 'react';
 import { useOnboardingTour } from './OnboardingTourContext';
 import { TOUR_STEPS } from './tourConfig';
-import { Button } from '../components/ui/button';
+import { Button } from '@/components/ui/button';
 
 export const OnboardingTourOverlay: React.FC = () => {
   const { isOpen, currentStep, stepIndex, nextStep, prevStep, closeTour } =

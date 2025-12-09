@@ -6,19 +6,19 @@ import {
   CorkboardCard,
   corkboardApi,
   CorkboardBoard,
-} from "../../api/corkboard";
-import { CardInfoForm } from '../info-forms/CardInfoForm';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { getBetweenRank, getInitialRank, rebalanceRanks } from '../../utils/lexorank';
-import { seedCorkboard } from '../../utils/seed-corkboard';
-import { useTagFilter } from '../../contexts/TagFilterContext';
-import { tagService, Tag } from '../../services/tag';
+} from "@/api/corkboard";
+import { CardInfoForm } from '@/components/info-forms/CardInfoForm';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { getBetweenRank, getInitialRank, rebalanceRanks } from '@/utils/lexorank';
+import { seedCorkboard } from '@/utils/seed-corkboard';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import { tagService, Tag } from '@/services/tag';
 import { toast } from 'sonner';
-import { useInspector } from '../../contexts/InspectorContext';
-import { ChapterList } from '../ChapterList';
-import { ResizableSidebar } from '../shared/ResizableSidebar';
-import type { Chapter, Part } from '../../App';
+import { useInspector } from '@/contexts/InspectorContext';
+import { ChapterList } from '@/components/ChapterList';
+import { ResizableSidebar } from '@/components/shared/ResizableSidebar';
+import type { Chapter, Part } from '@/App';
 import { CorkboardCard as CorkboardCardComponent } from './CorkboardCard';
 import { CorkboardRow } from './CorkboardRow';
 import { CorkboardListView } from './CorkboardListView';

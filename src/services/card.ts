@@ -1,4 +1,4 @@
-import { corkboardApi, type CorkboardCard, type CreateCardInput } from "../api/corkboard";
+import { corkboardApi, type CorkboardCard, type CreateCardInput } from "@/api/corkboard";
 
 export const cardService = {
   async getById(bookId: string, id: string): Promise<CorkboardCard | null> {

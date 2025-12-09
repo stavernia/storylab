@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/src/lib/prisma";
-import { requireUser } from "@/src/server/auth/requireUser";
-import { getInitialRank } from "@/src/utils/lexorank";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/server/auth/requireUser";
+import { getInitialRank } from "@/utils/lexorank";
 
 async function assertBookAccess(bookId: string, userId: string) {
   return prisma.book.findFirst({ where: { id: bookId, userId } });
