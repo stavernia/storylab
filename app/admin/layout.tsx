@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpenText, Users } from "lucide-react";
+import { BookOpenText, LayoutDashboard, Users } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -50,6 +50,22 @@ export default async function AdminLayout({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
+                  href="/admin"
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "icon" }),
+                    "h-11 w-11 rounded-xl text-slate-600 hover:bg-slate-100",
+                  )}
+                  aria-label="Admin overview"
+                >
+                  <LayoutDashboard className="h-5 w-5" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="left">Admin overview</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
                   href="/admin/users"
                   className={cn(
                     buttonVariants({ variant: "ghost", size: "icon" }),
@@ -62,6 +78,7 @@ export default async function AdminLayout({
               </TooltipTrigger>
               <TooltipContent side="left">User management</TooltipContent>
             </Tooltip>
+
           </aside>
         </div>
       </div>
