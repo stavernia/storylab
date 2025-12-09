@@ -19,6 +19,17 @@ export default async function AdminPage() {
             Go to Users
           </Link>
         </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Feedback</h2>
+          <p className="mt-1 text-sm text-slate-600">Review submissions, adjust status, and follow up with users.</p>
+          <Link
+            href="/admin/feedback"
+            className="mt-3 inline-flex items-center text-sm font-semibold text-cyan-700 hover:text-cyan-600"
+          >
+            View Feedback
+          </Link>
+        </div>
       </div>
     </div>
   );
