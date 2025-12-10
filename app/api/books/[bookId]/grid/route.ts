@@ -17,8 +17,8 @@ async function loadScopedChapterAndThemeIds(bookId: string, userId: string) {
   ]);
 
   return {
-    chapterIds: new Set(chapters.map((chapter) => chapter.id)),
-    themeIds: new Set(themes.map((theme) => theme.id)),
+    chapterIds: new Set(chapters.map((chapter: (typeof chapters)[0]) => chapter.id)),
+    themeIds: new Set(themes.map((theme: (typeof themes)[0]) => theme.id)),
   };
 }
 

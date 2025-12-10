@@ -59,7 +59,7 @@ export async function GET(
       include: { tag: true },
     });
 
-    const tags = links.map((link) => link.tag);
+    const tags = links.map((link: (typeof links)[0]) => link.tag);
 
     return NextResponse.json({ tags });
   } catch (error) {
