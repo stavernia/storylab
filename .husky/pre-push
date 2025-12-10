@@ -1,0 +1,23 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-push checks..."
+echo ""
+
+echo "📝 Checking TypeScript types..."
+pnpm typecheck
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript check failed. Push aborted."
+  exit 1
+fi
+
+echo ""
+echo "🏗️  Building Next.js app..."
+pnpm build
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed. Push aborted."
+  exit 1
+fi
+
+echo ""
+echo "✅ All checks passed! Push proceeding..."
