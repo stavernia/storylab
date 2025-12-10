@@ -29,7 +29,7 @@ export function TiptapChapterEditor({
     },
     editorProps: {
       attributes: {
-        class: "outline-1 tiptap-editor",
+        class: "outline-none tiptap-editor",
       },
     },
   });
@@ -73,9 +73,10 @@ export function TiptapChapterEditor({
 
   return (
     <div
-      className={`tiptap-wrapper rounded-lg transition-all ${isFocused ? "ring-2 ring-blue-200 ring-offset-2" : ""}`}
+      className={`tiptap-wrapper rounded-lg transition-all hover:ring-1 hover:ring-blue-100 ${isFocused ? "ring-2 ring-blue-200 ring-offset-2" : ""}`}
+      style={{ minHeight: "120px" }}
     >
-      <EditorContent editor={editor} />
+      <EditorContent editor={editor} style={{ minHeight: "120px" }} />
     </div>
   );
 }

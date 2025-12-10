@@ -162,11 +162,11 @@ export function RichTextEditor({
       onFocus={handleFocus}
       onMouseUp={saveSelection}
       onKeyUp={saveSelection}
-      className={`outline-none prose prose-sm max-w-none text-gray-900 ${
+      className={`outline-none prose prose-sm max-w-none text-gray-900 hover:ring-1 hover:ring-blue-100 ${
         readOnly ? "cursor-default select-text" : ""
       } ${className}`}
       style={{
-        minHeight: "500px",
+        minHeight: "120px",
         lineHeight: "1.75",
         ...style,
       }}
