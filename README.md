@@ -11,6 +11,7 @@
 - **Styling**: Tailwind tokens live in `app/globals.css` and `tailwind.config.ts`.
 
 ### Notes
+
 - Prisma scaffold added (`prisma/schema.prisma`, `src/lib/prisma.ts`); run `npx prisma generate` after setting `DATABASE_URL`.
 - NextAuth route is stubbed at `app/api/auth/[...nextauth]/route.ts`; configure real providers and adapter when ready.
 - Vite-era entry files were removed; remaining legacy code will be cleaned as we migrate.
