@@ -47,6 +47,12 @@ export async function createStarterWorkspaceForUser(
         .split(/\s+/)
         .filter(Boolean).length;
 
+      // Prisma expects customOutlineFields as JSON value, not plain object
+      let customOutlineFields = chapter.customOutlineFields;
+      if (customOutlineFields && typeof customOutlineFields === "object" && !Array.isArray(customOutlineFields)) {
+        customOutlineFields = JSON.parse(JSON.stringify(customOutlineFields));
+      }
+
       const created = await tx.chapter.create({
         data: {
           title: chapter.title,
@@ -59,7 +65,7 @@ export async function createStarterWorkspaceForUser(
           outlineGoal: chapter.outlineGoal ?? undefined,
           outlineConflict: chapter.outlineConflict ?? undefined,
           outlineStakes: chapter.outlineStakes ?? undefined,
-          customOutlineFields: chapter.customOutlineFields ?? undefined,
+          customOutlineFields: customOutlineFields ? JSON.stringify(customOutlineFields) : undefined,
           wordCount: chapter.wordCount ?? computedWordCount,
           lastEdited: chapter.lastEdited ? new Date(chapter.lastEdited) : undefined,
           partId,

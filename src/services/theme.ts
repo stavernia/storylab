@@ -23,18 +23,19 @@ export interface ThemeData {
 }
 
 export const themeService = {
-  async getById(id: string): Promise<ThemeData | null> {
-    const data = await manuscriptApi.loadData();
+  async getById(id: string, bookId: string): Promise<ThemeData | null> {
+    const data = await manuscriptApi.loadData(bookId);
     return data.themes.find(t => t.id === id) || null;
   },
 
   async update(id: string, values: Partial<ThemeData>): Promise<void> {
-    const theme = await this.getById(id);
-
+    if (!values.bookId) {
+      throw new Error("bookId is required to update a theme");
+    }
+    const theme = await this.getById(id, values.bookId);
     if (!theme?.bookId) {
       throw new Error("Unable to resolve book for theme update");
     }
-
     await manuscriptApi.updateTheme(theme.bookId, id, values);
   },
 
@@ -59,13 +60,11 @@ export const themeService = {
     return created.id;
   },
 
-  async remove(id: string): Promise<void> {
-    const theme = await this.getById(id);
-
+  async remove(id: string, bookId: string): Promise<void> {
+    const theme = await this.getById(id, bookId);
     if (!theme?.bookId) {
       throw new Error("Unable to resolve book for theme deletion");
     }
-
     await manuscriptApi.deleteTheme(theme.bookId, id);
   },
 };

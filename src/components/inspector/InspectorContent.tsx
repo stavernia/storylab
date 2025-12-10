@@ -1,28 +1,78 @@
-import { Info, Target, BarChart3, MessageSquareMore, Clock3, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
-import { InspectorPayload } from '@/contexts/InspectorContext';
-import { useState, useEffect } from 'react';
-import { timeAgo } from '@/utils/timeAgo';
-import { OutlineMetadataPanel } from '@/components/info-panels/OutlineMetadataPanel';
+import {
+  Info,
+  Target,
+  BarChart3,
+  MessageSquareMore,
+  Clock3,
+  ChevronDown,
+  ChevronRight,
+  Trash2,
+} from "lucide-react";
+import { InspectorPayload } from "@/contexts/InspectorContext";
+import { useState, useEffect } from "react";
+import { timeAgo } from "@/utils/timeAgo";
+import { OutlineMetadataPanel } from "@/components/info-panels/OutlineMetadataPanel";
+
+// Narrowed data shape for inspector payloads so TS knows about chapter/part fields
+type InspectorChapter = {
+  id: string;
+  title: string;
+  bookId: string;
+  content?: string;
+  lastEdited?: string | Date;
+  wordCount?: number;
+  outlinePurpose?: string;
+  outlineGoal?: string;
+  outlineConflict?: string;
+  outlineStakes?: string;
+  outline?: string;
+};
+
+type InspectorPart = {
+  id: string;
+  title: string;
+  notes?: string;
+  sortOrder?: number | string;
+};
+
+type InspectorData = {
+  chapter?: InspectorChapter;
+  part?: InspectorPart;
+  tags?: unknown[];
+  showOutlineMetadata?: boolean;
+  updateChapterDetails?: (id: string, updates: unknown) => void;
+  updateChapterTitle?: (id: string, title: string) => void;
+  deleteChapter?: (id: string) => void;
+  updatePartName?: (id: string, title: string) => void;
+  deletePart?: (id: string) => void;
+  // allow other fields without forcing you to type everything right now
+  [key: string]: unknown;
+};
 
 // Placeholder components for each tool mode
-export function InspectorDetails({ payload }: { payload: InspectorPayload | null }) {
+export function InspectorDetails({
+  payload,
+}: {
+  payload: InspectorPayload | null;
+}) {
   const [outlineMetadataOpen, setOutlineMetadataOpen] = useState(true);
   const [outlineOpen, setOutlineOpen] = useState(true);
-  const data = (payload?.data as Record<string, any>) || {};
-  
+
+  const data: InspectorData = (payload?.data as InspectorData) || {};
+
   // Local state for editable fields
-  const [chapterTitleLocal, setChapterTitleLocal] = useState('');
-  const [partTitleLocal, setPartTitleLocal] = useState('');
+  const [chapterTitleLocal, setChapterTitleLocal] = useState("");
+  const [partTitleLocal, setPartTitleLocal] = useState("");
 
   // Sync local state when payload changes
   useEffect(() => {
-    if (payload?.type === 'chapter' && data.chapter) {
+    if (payload?.type === "chapter" && data.chapter?.title) {
       setChapterTitleLocal(data.chapter.title);
     }
   }, [payload?.type, data.chapter?.id, data.chapter?.title]);
 
   useEffect(() => {
-    if (payload?.type === 'part' && data.part) {
+    if (payload?.type === "part" && data.part?.title) {
       setPartTitleLocal(data.part.title);
     }
   }, [payload?.type, data.part?.id, data.part?.title]);
@@ -37,34 +87,39 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
   }
 
   // Render chapter details
-  if (payload.type === 'chapter' && data.chapter) {
+  if (payload.type === "chapter" && data.chapter) {
     const chapter = data.chapter;
     const tags = data.tags || [];
     const showOutlineMetadata = data.showOutlineMetadata;
     const updateChapterDetails = data.updateChapterDetails;
     const updateChapterTitle = data.updateChapterTitle;
     const deleteChapter = data.deleteChapter;
-    
+
     const handleTitleChange = (newTitle: string) => {
       setChapterTitleLocal(newTitle);
       if (updateChapterTitle) {
         updateChapterTitle(chapter.id, newTitle);
       }
     };
-    
+
     const handleDelete = () => {
-      if (deleteChapter && confirm(`Delete "${chapter.title}"? This action cannot be undone.`)) {
+      if (
+        deleteChapter &&
+        confirm(`Delete "${chapter.title}"? This action cannot be undone.`)
+      ) {
         deleteChapter(chapter.id);
       }
     };
-    
+
     // If we have showOutlineMetadata flag and updateChapterDetails, render the editable panel
     if (showOutlineMetadata && updateChapterDetails) {
       return (
         <div className="space-y-4">
           {/* CHAPTER - EDITABLE TITLE */}
           <div>
-            <div className="text-[10px] tracking-wider text-gray-500 mb-1">CHAPTER</div>
+            <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+              CHAPTER
+            </div>
             {updateChapterTitle ? (
               <input
                 type="text"
@@ -78,34 +133,50 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
             )}
             {chapter.lastEdited && (
               <div className="text-xs text-gray-500">
-                Last edited: {timeAgo(chapter.lastEdited)}
+                Last edited:{" "}
+                {timeAgo(
+                  typeof chapter.lastEdited === "string"
+                    ? chapter.lastEdited
+                    : chapter.lastEdited.toISOString(),
+                )}
               </div>
             )}
           </div>
 
           {/* WORD COUNT */}
           <div>
-            <div className="text-[10px] tracking-wider text-gray-500 mb-1">WORD COUNT</div>
-            <div className="text-sm text-gray-900">{chapter.wordCount || 0} words</div>
+            <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+              WORD COUNT
+            </div>
+            <div className="text-sm text-gray-900">
+              {chapter.wordCount || 0} words
+            </div>
           </div>
 
           {/* EDITABLE OUTLINE METADATA */}
           <div>
-            <div className="text-[10px] tracking-wider text-gray-500 mb-2">OUTLINE METADATA</div>
-            <OutlineMetadataPanel 
-              chapter={chapter}
+            <div className="text-[10px] tracking-wider text-gray-500 mb-2">
+              OUTLINE METADATA
+            </div>
+            <OutlineMetadataPanel
+              chapter={{
+                ...chapter,
+                content: chapter.content ?? "",
+              }}
               updateChapterDetails={updateChapterDetails}
             />
           </div>
         </div>
       );
     }
-    
+
     return (
       <div className="space-y-4">
         {/* CHAPTER - EDITABLE TITLE */}
         <div>
-          <div className="text-[10px] tracking-wider text-gray-500 mb-1">CHAPTER</div>
+          <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+            CHAPTER
+          </div>
           {updateChapterTitle ? (
             <input
               type="text"
@@ -119,23 +190,39 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
           )}
           {chapter.lastEdited && (
             <div className="text-xs text-gray-500">
-              Last edited: {timeAgo(chapter.lastEdited)}
+              Last edited:{" "}
+              {timeAgo(
+                typeof chapter.lastEdited === "string"
+                  ? chapter.lastEdited
+                  : chapter.lastEdited.toISOString(),
+              )}
             </div>
           )}
         </div>
 
         {/* WORD COUNT */}
         <div>
-          <div className="text-[10px] tracking-wider text-gray-500 mb-1">WORD COUNT</div>
-          <div className="text-sm text-gray-900">{chapter.wordCount || 0} words</div>
-          <div className="text-xs text-gray-500">Project total: {/* TODO: calculate total */} words</div>
+          <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+            WORD COUNT
+          </div>
+          <div className="text-sm text-gray-900">
+            {chapter.wordCount || 0} words
+          </div>
+          <div className="text-xs text-gray-500">
+            Project total: {/* TODO: calculate total */} words
+          </div>
         </div>
 
         {/* OUTLINE NOTES */}
-        {(chapter.outlinePurpose || chapter.outlineGoal || chapter.outlineConflict || chapter.outlineStakes) && (
+        {(chapter.outlinePurpose ||
+          chapter.outlineGoal ||
+          chapter.outlineConflict ||
+          chapter.outlineStakes) && (
           <div>
-            <div className="text-[10px] tracking-wider text-gray-500 mb-2">OUTLINE NOTES</div>
-            
+            <div className="text-[10px] tracking-wider text-gray-500 mb-2">
+              OUTLINE NOTES
+            </div>
+
             {/* Collapsible Outline Metadata */}
             <button
               onClick={() => setOutlineMetadataOpen(!outlineMetadataOpen)}
@@ -148,31 +235,39 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
               )}
               OUTLINE METADATA
             </button>
-            
+
             {outlineMetadataOpen && (
               <div className="space-y-3 mb-4">
                 {chapter.outlinePurpose && (
                   <div>
                     <div className="text-xs text-gray-600 mb-1">Purpose</div>
-                    <div className="text-sm text-gray-900">{chapter.outlinePurpose}</div>
+                    <div className="text-sm text-gray-900">
+                      {chapter.outlinePurpose}
+                    </div>
                   </div>
                 )}
                 {chapter.outlineGoal && (
                   <div>
                     <div className="text-xs text-gray-600 mb-1">Goal</div>
-                    <div className="text-sm text-gray-900">{chapter.outlineGoal}</div>
+                    <div className="text-sm text-gray-900">
+                      {chapter.outlineGoal}
+                    </div>
                   </div>
                 )}
                 {chapter.outlineConflict && (
                   <div>
                     <div className="text-xs text-gray-600 mb-1">Conflict</div>
-                    <div className="text-sm text-gray-900">{chapter.outlineConflict}</div>
+                    <div className="text-sm text-gray-900">
+                      {chapter.outlineConflict}
+                    </div>
                   </div>
                 )}
                 {chapter.outlineStakes && (
                   <div>
                     <div className="text-xs text-gray-600 mb-1">Stakes</div>
-                    <div className="text-sm text-gray-900">{chapter.outlineStakes}</div>
+                    <div className="text-sm text-gray-900">
+                      {chapter.outlineStakes}
+                    </div>
                   </div>
                 )}
               </div>
@@ -192,9 +287,9 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
                   )}
                   OUTLINE
                 </button>
-                
+
                 {outlineOpen && (
-                  <div 
+                  <div
                     className="text-sm text-gray-900 prose prose-sm max-w-none"
                     dangerouslySetInnerHTML={{ __html: chapter.outline }}
                   />
@@ -206,9 +301,12 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
 
         {/* PROGRESS */}
         <div>
-          <div className="text-[10px] tracking-wider text-gray-500 mb-1">PROGRESS</div>
+          <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+            PROGRESS
+          </div>
           <div className="text-xs text-gray-500">
-            This area can later show chapter targets, completion %, and analytics.
+            This area can later show chapter targets, completion %, and
+            analytics.
           </div>
         </div>
       </div>
@@ -216,29 +314,36 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
   }
 
   // Render part details
-  if (payload.type === 'part' && data.part) {
+  if (payload.type === "part" && data.part) {
     const part = data.part;
     const updatePartName = data.updatePartName;
     const deletePart = data.deletePart;
-    
+
     const handlePartTitleChange = (newTitle: string) => {
       setPartTitleLocal(newTitle);
       if (updatePartName) {
         updatePartName(part.id, newTitle);
       }
     };
-    
+
     const handlePartDelete = () => {
-      if (deletePart && confirm(`Delete \"${part.title}\"? Chapters in this part will become unassigned.`)) {
+      if (
+        deletePart &&
+        confirm(
+          `Delete "${part.title}"? Chapters in this part will become unassigned.`,
+        )
+      ) {
         deletePart(part.id);
       }
     };
-    
+
     return (
       <div className="space-y-4">
         {/* PART - EDITABLE TITLE */}
         <div>
-          <div className="text-[10px] tracking-wider text-gray-500 mb-1">PART TITLE</div>
+          <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+            PART TITLE
+          </div>
           {updatePartName ? (
             <input
               type="text"
@@ -254,13 +359,19 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
 
         {/* PART NOTES */}
         <div>
-          <div className="text-[10px] tracking-wider text-gray-500 mb-1">NOTES</div>
-          <div className="text-sm text-gray-900">{part.notes || 'No notes'}</div>
+          <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+            NOTES
+          </div>
+          <div className="text-sm text-gray-900">
+            {part.notes || "No notes"}
+          </div>
         </div>
 
         {/* SORT ORDER */}
         <div>
-          <div className="text-[10px] tracking-wider text-gray-500 mb-1">SORT ORDER</div>
+          <div className="text-[10px] tracking-wider text-gray-500 mb-1">
+            SORT ORDER
+          </div>
           <div className="text-sm text-gray-900">{part.sortOrder}</div>
         </div>
       </div>
@@ -272,11 +383,13 @@ export function InspectorDetails({ payload }: { payload: InspectorPayload | null
     <div className="space-y-4">
       <div className="text-sm">
         <div className="text-gray-500 mb-1">Type</div>
-        <div className="text-gray-900">{payload.type || 'Unknown'}</div>
+        <div className="text-gray-900">{payload.type || "Unknown"}</div>
       </div>
       <div className="text-sm">
         <div className="text-gray-500 mb-1">ID</div>
-        <div className="text-gray-900 font-mono text-xs">{payload.id || 'N/A'}</div>
+        <div className="text-gray-900 font-mono text-xs">
+          {payload.id || "N/A"}
+        </div>
       </div>
       <div className="text-sm text-gray-600">
         Inspector details coming soon...

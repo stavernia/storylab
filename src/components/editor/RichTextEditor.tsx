@@ -1,6 +1,9 @@
-import { useRef, useEffect, useCallback } from 'react';
-import { useActiveEditorContext, type EditorHandle } from './ActiveEditorContext';
-import type { Chapter } from '@/App';
+import { useRef, useEffect, useCallback } from "react";
+import {
+  useActiveEditorContext,
+  type EditorHandle,
+} from "./ActiveEditorContext";
+import type { Chapter } from "@/App";
 
 export type RichTextEditorProps = {
   editorId: string;
@@ -19,12 +22,13 @@ export function RichTextEditor({
   onChange,
   readOnly = false,
   onFocus,
-  className = '',
+  className = "",
   style = {},
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const savedSelectionRef = useRef<Range | null>(null);
-  const { registerEditor, unregisterEditor, setActiveEditorId } = useActiveEditorContext();
+  const { registerEditor, unregisterEditor, setActiveEditorId } =
+    useActiveEditorContext();
 
   // Update editor content when value changes from outside
   useEffect(() => {
@@ -70,42 +74,42 @@ export function RichTextEditor({
         if (!editorRef.current) return;
         editorRef.current.focus();
         restoreSelection();
-        document.execCommand('bold', false);
+        document.execCommand("bold", false);
         handleInput();
       },
       toggleItalic: () => {
         if (!editorRef.current) return;
         editorRef.current.focus();
         restoreSelection();
-        document.execCommand('italic', false);
+        document.execCommand("italic", false);
         handleInput();
       },
       toggleHeading: (level: 1 | 2 | 3) => {
         if (!editorRef.current) return;
         editorRef.current.focus();
         restoreSelection();
-        document.execCommand('formatBlock', false, `h${level}`);
+        document.execCommand("formatBlock", false, `h${level}`);
         handleInput();
       },
       toggleUnorderedList: () => {
         if (!editorRef.current) return;
         editorRef.current.focus();
         restoreSelection();
-        document.execCommand('insertUnorderedList', false);
+        document.execCommand("insertUnorderedList", false);
         handleInput();
       },
       toggleOrderedList: () => {
         if (!editorRef.current) return;
         editorRef.current.focus();
         restoreSelection();
-        document.execCommand('insertOrderedList', false);
+        document.execCommand("insertOrderedList", false);
         handleInput();
       },
       isBoldActive: () => {
-        return document.queryCommandState('bold');
+        return document.queryCommandState("bold");
       },
       isItalicActive: () => {
-        return document.queryCommandState('italic');
+        return document.queryCommandState("italic");
       },
     };
 
@@ -114,15 +118,21 @@ export function RichTextEditor({
     return () => {
       unregisterEditor(editorId);
     };
-  }, [editorId, registerEditor, unregisterEditor, handleInput, restoreSelection]);
+  }, [
+    editorId,
+    registerEditor,
+    unregisterEditor,
+    handleInput,
+    restoreSelection,
+  ]);
 
   const handleFocus = () => {
     // Set this editor as the active one
     setActiveEditorId(editorId);
-    
+
     // Save the selection
     saveSelection();
-    
+
     // Call the optional onFocus callback
     if (onFocus) {
       onFocus();
@@ -138,9 +148,9 @@ export function RichTextEditor({
 
   // Listen for selection changes
   useEffect(() => {
-    document.addEventListener('selectionchange', handleSelectionChange);
+    document.addEventListener("selectionchange", handleSelectionChange);
     return () => {
-      document.removeEventListener('selectionchange', handleSelectionChange);
+      document.removeEventListener("selectionchange", handleSelectionChange);
     };
   }, []);
 
@@ -153,11 +163,11 @@ export function RichTextEditor({
       onMouseUp={saveSelection}
       onKeyUp={saveSelection}
       className={`outline-none prose prose-sm max-w-none text-gray-900 ${
-        readOnly ? 'cursor-default select-text' : ''
+        readOnly ? "cursor-default select-text" : ""
       } ${className}`}
       style={{
-        minHeight: '500px',
-        lineHeight: '1.75',
+        minHeight: "500px",
+        lineHeight: "1.75",
         ...style,
       }}
       suppressContentEditableWarning

@@ -14,12 +14,14 @@
     {
       "title": "Chapter 1: Arrival",
       "content": "Welcome to your starter project. Use this space to explore the editor and make it your own.",
+      "outline": "<p>Story beats and structure go here.<br>Let's hit the following beats:<br>- Introduce the world</p><p>- Set up the conflict</p>",
       "sortOrder": 0,
       "partIndex": 0
     },
     {
       "title": "Chapter 2: Next Steps",
       "content": "Try adding themes, tags, and corkboard cards to organize your ideas.",
+      "outline": "<p>Story beats:<br>- Learn about protagonist's past</p><p>- Meet the love interest<p>- Introduce the roadblock</p>",
       "sortOrder": 1,
       "partIndex": 0
     }

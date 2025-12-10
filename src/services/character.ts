@@ -11,13 +11,13 @@ export interface CharacterData {
 }
 
 export const characterService = {
-  async list(): Promise<CharacterData[]> {
-    const data = await manuscriptApi.loadData();
+  async list(bookId: string): Promise<CharacterData[]> {
+    const data = await manuscriptApi.loadData(bookId);
     return data.characters || [];
   },
 
-  async getById(id: string): Promise<CharacterData | null> {
-    const data = await manuscriptApi.loadData();
+  async getById(id: string, bookId: string): Promise<CharacterData | null> {
+    const data = await manuscriptApi.loadData(bookId);
     return (data.characters || []).find((c: CharacterData) => c.id === id) || null;
   },
 
@@ -42,12 +42,13 @@ export const characterService = {
   },
 
   async update(id: string, values: Partial<CharacterData>): Promise<void> {
-    const character = await this.getById(id);
-
+    if (!values.bookId) {
+      throw new Error("bookId is required to update a character");
+    }
+    const character = await this.getById(id, values.bookId);
     if (!character?.bookId) {
       throw new Error("Unable to resolve book for character update");
     }
-
     await manuscriptApi.saveCharacter({
       ...character,
       ...values,
@@ -55,13 +56,11 @@ export const characterService = {
     });
   },
 
-  async remove(id: string): Promise<void> {
-    const character = await this.getById(id);
-
+  async remove(id: string, bookId: string): Promise<void> {
+    const character = await this.getById(id, bookId);
     if (!character?.bookId) {
       throw new Error("Unable to resolve book for character deletion");
     }
-
     await manuscriptApi.deleteCharacter(character.bookId, id);
   },
 };

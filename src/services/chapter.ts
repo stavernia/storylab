@@ -29,8 +29,8 @@ export interface ChapterData {
 }
 
 export const chapterService = {
-  async getById(id: string): Promise<ChapterData | null> {
-    const data = await manuscriptApi.loadData();
+  async getById(id: string, bookId: string): Promise<ChapterData | null> {
+    const data = await manuscriptApi.loadData(bookId);
     return data.chapters.find(c => c.id === id) || null;
   },
 
@@ -76,14 +76,12 @@ export const chapterService = {
     return newChapter.id;
   },
 
-  async remove(id: string): Promise<void> {
-    const data = await manuscriptApi.loadData();
+  async remove(id: string, bookId: string): Promise<void> {
+    const data = await manuscriptApi.loadData(bookId);
     const chapter = data.chapters.find(ch => ch.id === id);
-
     if (!chapter) {
       throw new Error("Chapter not found");
     }
-
     await manuscriptApi.deleteChapter(chapter.bookId, id);
   },
 };
