@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Feedback, User } from "@prisma/client";
 
 import { FeedbackTable } from "./FeedbackTable";
 
@@ -20,12 +21,13 @@ export default async function AdminFeedbackPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold text-slate-900">Feedback</h1>
         <p className="text-slate-600">
-          Review user-submitted feedback, track resolution status, and sort by recency.
+          Review user-submitted feedback, track resolution status, and sort by
+          recency.
         </p>
       </div>
 
       <FeedbackTable
-        feedback={feedbackEntries.map((entry) => ({
+        feedback={feedbackEntries.map((entry: (typeof feedbackEntries)[0]) => ({
           id: entry.id,
           message: entry.message,
           status: entry.status,
