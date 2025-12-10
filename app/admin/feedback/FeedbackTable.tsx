@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { FeedbackStatus } from "@prisma/client";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -98,9 +97,7 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
       <div className="flex flex-wrap items-center gap-3">
         <Select
           value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as FeedbackStatus | "ALL")
-          }
+          onValueChange={(value) => setStatusFilter(value as string | "ALL")}
           disabled={isPending}
         >
           <SelectTrigger className="w-48">
@@ -173,10 +170,7 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
                         <Select
                           defaultValue={entry.status}
                           onValueChange={(value) =>
-                            handleStatusChange(
-                              entry.id,
-                              value as FeedbackStatus,
-                            )
+                            handleStatusChange(entry.id, value as string)
                           }
                           disabled={isPending}
                         >
