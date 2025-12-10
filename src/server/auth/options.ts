@@ -1,13 +1,40 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import type { AuthOptions } from "next-auth";
+import type { AuthOptions, DefaultSession } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
 
 import { prisma } from "@/lib/prisma";
 import { createStarterWorkspaceForUser } from "@/server/books/createStarterWorkspace";
-// TODO: don't hardcode roles
-type Role = "ADMIN" | "EDITOR" | "READER" | "VIEWER" | "USER";
 
+type Role = "ADMIN" | "EDITOR" | "READER" | "VIEWER" | "USER";
 const DEFAULT_ROLE: Role = "USER";
+
+/**
+ * Module augmentation to extend NextAuth types with custom user properties.
+ * This allows us to type token and session properties without using any.
+ */
+declare module "next-auth" {
+  interface Session {
+    user?: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      role: Role;
+      disabled: boolean;
+      showOnboardingTour: boolean;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role?: Role;
+    disabled?: boolean;
+    showOnboardingTour?: boolean;
+  }
+}
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -39,10 +66,10 @@ export const authOptions: AuthOptions = {
       if (user) {
         const userRole = (user as { role?: string }).role;
         if (userRole) {
-          (token as any).role = userRole;
+          token.role = userRole as Role;
         }
-        (token as any).disabled = (user as { disabled?: boolean }).disabled ?? (token as any).disabled ?? false;
-        (token as any).showOnboardingTour = (user as { showOnboardingTour?: boolean }).showOnboardingTour ?? true;
+        token.disabled = (user as { disabled?: boolean }).disabled ?? token.disabled ?? false;
+        token.showOnboardingTour = (user as { showOnboardingTour?: boolean }).showOnboardingTour ?? true;
       } else if (token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
@@ -50,9 +77,10 @@ export const authOptions: AuthOptions = {
         });
 
         if (dbUser) {
-          (token as any).role = dbUser.role;
-          (token as any).disabled = dbUser.disabled;
-          (token as any).showOnboardingTour = dbUser.showOnboardingTour ?? true;
+          token.id = token.sub;
+          token.role = dbUser.role as Role;
+          token.disabled = dbUser.disabled;
+          token.showOnboardingTour = dbUser.showOnboardingTour ?? true;
         }
       }
 
@@ -60,10 +88,10 @@ export const authOptions: AuthOptions = {
     },
     session: async ({ session, token }) => {
       if (session.user) {
-        session.user.id = token.sub ?? session.user.id;
-        (session.user as any).role = ((token as any).role as string | undefined) ?? DEFAULT_ROLE;
-        (session.user as any).disabled = Boolean((token as any).disabled);
-        (session.user as any).showOnboardingTour = (token as any).showOnboardingTour ?? true;
+        session.user.id = (token.sub ?? session.user?.id) as string;
+        session.user.role = token.role ?? DEFAULT_ROLE;
+        session.user.disabled = token.disabled ?? false;
+        session.user.showOnboardingTour = token.showOnboardingTour ?? true;
       }
 
       return session;

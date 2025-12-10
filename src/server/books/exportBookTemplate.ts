@@ -132,7 +132,14 @@ export async function exportBookTemplate(
       };
     })
     .filter(
-      (cell: (typeof gridCells)[0] | null): cell is NonNullable<(typeof gridCells)[0]> => Boolean(cell),
+      (cell: ReturnType<typeof gridCells.map>[0]): cell is {
+        chapterIndex: number;
+        themeIndex: number;
+        presence: boolean;
+        intensity: number;
+        note: string | null;
+        threadRole: string | null;
+      } => cell !== null,
     );
 
   return {

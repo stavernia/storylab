@@ -17,7 +17,8 @@ export async function createStarterWorkspaceForUser(
     return null;
   }
 
-  return prisma.$transaction(async (tx: any) => {
+  type TransactionClient = Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
+  return prisma.$transaction(async (tx: TransactionClient) => {
     const book = await tx.book.create({
       data: {
         title: template.book.title || "My Book",
