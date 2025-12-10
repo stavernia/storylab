@@ -241,14 +241,30 @@ async function checkOrphansAndCrossBookMismatches() {
     ]);
 
   const bookIds = new Set(books.map((book: (typeof books)[0]) => book.id));
-  const partBook = new Map(parts.map((part: (typeof parts)[0]) => [part.id, part.bookId]));
-  const chapterBook = new Map(chapters.map((chapter: (typeof chapters)[0]) => [chapter.id, chapter.bookId]));
-  const themeBook = new Map(themes.map((theme: (typeof themes)[0]) => [theme.id, theme.bookId]));
-  const characterBook = new Map(characters.map((character: (typeof characters)[0]) => [character.id, character.bookId]));
-  const boardBook = new Map(boards.map((board: (typeof boards)[0]) => [board.id, board.bookId]));
-  const cardBook = new Map(cards.map((card: (typeof cards)[0]) => [card.id, card.bookId]));
-  const tagBook = new Map(tags.map((tag: (typeof tags)[0]) => [tag.id, tag.bookId]));
-  const gridBook = new Map(gridCells.map((cell: (typeof gridCells)[0]) => [cell.id, cell.bookId]));
+  const partBook = new Map<string, string>(
+    parts.map((part: (typeof parts)[0]) => [part.id, part.bookId] as [string, string]),
+  );
+  const chapterBook = new Map<string, string>(
+    chapters.map((chapter: (typeof chapters)[0]) => [chapter.id, chapter.bookId] as [string, string]),
+  );
+  const themeBook = new Map<string, string>(
+    themes.map((theme: (typeof themes)[0]) => [theme.id, theme.bookId] as [string, string]),
+  );
+  const characterBook = new Map<string, string>(
+    characters.map((character: (typeof characters)[0]) => [character.id, character.bookId] as [string, string]),
+  );
+  const boardBook = new Map<string, string>(
+    boards.map((board: (typeof boards)[0]) => [board.id, board.bookId] as [string, string]),
+  );
+  const cardBook = new Map<string, string>(
+    cards.map((card: (typeof cards)[0]) => [card.id, card.bookId] as [string, string]),
+  );
+  const tagBook = new Map<string, string>(
+    tags.map((tag: (typeof tags)[0]) => [tag.id, tag.bookId] as [string, string]),
+  );
+  const gridBook = new Map<string, string>(
+    gridCells.map((cell: (typeof gridCells)[0]) => [cell.id, cell.bookId] as [string, string]),
+  );
 
   const orphanParts = parts.filter((part: (typeof parts)[0]) => !bookIds.has(part.bookId));
   const orphanChapters = chapters.filter(
