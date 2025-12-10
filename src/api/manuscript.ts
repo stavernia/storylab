@@ -3,6 +3,7 @@ import { chaptersApi } from "./chapters";
 import { partsApi } from "./parts";
 import { themesApi } from "./themes";
 import { charactersApi } from "./characters";
+import { fetchLocalJson } from "./http";
 import { listGridCells } from "@/lib/grid";
 
 export async function loadData(bookId: string): Promise<{
