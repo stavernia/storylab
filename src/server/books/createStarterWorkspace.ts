@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 
 import starterTemplate from "@/data/starter-book-template.json";
 import type { BookTemplate } from "@/types/bookTemplate";
+import { stripHtml } from "@/utils/stripHtml";
 
 const template: BookTemplate = starterTemplate;
 
@@ -41,6 +42,10 @@ export async function createStarterWorkspaceForUser(
     for (const [index, chapter] of (template.chapters ?? []).entries()) {
       const partId =
         typeof chapter.partIndex === "number" ? partIdByIndex.get(chapter.partIndex) : undefined;
+      const computedWordCount = stripHtml(chapter.content ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
 
       const created = await tx.chapter.create({
         data: {
@@ -55,7 +60,7 @@ export async function createStarterWorkspaceForUser(
           outlineConflict: chapter.outlineConflict ?? undefined,
           outlineStakes: chapter.outlineStakes ?? undefined,
           customOutlineFields: chapter.customOutlineFields ?? undefined,
-          wordCount: chapter.wordCount ?? 0,
+          wordCount: chapter.wordCount ?? computedWordCount,
           lastEdited: chapter.lastEdited ? new Date(chapter.lastEdited) : undefined,
           partId,
           bookId: book.id,

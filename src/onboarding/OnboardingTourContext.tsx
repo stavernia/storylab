@@ -4,8 +4,6 @@ import {
   TOUR_STEPS,
   TourStep,
   TourStepId,
-  FIRST_TOUR_STEP_ID,
-  TOUR_STORAGE_KEY,
 } from './tourConfig';
 
 interface OnboardingTourState {
@@ -51,7 +49,6 @@ export const OnboardingTourProvider: React.FC<{ children: React.ReactNode }> = (
 
     if (status === 'authenticated') {
       if (shouldShow) {
-        window.localStorage.removeItem(TOUR_STORAGE_KEY);
         window.setTimeout(() => {
           setIsOpen(true);
           setStepIndex(0);
@@ -62,9 +59,6 @@ export const OnboardingTourProvider: React.FC<{ children: React.ReactNode }> = (
   }, [initialized, session?.user?.showOnboardingTour, status]);
 
   const persistDismissed = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(TOUR_STORAGE_KEY, 'true');
-    }
     const userId = session?.user?.id;
     if (!userId) return;
     // Best-effort server update to avoid re-showing for this user

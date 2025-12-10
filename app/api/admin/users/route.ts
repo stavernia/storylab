@@ -10,13 +10,9 @@ import { authOptions } from "@/server/auth/options";
 export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const isAdmin = session.user.role === "ADMIN";
-
     const body = await request.json();
     const { userId, role, disabled, showOnboardingTour } = body ?? {};
 
@@ -25,8 +21,6 @@ export async function PATCH(request: Request) {
     }
 
     const data: { role?: Role; disabled?: boolean; showOnboardingTour?: boolean } = {};
-
-    const isSelf = session.user.id === userId;
 
     if (typeof role !== "undefined") {
       if (!Object.values(Role).includes(role)) {
@@ -43,14 +37,13 @@ export async function PATCH(request: Request) {
       data.showOnboardingTour = showOnboardingTour;
     }
 
-    const onlySelfToggle =
-      !isAdmin &&
-      isSelf &&
-      Object.keys(data).length === 1 &&
-      typeof data.showOnboardingTour === "boolean";
+    const isSelfTourToggle =
+      session.user.id === userId &&
+      typeof showOnboardingTour === "boolean" &&
+      Object.keys(data).length === 1;
 
-    if (!isAdmin && !onlySelfToggle) {
-      await requireAdmin();
+    if (!isSelfTourToggle && session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (!Object.keys(data).length) {

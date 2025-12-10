@@ -69,6 +69,7 @@ import { APP_VIEWS, type AppViewId } from "./config/views";
 import { EditorProjectInfoPanel } from "./components/info-panels/EditorProjectInfoPanel";
 import { FeedbackModal } from "./components/FeedbackModal";
 import { APP_STAGE, APP_VERSION } from "@/lib/appMeta";
+import { stripHtml } from "@/utils/stripHtml";
 import type { PaneId } from "./contexts/PaneContext";
 
 // NEW: Multi-book support - Book type is now imported from ./types/book
@@ -942,7 +943,18 @@ function AppContent() {
       const data = await manuscriptApi.loadData(bookId);
       console.log("Loaded data for book", bookId, ":", data);
 
-      setChapters(data.chapters);
+      const computeWordCount = (html: string | undefined) =>
+        stripHtml(html || "")
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean).length;
+
+      const chaptersWithCounts = data.chapters.map((ch) => ({
+        ...ch,
+        wordCount: computeWordCount(ch.content),
+      }));
+
+      setChapters(chaptersWithCounts);
       setThemes(data.themes);
       setCharacters(data.characters || []);
       applyGridCells(bookId, data.gridCells);
@@ -952,7 +964,7 @@ function AppContent() {
       setPanes((prev) =>
         prev.map((p) =>
           p.id === "primary"
-            ? { ...p, selectedChapterId: data.chapters[0]?.id || "" }
+            ? { ...p, selectedChapterId: chaptersWithCounts[0]?.id || "" }
             : p,
         ),
       );
