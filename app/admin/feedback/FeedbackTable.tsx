@@ -8,8 +8,21 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export type AdminFeedback = {
   id: string;
@@ -28,12 +41,7 @@ const statusLabels: Record<string, string> = {
   COMPLETE: "Complete",
 };
 
-const statusOrder = [
-  "WAITING",
-  "IN_PROGRESS",
-  "CANCELLED",
-  "COMPLETE",
-];
+const statusOrder = ["WAITING", "IN_PROGRESS", "CANCELLED", "COMPLETE"];
 
 export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
   const router = useRouter();
@@ -63,7 +71,10 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      const message = typeof data.error === "string" ? data.error : "Failed to update feedback";
+      const message =
+        typeof data.error === "string"
+          ? data.error
+          : "Failed to update feedback";
       throw new Error(message);
     }
   };
@@ -75,7 +86,8 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
         toast.success(`Status updated to ${statusLabels[status]}`);
         router.refresh();
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to update feedback";
+        const message =
+          error instanceof Error ? error.message : "Failed to update feedback";
         toast.error(message);
       }
     });
@@ -86,7 +98,9 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
       <div className="flex flex-wrap items-center gap-3">
         <Select
           value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as FeedbackStatus | "ALL")}
+          onValueChange={(value) =>
+            setStatusFilter(value as FeedbackStatus | "ALL")
+          }
           disabled={isPending}
         >
           <SelectTrigger className="w-48">
@@ -105,11 +119,19 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setSortOrder((order) => (order === "desc" ? "asc" : "desc"))}
+          onClick={() =>
+            setSortOrder((order) => (order === "desc" ? "asc" : "desc"))
+          }
           className="inline-flex items-center gap-2"
         >
-          {sortOrder === "desc" ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-          <span>Sort by date ({sortOrder === "desc" ? "newest" : "oldest"} first)</span>
+          {sortOrder === "desc" ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )}
+          <span>
+            Sort by date ({sortOrder === "desc" ? "newest" : "oldest"} first)
+          </span>
         </Button>
       </div>
 
@@ -127,7 +149,10 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
           <TableBody>
             {filteredFeedback.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-slate-600">
+                <TableCell
+                  colSpan={5}
+                  className="py-10 text-center text-slate-600"
+                >
                   No feedback yet.
                 </TableCell>
               </TableRow>
@@ -142,10 +167,17 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
                   <TableRow key={entry.id} className="hover:bg-slate-50/80">
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{statusLabels[entry.status]}</Badge>
+                        <Badge variant="secondary">
+                          {statusLabels[entry.status]}
+                        </Badge>
                         <Select
                           defaultValue={entry.status}
-                          onValueChange={(value) => handleStatusChange(entry.id, value as FeedbackStatus)}
+                          onValueChange={(value) =>
+                            handleStatusChange(
+                              entry.id,
+                              value as FeedbackStatus,
+                            )
+                          }
                           disabled={isPending}
                         >
                           <SelectTrigger className="w-36">
@@ -163,14 +195,22 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-slate-900">{entry.message}</p>
+                        <p className="text-sm font-medium text-slate-900">
+                          {entry.message}
+                        </p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-700">{entry.pagePath ?? "—"}</TableCell>
                     <TableCell className="text-sm text-slate-700">
-                      {entry.userName ? `${entry.userName} • ${entry.userEmail ?? "No email"}` : entry.userEmail ?? "—"}
+                      {entry.pagePath ?? "—"}
                     </TableCell>
-                    <TableCell className="text-sm text-slate-700">{created}</TableCell>
+                    <TableCell className="text-sm text-slate-700">
+                      {entry.userName
+                        ? `${entry.userName} • ${entry.userEmail ?? "No email"}`
+                        : (entry.userEmail ?? "—")}
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-700">
+                      {created}
+                    </TableCell>
                   </TableRow>
                 );
               })
