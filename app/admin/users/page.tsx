@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Minimal admin dashboard for managing StoryLab users.
 
 import { prisma } from "@/lib/prisma";
