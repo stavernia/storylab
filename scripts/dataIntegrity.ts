@@ -273,19 +273,19 @@ async function checkOrphansAndCrossBookMismatches() {
   const orphanTags = tags.filter((tag: (typeof tags)[0]) => !bookIds.has(tag.bookId));
   const orphanTagLinks = tagLinks.filter((link: (typeof tagLinks)[0]) => !bookIds.has(link.bookId) || !tagBook.has(link.tagId));
 
-  logIssue("Orphan parts (missing book)", orphanParts, (part) => `${part.id} → book ${part.bookId}`);
+  logIssue("Orphan parts (missing book)", orphanParts, (part: (typeof orphanParts)[0]) => `${part.id} → book ${part.bookId}`);
   logIssue(
     "Orphan chapters (missing book or part)",
     orphanChapters,
-    (chapter) => `${chapter.id} → book ${chapter.bookId}${chapter.partId ? `, part ${chapter.partId}` : ""}`,
+    (chapter: (typeof orphanChapters)[0]) => `${chapter.id} → book ${chapter.bookId}${chapter.partId ? `, part ${chapter.partId}` : ""}`,
   );
-  logIssue("Orphan themes (missing book)", orphanThemes, (theme) => `${theme.id} → book ${theme.bookId}`);
-  logIssue("Orphan characters (missing book)", orphanCharacters, (character) => `${character.id} → book ${character.bookId}`);
-  logIssue("Orphan corkboard boards (missing book)", orphanBoards, (board) => `${board.id} → book ${board.bookId}`);
+  logIssue("Orphan themes (missing book)", orphanThemes, (theme: (typeof orphanThemes)[0]) => `${theme.id} → book ${theme.bookId}`);
+  logIssue("Orphan characters (missing book)", orphanCharacters, (character: (typeof orphanCharacters)[0]) => `${character.id} → book ${character.bookId}`);
+  logIssue("Orphan corkboard boards (missing book)", orphanBoards, (board: (typeof orphanBoards)[0]) => `${board.id} → book ${board.bookId}`);
   logIssue(
     "Orphan corkboard cards (missing parent)",
     orphanCards,
-    (card) =>
+    (card: (typeof orphanCards)[0]) =>
       `${card.id} → book ${card.bookId}${card.chapterId ? `, chapter ${card.chapterId}` : ""}${
         card.partId ? `, part ${card.partId}` : ""
       }${card.boardId ? `, board ${card.boardId}` : ""}`,
@@ -293,18 +293,18 @@ async function checkOrphansAndCrossBookMismatches() {
   logIssue(
     "Orphan theme notes (missing chapter or theme)",
     orphanThemeNotes,
-    (note) => `${note.id} → chapter ${note.chapterId}, theme ${note.themeId}`,
+    (note: (typeof orphanThemeNotes)[0]) => `${note.id} → chapter ${note.chapterId}, theme ${note.themeId}`,
   );
   logIssue(
     "Orphan grid cells (missing book/chapter/theme)",
     orphanGridCells,
-    (cell) => `${cell.id} → book ${cell.bookId}, chapter ${cell.chapterId}, theme ${cell.themeId}`,
+    (cell: (typeof orphanGridCells)[0]) => `${cell.id} → book ${cell.bookId}, chapter ${cell.chapterId}, theme ${cell.themeId}`,
   );
-  logIssue("Orphan tags (missing book)", orphanTags, (tag) => `${tag.id} → book ${tag.bookId}`);
+  logIssue("Orphan tags (missing book)", orphanTags, (tag: (typeof orphanTags)[0]) => `${tag.id} → book ${tag.bookId}`);
   logIssue(
     "Orphan tag links (missing book or tag)",
     orphanTagLinks,
-    (link) => `${link.id} → book ${link.bookId}, tag ${link.tagId}`,
+    (link: (typeof orphanTagLinks)[0]) => `${link.id} → book ${link.bookId}, tag ${link.tagId}`,
   );
 
   const crossBookChapterPart = chapters.filter(
@@ -344,12 +344,12 @@ async function checkOrphansAndCrossBookMismatches() {
   logIssue(
     "Cross-book chapter/part mismatches",
     crossBookChapterPart,
-    (chapter) => `${chapter.id} → chapter book ${chapter.bookId}, part book ${chapter.partId ? partBook.get(chapter.partId) : ""}`,
+    (chapter: (typeof crossBookChapterPart)[0]) => `${chapter.id} → chapter book ${chapter.bookId}, part book ${chapter.partId ? partBook.get(chapter.partId) : ""}`,
   );
   logIssue(
     "Cross-book corkboard cards",
     crossBookCards,
-    (card) =>
+    (card: (typeof crossBookCards)[0]) =>
       `${card.id} → book ${card.bookId}${
         card.chapterId ? `, chapter book ${chapterBook.get(card.chapterId)}` : ""
       }${card.partId ? `, part book ${partBook.get(card.partId)}` : ""}${
@@ -359,24 +359,24 @@ async function checkOrphansAndCrossBookMismatches() {
   logIssue(
     "Theme notes with mismatched books",
     crossBookThemeNotes,
-    (note) =>
+    (note: (typeof crossBookThemeNotes)[0]) =>
       `${note.id} → chapter book ${chapterBook.get(note.chapterId)}, theme book ${themeBook.get(note.themeId)}`,
   );
   logIssue(
     "Grid cells with mismatched books",
     crossBookGridCells,
-    (cell) =>
+    (cell: (typeof crossBookGridCells)[0]) =>
       `${cell.id} → cell book ${cell.bookId}, chapter book ${chapterBook.get(cell.chapterId)}, theme book ${themeBook.get(cell.themeId)}`,
   );
   logIssue(
     "Tag links where tag.bookId differs",
     tagLinksWithTagMismatch,
-    (link) => `${link.id} → link book ${link.bookId}, tag book ${tagBook.get(link.tagId)}`,
+    (link: (typeof tagLinksWithTagMismatch)[0]) => `${link.id} → link book ${link.bookId}, tag book ${tagBook.get(link.tagId)}`,
   );
   logIssue(
     "Tag links where entity book differs",
     tagLinksWithEntityMismatch,
-    (link) => `${link.id} → link book ${link.bookId}, entity book ${entityBookLookup(link.entityType, link.entityId)}`,
+    (link: (typeof tagLinksWithEntityMismatch)[0]) => `${link.id} → link book ${link.bookId}, entity book ${entityBookLookup(link.entityType, link.entityId)}`,
   );
 
   const archivedBookIds = new Set(books.filter((book: (typeof books)[0]) => book.isArchived).map((book: (typeof books)[0]) => book.id));
