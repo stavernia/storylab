@@ -20,15 +20,16 @@ enum FeedbackStatus {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  role          Role      @default(USER)
-  disabled      Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now())
+  id                 String    @id @default(uuid())
+  name               String?
+  email              String?   @unique
+  emailVerified      DateTime?
+  image              String?
+  role               Role      @default(USER)
+  disabled           Boolean   @default(false)
+  showOnboardingTour Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now())
 
   accounts Account[]
   sessions Session[]

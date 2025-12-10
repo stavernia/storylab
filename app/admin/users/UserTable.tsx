@@ -22,6 +22,7 @@ export type AdminUser = {
   email: string | null;
   role: "USER" | "ADMIN";
   disabled: boolean;
+  showOnboardingTour: boolean;
   createdAt: string;
 };
 
@@ -39,7 +40,9 @@ export function UserTable({ users }: { users: AdminUser[] }) {
     [],
   );
 
-  const updateUser = async (payload: Partial<Pick<AdminUser, "role" | "disabled">> & { userId: string }) => {
+  const updateUser = async (
+    payload: Partial<Pick<AdminUser, "role" | "disabled" | "showOnboardingTour">> & { userId: string },
+  ) => {
     const response = await fetch("/api/admin/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -85,10 +88,11 @@ export function UserTable({ users }: { users: AdminUser[] }) {
         <TableHeader className="bg-slate-50">
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Created</TableHead>
+          <TableHead>Role</TableHead>
+          <TableHead>Onboarding</TableHead>
+          <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -113,6 +117,29 @@ export function UserTable({ users }: { users: AdminUser[] }) {
                     <SelectItem value="ADMIN">Admin</SelectItem>
                   </SelectContent>
                 </Select>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={user.showOnboardingTour}
+                    onCheckedChange={(checked) =>
+                      startTransition(async () => {
+                        try {
+                          await updateUser({ userId: user.id, showOnboardingTour: checked });
+                          toast.success(checked ? "Tour enabled" : "Tour dismissed");
+                          router.refresh();
+                        } catch (error) {
+                          const message = error instanceof Error ? error.message : "Failed to update user";
+                          toast.error(message);
+                        }
+                      })
+                    }
+                    disabled={isPending}
+                  />
+                  <Badge variant={user.showOnboardingTour ? "secondary" : "outline"}>
+                    {user.showOnboardingTour ? "Will show" : "Dismissed"}
+                  </Badge>
+                </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-3">

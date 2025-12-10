@@ -1,22 +1,32 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { Role } from "@prisma/client";
+import { getServerSession } from "next-auth";
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/server/auth/requireUser";
+import { authOptions } from "@/server/auth/options";
 
 export async function PATCH(request: Request) {
   try {
-    await requireAdmin();
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const isAdmin = session.user.role === "ADMIN";
 
     const body = await request.json();
-    const { userId, role, disabled } = body ?? {};
+    const { userId, role, disabled, showOnboardingTour } = body ?? {};
 
     if (typeof userId !== "string") {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
-    const data: { role?: Role; disabled?: boolean } = {};
+    const data: { role?: Role; disabled?: boolean; showOnboardingTour?: boolean } = {};
+
+    const isSelf = session.user.id === userId;
 
     if (typeof role !== "undefined") {
       if (!Object.values(Role).includes(role)) {
@@ -27,6 +37,20 @@ export async function PATCH(request: Request) {
 
     if (typeof disabled === "boolean") {
       data.disabled = disabled;
+    }
+
+    if (typeof showOnboardingTour === "boolean") {
+      data.showOnboardingTour = showOnboardingTour;
+    }
+
+    const onlySelfToggle =
+      !isAdmin &&
+      isSelf &&
+      Object.keys(data).length === 1 &&
+      typeof data.showOnboardingTour === "boolean";
+
+    if (!isAdmin && !onlySelfToggle) {
+      await requireAdmin();
     }
 
     if (!Object.keys(data).length) {
@@ -42,6 +66,7 @@ export async function PATCH(request: Request) {
         email: true,
         role: true,
         disabled: true,
+        showOnboardingTour: true,
         createdAt: true,
       },
     });

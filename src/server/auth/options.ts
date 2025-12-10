@@ -36,15 +36,17 @@ export const authOptions: AuthOptions = {
       if (user) {
         token.role = (user as { role?: Role }).role ?? token.role ?? Role.USER;
         token.disabled = (user as { disabled?: boolean }).disabled ?? token.disabled ?? false;
+        token.showOnboardingTour = (user as { showOnboardingTour?: boolean }).showOnboardingTour ?? true;
       } else if (token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: { role: true, disabled: true },
+          select: { role: true, disabled: true, showOnboardingTour: true },
         });
 
         if (dbUser) {
           token.role = dbUser.role;
           token.disabled = dbUser.disabled;
+          token.showOnboardingTour = dbUser.showOnboardingTour ?? true;
         }
       }
 
@@ -55,6 +57,7 @@ export const authOptions: AuthOptions = {
         session.user.id = token.sub ?? session.user.id;
         session.user.role = (token.role as Role | undefined) ?? Role.USER;
         session.user.disabled = Boolean(token.disabled);
+        session.user.showOnboardingTour = token.showOnboardingTour ?? true;
       }
 
       return session;

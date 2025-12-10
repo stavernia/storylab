@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   TOUR_STEPS,
   TourStep,
@@ -35,6 +36,8 @@ export const OnboardingTourProvider: React.FC<{ children: React.ReactNode }> = (
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const { data: session, status } = useSession();
+  const [initialized, setInitialized] = useState(false);
 
   const currentStep: TourStep | null =
     stepIndex >= 0 && stepIndex < TOUR_STEPS.length ? TOUR_STEPS[stepIndex] : null;
@@ -42,20 +45,35 @@ export const OnboardingTourProvider: React.FC<{ children: React.ReactNode }> = (
   // On first load, auto-start tour if not dismissed
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const dismissed = window.localStorage.getItem(TOUR_STORAGE_KEY);
-    if (!dismissed) {
-      // Don't auto-open immediately; let the app layout mount first
-      window.setTimeout(() => {
-        setIsOpen(true);
-        setStepIndex(0);
-      }, 300);
-    }
-  }, []);
+    if (initialized) return;
 
-  const persistDismissed = () => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(TOUR_STORAGE_KEY, 'true');
-  };
+    const shouldShow = session?.user?.showOnboardingTour ?? false;
+
+    if (status === 'authenticated') {
+      if (shouldShow) {
+        window.localStorage.removeItem(TOUR_STORAGE_KEY);
+        window.setTimeout(() => {
+          setIsOpen(true);
+          setStepIndex(0);
+        }, 300);
+      }
+      setInitialized(true);
+    }
+  }, [initialized, session?.user?.showOnboardingTour, status]);
+
+  const persistDismissed = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(TOUR_STORAGE_KEY, 'true');
+    }
+    const userId = session?.user?.id;
+    if (!userId) return;
+    // Best-effort server update to avoid re-showing for this user
+    fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, showOnboardingTour: false }),
+    }).catch(() => {});
+  }, [session?.user?.id]);
 
   const closeTour = () => {
     setIsOpen(false);
@@ -74,6 +92,7 @@ export const OnboardingTourProvider: React.FC<{ children: React.ReactNode }> = (
       const next = prev + 1;
       if (next >= TOUR_STEPS.length) {
         persistDismissed();
+        setIsOpen(false);
         return prev;
       }
       return next;

@@ -13,6 +13,7 @@ export default async function AdminUsersPage() {
       email: true,
       role: true,
       disabled: true,
+      showOnboardingTour: true,
       createdAt: true,
     },
   });
