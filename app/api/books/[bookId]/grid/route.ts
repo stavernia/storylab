@@ -128,7 +128,7 @@ export async function POST(
       return NextResponse.json({ cells: [] });
     }
 
-    const cells = await prisma.$transaction(async (tx) => {
+    const cells = await prisma.$transaction(async (tx: any) => {
       const updatedCells = [] as Awaited<ReturnType<typeof tx.gridCell.upsert>>[];
 
       for (const cell of sanitizedCells) {
