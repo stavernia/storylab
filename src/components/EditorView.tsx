@@ -3,12 +3,11 @@ import { EditorToolbar } from './editor/EditorToolbar';
 import { TiptapChapterEditor } from './editor/TiptapChapterEditor';
 import { ChapterSection } from './editor/ChapterSection';
 import { X, Info } from 'lucide-react';
-import type { Chapter, Part, ManuscriptSelection } from '../App';
-import { useTagFilter } from '../contexts/TagFilterContext';
-import { useEntityTags } from '../hooks/useEntityTags';
-import { useChapterNumbering } from '../contexts/ChapterNumberingContext';
+import type { Chapter, Part, ManuscriptSelection } from '@/App';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 import { toast } from 'sonner';
-import { corkboardApi } from "../api/corkboard";
 
 type EditorViewProps = {
   chapters: Chapter[];  // Pre-filtered chapters from BinderWrapper
@@ -16,7 +15,7 @@ type EditorViewProps = {
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
   updateChapter: (id: string, content: string) => void;
-  addChapter: (title?: string) => string;
+  addChapter: (title?: string) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
   updateChapterDetails: (id: string, updates: Partial<Chapter>) => void;

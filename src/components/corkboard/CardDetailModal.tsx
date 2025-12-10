@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { CorkboardCard } from "../../api/corkboard";
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import { Label } from '../ui/label';
+import { CorkboardCard } from "@/api/corkboard";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
+} from '@/components/ui/dialog';
 
 interface CardDetailModalProps {
   card: CorkboardCard | null;
@@ -30,18 +30,18 @@ export function CardDetailModal({ card, chapters, onClose, onSave }: CardDetailM
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [chapterId, setChapterId] = useState<string | undefined>(undefined);
-  const [status, setStatus] = useState<'idea' | 'draft' | 'done' | undefined>(undefined);
-  const [color, setColor] = useState<'blue' | 'amber' | 'gray' | 'green' | 'purple' | 'red' | undefined>(undefined);
+  const [status, setStatus] = useState<string | undefined>(undefined);
+  const [color, setColor] = useState<string | undefined>(undefined);
   const [wordEstimate, setWordEstimate] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (card) {
       setTitle(card.title);
       setSummary(card.summary || '');
-      setChapterId(card.chapterId);
-      setStatus(card.status);
-      setColor(card.color);
-      setWordEstimate(card.wordEstimate);
+      setChapterId(card.chapterId ?? undefined);
+      setStatus(card.status ?? undefined);
+      setColor(card.color ?? undefined);
+      setWordEstimate(card.wordEstimate ?? undefined);
     }
   }, [card]);
 
@@ -131,7 +131,10 @@ export function CardDetailModal({ card, chapters, onClose, onSave }: CardDetailM
               <Label htmlFor="card-status">Status</Label>
               <Select
                 value={status || 'none'}
-                onValueChange={(val) => setStatus(val === 'none' ? undefined : val as any)}
+                onValueChange={(val) => {
+                  const newStatus: CorkboardCard["status"] | undefined = val === 'none' ? undefined : val;
+                  setStatus(newStatus);
+                }}
               >
                 <SelectTrigger id="card-status">
                   <SelectValue placeholder="Select status" />
@@ -151,7 +154,10 @@ export function CardDetailModal({ card, chapters, onClose, onSave }: CardDetailM
               <Label htmlFor="card-color">Color</Label>
               <Select
                 value={color || 'none'}
-                onValueChange={(val) => setColor(val === 'none' ? undefined : val as any)}
+                onValueChange={(val) => {
+                  const newColor: CorkboardCard["color"] | undefined = val === 'none' ? undefined : val;
+                  setColor(newColor);
+                }}
               >
                 <SelectTrigger id="card-color">
                   <SelectValue placeholder="Select color" />

@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
-import { ThemeData } from '../../services/theme';
-import { Character } from '../../App';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import { Button } from '../ui/button';
+import { ThemeData } from '@/services/theme';
+import { Character } from '@/App';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { TagChipInput } from '../tags/TagChipInput';
-import { Tag } from '../../services/tag';
-import { useDebounce } from '../../hooks/useDebounce';
+} from '@/components/ui/select';
+import { TagChipInput } from '@/components/tags/TagChipInput';
+import { Tag } from '@/services/tag';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Check, Loader2 } from 'lucide-react';
 
 interface ThemeInfoFormProps {

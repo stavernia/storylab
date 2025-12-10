@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Plus, Edit2, Check, X, Eye, EyeOff, Settings, Info, AlignJustify, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
-import type { Theme, Chapter, ThemeNote, ThreadRole, Character, Part } from '../App';
-import { Tag, tagService } from '../services/tag';
-import { useInspector } from '../contexts/InspectorContext'; // NEW: Inspector v2
-import { useChapterNumbering } from '../contexts/ChapterNumberingContext';
+import type { Theme, Chapter, ThreadRole, Character, Part } from '@/App';
+import { Tag, tagService } from '@/services/tag';
+import { useInspector } from '@/contexts/InspectorContext'; // NEW: Inspector v2
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
 import { ThemeInfoForm } from './info-forms/ThemeInfoForm';
-import { ThemeData } from '../services/theme';
+import { ThemeData } from '@/services/theme';
 import { GridCellInfoForm } from './info-forms/GridCellInfoForm';
-import { GridCellData } from '../services/gridCell';
 import { ChapterContentPanel } from './info-panels/ChapterContentPanel';
-import { useTagFilter } from '../contexts/TagFilterContext';
-import { useEntityTags } from '../hooks/useEntityTags';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
 import { toast } from 'sonner';
-import { getOrderedChapters } from '../utils/chapter-ordering';
+import { getOrderedChapters } from '@/utils/chapter-ordering';
+import { makeGridKey, type GridCell, type GridKey } from '@/lib/grid';
 import {
   Dialog,
   DialogContent,
@@ -62,7 +62,7 @@ function nextThreadRole(current?: ThreadRole): ThreadRole {
 function getThreadBounds(
   theme: Theme,
   chapters: Chapter[],
-  getCellForChapter: (chapterId: string) => ThemeNote | undefined
+  getCellForChapter: (chapterId: string) => GridCell | undefined
 ) {
   const indices: number[] = [];
 
@@ -184,7 +184,7 @@ function getThreadCellTintClass(theme: Theme): string {
 function renderThreadMiniStrip(
   theme: Theme,
   chapters: Chapter[],
-  getCellForChapter: (chapterId: string) => ThemeNote | undefined
+  getCellForChapter: (chapterId: string) => GridCell | undefined
 ) {
   const eventIndex = chapters.findIndex(ch => {
     const cell = getCellForChapter(ch.id);
@@ -195,7 +195,13 @@ function renderThreadMiniStrip(
     <div className="mt-1 flex items-center gap-[2px]">
       {chapters.map((chapter, index) => {
         const cell = getCellForChapter(chapter.id);
-        const role: ThreadRole = cell?.threadRole ?? 'none';
+        const role: ThreadRole =
+          cell?.threadRole === 'seed' ||
+          cell?.threadRole === 'buildup' ||
+          cell?.threadRole === 'event' ||
+          cell?.threadRole === 'aftermath'
+            ? cell.threadRole
+            : 'none';
 
         if (role === 'none') {
           return (
@@ -239,13 +245,17 @@ function renderThreadMiniStrip(
 }
 
 type GridViewProps = {
+  bookId: string;
   chapters: Chapter[];
   themes: Theme[];
-  themeNotes: ThemeNote[];
+  gridCellsByKey: Record<GridKey, GridCell>;
   characters: Character[];
-  updateThemeNote: (chapterId: string, themeId: string, note: string) => void;
-  updateThemeCell: (chapterId: string, themeId: string, changes: Partial<ThemeNote>) => void;
-  addTheme: (name?: string) => Promise<string>;
+  updateGridCell: (
+    chapterId: string,
+    themeId: string,
+    changes: Partial<Pick<GridCell, "note" | "presence" | "intensity" | "threadRole">>,
+  ) => void;
+  addTheme: (name?: string) => Promise<Theme>;
   updateTheme: (id: string, name: string) => void;
   updateThemeDetails: (id: string, values: Partial<Theme>) => void;
   deleteTheme: (id: string) => void;
@@ -264,12 +274,12 @@ type GridViewProps = {
 };
 
 export function GridView({
+  bookId,
   chapters,
   themes,
-  themeNotes,
+  gridCellsByKey,
   characters,
-  updateThemeNote,
-  updateThemeCell,
+  updateGridCell,
   addTheme,
   updateTheme,
   updateThemeDetails,
@@ -323,6 +333,45 @@ export function GridView({
 
   // Tag filtering
   const { matches, mode, isActive } = useTagFilter();
+
+  const getCell = (chapterId: string, themeId: string) =>
+    gridCellsByKey[makeGridKey(bookId, chapterId, themeId)];
+
+  const getNote = (chapterId: string, themeId: string) =>
+    getCell(chapterId, themeId)?.note || '';
+
+  const loadThemeTags = async (themeId: string) => {
+    // Guard: don't load if themeId is empty or invalid
+    if (!themeId || themeId.trim() === '') {
+      setThemeTags([]);
+      return;
+    }
+    
+    try {
+      const tags = await tagService.listForEntity('theme', themeId);
+      setThemeTags(tags);
+    } catch (error) {
+      console.error(`Failed to load tags for theme ${themeId}:`, error);
+      setThemeTags([]); // Set empty array on error to prevent undefined issues
+    }
+  };
+
+  const loadCellTags = async (chapterId: string, themeId: string) => {
+    // Guard: don't load if chapterId or themeId is empty or invalid
+    if (!chapterId || chapterId.trim() === '' || !themeId || themeId.trim() === '') {
+      setCellTags([]);
+      return;
+    }
+    
+    try {
+      const entityId = `${chapterId}:${themeId}`;
+      const tags = await tagService.listForEntity('grid_cell', entityId);
+      setCellTags(tags);
+    } catch (error) {
+      console.error(`Failed to load tags for cell ${chapterId}:${themeId}:`, error);
+      setCellTags([]); // Set empty array on error to prevent undefined issues
+    }
+  };
 
   // NEW: Inspector handlers for theme row info
   const handleOpenThemeInspector = (theme: Theme) => {
@@ -395,15 +444,15 @@ export function GridView({
           themeMode={currentTheme?.mode || 'presence'}
           onChange={setCellNote}
           onPresenceChange={(presence) => {
-            updateThemeCell(chapterId, themeId, { presence });
+            updateGridCell(chapterId, themeId, { presence });
           }}
           onIntensityChange={(intensity) => {
-            updateThemeCell(chapterId, themeId, { intensity });
+            updateGridCell(chapterId, themeId, { intensity });
           }}
           onThreadRoleChange={(threadRole) => {
-            updateThemeCell(chapterId, themeId, { threadRole });
+            updateGridCell(chapterId, themeId, { threadRole });
           }}
-          threadRole={themeNotes.find(tn => tn.chapterId === chapterId && tn.themeId === themeId)?.threadRole}
+          threadRole={(getCell(chapterId, themeId)?.threadRole as ThreadRole | null) ?? undefined}
           tags={cellTags}
           onTagsChange={setCellTags}
         />
@@ -481,56 +530,19 @@ export function GridView({
     }
   }, [selectedGridCell?.chapterId, selectedGridCell?.themeId]);
 
-  const loadThemeTags = async (themeId: string) => {
-    // Guard: don't load if themeId is empty or invalid
-    if (!themeId || themeId.trim() === '') {
-      setThemeTags([]);
-      return;
-    }
-    
-    try {
-      const tags = await tagService.listForEntity('theme', themeId);
-      setThemeTags(tags);
-    } catch (error) {
-      console.error(`Failed to load tags for theme ${themeId}:`, error);
-      setThemeTags([]); // Set empty array on error to prevent undefined issues
-    }
-  };
-
-  const loadCellTags = async (chapterId: string, themeId: string) => {
-    // Guard: don't load if chapterId or themeId is empty or invalid
-    if (!chapterId || chapterId.trim() === '' || !themeId || themeId.trim() === '') {
-      setCellTags([]);
-      return;
-    }
-    
-    try {
-      const entityId = `${chapterId}:${themeId}`;
-      const tags = await tagService.listForEntity('grid_cell', entityId);
-      setCellTags(tags);
-    } catch (error) {
-      console.error(`Failed to load tags for cell ${chapterId}:${themeId}:`, error);
-      setCellTags([]); // Set empty array on error to prevent undefined issues
-    }
-  };
-
-  const getNote = (chapterId: string, themeId: string) => {
-    return themeNotes.find(
-      note => note.chapterId === chapterId && note.themeId === themeId
-    )?.note || '';
-  };
-
   // Grid 2.0: Get complete cell data
-  const getCellData = (chapterId: string, themeId: string): GridCellData => {
-    const note = themeNotes.find(
-      tn => tn.chapterId === chapterId && tn.themeId === themeId
-    );
+  const getCellData = (chapterId: string, themeId: string): GridCell => {
+    const existing = getCell(chapterId, themeId);
+
     return {
+      id: existing?.id || makeGridKey(bookId, chapterId, themeId),
+      bookId,
       chapterId,
       themeId,
-      note: note?.note || '',
-      presence: note?.presence || false,
-      intensity: typeof note?.intensity === 'number' ? note.intensity : 0,
+      note: existing?.note ?? '',
+      presence: existing?.presence || false,
+      intensity: typeof existing?.intensity === 'number' ? existing.intensity : 0,
+      threadRole: existing?.threadRole ?? null,
     };
   };
 
@@ -786,7 +798,7 @@ export function GridView({
                               key={theme.id}
                               theme={theme}
                               chapters={chapters}
-                              themeNotes={themeNotes}
+                              getCell={getCell}
                               editingThemeId={editingThemeId}
                               editThemeName={editThemeName}
                               setEditThemeName={setEditThemeName}
@@ -797,8 +809,7 @@ export function GridView({
                               setSelectedTheme={setSelectedTheme}
                               getNote={getNote}
                               getCellData={getCellData}
-                              updateThemeNote={updateThemeNote}
-                              updateThemeCell={updateThemeCell}
+                              updateGridCell={updateGridCell}
                               focusedCell={focusedCell}
                               setFocusedCell={setFocusedCell}
                               setSelectedGridCell={setSelectedGridCell}
@@ -1029,7 +1040,7 @@ function FilteredChapterHeader({
 function FilteredThemeRow({
   theme,
   chapters,
-  themeNotes,
+  getCell,
   editingThemeId,
   editThemeName,
   setEditThemeName,
@@ -1040,8 +1051,7 @@ function FilteredThemeRow({
   setSelectedTheme,
   getNote,
   getCellData,
-  updateThemeNote,
-  updateThemeCell,
+  updateGridCell,
   focusedCell,
   setFocusedCell,
   setSelectedGridCell,
@@ -1059,7 +1069,7 @@ function FilteredThemeRow({
 }: {
   theme: Theme;
   chapters: Chapter[];
-  themeNotes: ThemeNote[];
+  getCell: (chapterId: string, themeId: string) => GridCell | undefined;
   editingThemeId: string | null;
   editThemeName: string;
   setEditThemeName: (name: string) => void;
@@ -1069,9 +1079,12 @@ function FilteredThemeRow({
   deleteTheme: (id: string) => void;
   setSelectedTheme: (theme: Theme) => void;
   getNote: (chapterId: string, themeId: string) => string;
-  getCellData: (chapterId: string, themeId: string) => GridCellData;
-  updateThemeNote: (chapterId: string, themeId: string, note: string) => void;
-  updateThemeCell: (chapterId: string, themeId: string, changes: Partial<ThemeNote>) => void;
+  getCellData: (chapterId: string, themeId: string) => GridCell;
+  updateGridCell: (
+    chapterId: string,
+    themeId: string,
+    changes: Partial<Pick<GridCell, "note" | "presence" | "intensity" | "threadRole">>,
+  ) => void;
   focusedCell: { chapterId: string; themeId: string } | null;
   setFocusedCell: (cell: { chapterId: string; themeId: string } | null) => void;
   setSelectedGridCell: (cell: { chapterId: string; themeId: string }) => void;
@@ -1223,7 +1236,7 @@ function FilteredThemeRow({
                 {/* Mini thread strip for thread rows */}
                 {rowSource === 'thread' && (
                   renderThreadMiniStrip(theme, chapters, chapterId => {
-                    return themeNotes.find(tn => tn.chapterId === chapterId && tn.themeId === theme.id);
+                    return getCell(chapterId, theme.id);
                   })
                 )}
               </div>
@@ -1244,11 +1257,11 @@ function FilteredThemeRow({
       </td>
       {(() => {
         // Calculate thread bounds once per row (for thread mode)
-        const threadBounds = rowMode === 'thread' 
+        const threadBounds = rowMode === 'thread'
           ? getThreadBounds(
               theme,
               chapters,
-              (chapterId) => themeNotes.find(tn => tn.chapterId === chapterId && tn.themeId === theme.id)
+              (chapterId) => getCell(chapterId, theme.id)
             )
           : { firstIndex: -1, lastIndex: -1, eventIndex: -1 };
         
@@ -1282,7 +1295,7 @@ function FilteredThemeRow({
                   {rowMode === 'presence' ? (
                     <button
                       type="button"
-                      onClick={() => updateThemeCell(chapter.id, theme.id, { presence: !cellData.presence })}
+                      onClick={() => updateGridCell(chapter.id, theme.id, { presence: !cellData.presence })}
                       className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                         cellData.presence
                           ? 'bg-[#60818E] border-[#60818E]'
@@ -1299,7 +1312,7 @@ function FilteredThemeRow({
                       type="button"
                       onClick={() => {
                         const nextIntensity = (cellData.intensity + 1) % 4;
-                        updateThemeCell(chapter.id, theme.id, { intensity: nextIntensity });
+                        updateGridCell(chapter.id, theme.id, { intensity: nextIntensity });
                       }}
                       className={`w-7 h-7 flex items-center justify-center rounded text-xs font-medium ${
                         cellData.intensity === 0
@@ -1315,12 +1328,12 @@ function FilteredThemeRow({
                     </button>
                   ) : rowMode === 'thread' ? (
                     (() => {
-                      const note = themeNotes.find(tn => tn.chapterId === chapter.id && tn.themeId === theme.id);
-                      const role: ThreadRole = note?.threadRole ?? 'none';
+                      const note = getCell(chapter.id, theme.id);
+                      const role: ThreadRole = (note?.threadRole as ThreadRole) ?? 'none';
 
                       const handleClick = () => {
                         const updatedRole = nextThreadRole(role);
-                        updateThemeCell(chapter.id, theme.id, {
+                        updateGridCell(chapter.id, theme.id, {
                           threadRole: updatedRole,
                         });
                       };
@@ -1356,7 +1369,7 @@ function FilteredThemeRow({
                   {rowMode === 'presence' ? (
                     <button
                       type="button"
-                      onClick={() => updateThemeCell(chapter.id, theme.id, { presence: !cellData.presence })}
+                      onClick={() => updateGridCell(chapter.id, theme.id, { presence: !cellData.presence })}
                       className={`px-2 py-0.5 text-xs rounded-full border transition-colors ${
                         cellData.presence
                           ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
@@ -1371,7 +1384,7 @@ function FilteredThemeRow({
                         <button
                           key={level}
                           type="button"
-                          onClick={() => updateThemeCell(chapter.id, theme.id, { intensity: level })}
+                          onClick={() => updateGridCell(chapter.id, theme.id, { intensity: level })}
                           className={`w-5 h-5 rounded-full border-2 transition-all ${
                             cellData.intensity >= level && level > 0
                               ? 'bg-orange-400 border-orange-500'
@@ -1384,12 +1397,12 @@ function FilteredThemeRow({
                   ) : rowMode === 'thread' ? (
                     (() => {
                       // NEW: Thread Lines v1 - Thread cell rendering with horizontal line
-                      const note = themeNotes.find(tn => tn.chapterId === chapter.id && tn.themeId === theme.id);
-                      const role: ThreadRole = note?.threadRole ?? 'none';
+                      const note = getCell(chapter.id, theme.id);
+                      const role: ThreadRole = (note?.threadRole as ThreadRole) ?? 'none';
 
                       const handleClick = () => {
                         const updatedRole = nextThreadRole(role);
-                        updateThemeCell(chapter.id, theme.id, {
+                        updateGridCell(chapter.id, theme.id, {
                           threadRole: updatedRole,
                         });
                       };
@@ -1470,10 +1483,10 @@ function FilteredThemeRow({
                 </div>
 
                 {/* Note textarea */}
-                <textarea
-                  value={cellData.note}
+                    <textarea
+                      value={cellData.note ?? ''}
                   onChange={(e) =>
-                    updateThemeCell(chapter.id, theme.id, { note: e.target.value })
+                    updateGridCell(chapter.id, theme.id, { note: e.target.value })
                   }
                   onFocus={() =>
                     setFocusedCell({ chapterId: chapter.id, themeId: theme.id })

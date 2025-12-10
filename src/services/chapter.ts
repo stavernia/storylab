@@ -1,10 +1,11 @@
-import { manuscriptApi } from "../api/manuscript";
+import { manuscriptApi } from "@/api/manuscript";
 
 export interface ChapterData {
   id: string;
   title: string;
   content: string;
-  wordCount: number;
+  wordCount?: number;
+  bookId: string;
   sortOrder?: number;
   wordQuota?: number;
   notes?: string;
@@ -20,26 +21,35 @@ export interface ChapterData {
   customOutlineFields?: {
     [fieldId: string]: string; // key = field identifier, value = freeform text
   };
-  lastEdited?: string; // ISO timestamp, updated on any content change
+  lastEdited?: Date | string; // ISO timestamp, updated on any content change
   // Binder-ready fields (unused for now)
   type?: 'chapter' | 'scene' | 'part' | 'custom';
   parentId?: string | null;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export const chapterService = {
-  async getById(id: string): Promise<ChapterData | null> {
-    const data = await manuscriptApi.loadData();
+  async getById(id: string, bookId: string): Promise<ChapterData | null> {
+    const data = await manuscriptApi.loadData(bookId);
     return data.chapters.find(c => c.id === id) || null;
   },
 
   async update(id: string, values: Partial<ChapterData>): Promise<void> {
-    await manuscriptApi.updateChapter(id, values);
+    if (!values.bookId) {
+      throw new Error("bookId is required to update a chapter");
+    }
+
+    await manuscriptApi.updateChapter(values.bookId, id, values);
   },
 
   async create(values: Partial<ChapterData>): Promise<string> {
+    if (!values.bookId) {
+      throw new Error("bookId is required to create a chapter");
+    }
+
     const newChapter = {
       id: String(Date.now()),
+      bookId: values.bookId,
       title: values.title || 'New Chapter',
       content: values.content || '',
       wordCount: values.wordCount || 0,
@@ -66,7 +76,12 @@ export const chapterService = {
     return newChapter.id;
   },
 
-  async remove(id: string): Promise<void> {
-    await manuscriptApi.deleteChapter(id);
+  async remove(id: string, bookId: string): Promise<void> {
+    const data = await manuscriptApi.loadData(bookId);
+    const chapter = data.chapters.find(ch => ch.id === id);
+    if (!chapter) {
+      throw new Error("Chapter not found");
+    }
+    await manuscriptApi.deleteChapter(chapter.bookId, id);
   },
 };

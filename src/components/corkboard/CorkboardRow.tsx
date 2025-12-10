@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import React from 'react';
 import { useDrop } from 'react-dnd';
 import { Plus, BookOpen, FolderOpen, FileText, GripVertical } from 'lucide-react';
-import { CorkboardCard as CardType } from "../../api/corkboard";
+import { CorkboardCard as CardType } from "@/api/corkboard";
 import { CorkboardCard } from './CorkboardCard';
-import { Button } from '../ui/button';
-import { useChapterNumbering } from '../../contexts/ChapterNumberingContext';
-import type { Part } from '../../App';
+import { Button } from '@/components/ui/button';
+import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
+import type { Part } from '@/App';
 
 type CorkboardRowType = 
   | { type: 'book' }
@@ -211,7 +212,7 @@ export function CorkboardRow({
 
   return (
     <div
-      ref={drop}
+      ref={drop as unknown as React.Ref<HTMLDivElement>}
       data-row-id={getRowId()}
       className={`
         border border-gray-200 rounded-lg bg-white transition-colors

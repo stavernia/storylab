@@ -1,7 +1,7 @@
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { useEffect, useState } from 'react';
-import { useEditorContext } from './EditorContext';
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { useEffect, useState } from "react";
+import { useEditorContext } from "./EditorContext";
 
 export type TiptapChapterEditorProps = {
   chapterId: string;
@@ -29,7 +29,7 @@ export function TiptapChapterEditor({
     },
     editorProps: {
       attributes: {
-        class: 'outline-none tiptap-editor',
+        class: "outline-none tiptap-editor",
       },
     },
   });
@@ -44,13 +44,13 @@ export function TiptapChapterEditor({
       const handleBlur = () => {
         setIsFocused(false);
       };
-      
-      editor.on('focus', handleFocus);
-      editor.on('blur', handleBlur);
-      
+
+      editor.on("focus", handleFocus);
+      editor.on("blur", handleBlur);
+
       return () => {
-        editor.off('focus', handleFocus);
-        editor.off('blur', handleBlur);
+        editor.off("focus", handleFocus);
+        editor.off("blur", handleBlur);
       };
     }
   }, [editor, setActiveEditor]);
@@ -72,8 +72,11 @@ export function TiptapChapterEditor({
   }, [editor]);
 
   return (
-    <div className={`tiptap-wrapper rounded-lg transition-all ${isFocused ? 'ring-2 ring-blue-200 ring-offset-2' : ''}`}>
-      <EditorContent editor={editor} />
+    <div
+      className={`tiptap-wrapper rounded-lg transition-all hover:ring-1 hover:ring-blue-100 ${isFocused ? "ring-2 ring-blue-200 ring-offset-2" : ""}`}
+      style={{ minHeight: "120px" }}
+    >
+      <EditorContent editor={editor} style={{ minHeight: "120px" }} />
     </div>
   );
 }

@@ -1,7 +1,8 @@
+import React from 'react';
 import { useDrag } from 'react-dnd';
-import { CorkboardCard as CardType } from "../../api/corkboard";
-import { Tag } from '../../services/tag';
-import { TagBadges } from '../tags/TagBadges';
+import { CorkboardCard as CardType } from "@/api/corkboard";
+import { Tag } from '@/services/tag';
+import { TagBadges } from '@/components/tags/TagBadges';
 import { Trash2 } from 'lucide-react';
 
 interface CorkboardCardProps {
@@ -56,12 +57,16 @@ export function CorkboardCard({ card, onClick, onDelete, isSearchMatch, compact,
     }
   };
 
-  const colorClass = card.color ? colorClasses[card.color] : 'border-l-gray-300 bg-white';
-  const statusInfo = card.status ? statusConfig[card.status] : null;
+  const colorClass = card.color
+    ? colorClasses[card.color as keyof typeof colorClasses] ?? 'border-l-gray-300 bg-white'
+    : 'border-l-gray-300 bg-white';
+  const statusInfo = card.status
+    ? statusConfig[card.status as keyof typeof statusConfig] ?? null
+    : null;
 
   return (
     <div
-      ref={drag}
+      ref={drag as unknown as React.Ref<HTMLDivElement>}
       onClick={onClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}

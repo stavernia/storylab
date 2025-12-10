@@ -1,35 +1,5 @@
-import { projectId, publicAnonKey } from '../utils/supabase/info';
-
-const API_URL = `https://${projectId}.supabase.co/functions/v1/make-server-841a689e`;
-
-async function fetchAPI(endpoint: string, options: RequestInit = {}) {
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${publicAnonKey}`,
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error(`Tag API Error at ${endpoint}:`, error);
-      throw new Error(error.error || 'API request failed');
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // Network error or server not available
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      console.error(`Tag API: Server unavailable at ${API_URL}${endpoint}`);
-      throw new Error('Tag server unavailable. Please refresh the page.');
-    }
-    throw error;
-  }
-}
+import { tagsApi } from "@/api/tags";
+import { booksApi } from "@/api/books";
 
 export interface Tag {
   id: string;
@@ -39,91 +9,152 @@ export interface Tag {
   createdAt: string;
 }
 
+export type TagEntityType =
+  | "chapter"
+  | "card"
+  | "theme"
+  | "grid_cell"
+  | "character";
+
 export interface TagLink {
   id: string;
   tagId: string;
-  entityType: 'chapter' | 'card' | 'theme' | 'grid_cell';
+  entityType: TagEntityType;
   entityId: string;
   createdAt: string;
 }
 
+let cachedBookId: string | null = null;
+
+async function resolveBookId(bookId?: string): Promise<string | null> {
+  if (bookId) {
+    cachedBookId = bookId;
+    return bookId;
+  }
+
+  if (cachedBookId) {
+    return cachedBookId;
+  }
+
+  const books = await booksApi.listAll();
+  const resolved = books[0]?.id ?? null;
+
+  cachedBookId = resolved;
+  return resolved;
+}
+
 export const tagService = {
-  async listAll(): Promise<Tag[]> {
-    const { tags } = await fetchAPI('/tags');
+  async listAll(bookId?: string): Promise<Tag[]> {
+    const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return [];
+    }
+
+    const tags = await tagsApi.list(resolvedBookId);
     return tags.sort((a: Tag, b: Tag) => a.name.localeCompare(b.name));
   },
 
-  async create(name: string, color?: string): Promise<Tag> {
+  async create(name: string, color?: string, bookId?: string): Promise<Tag> {
+    const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      throw new Error("Cannot create tags without selecting a book");
+    }
     const normalizedName = name.trim().toLowerCase();
     if (!normalizedName) {
       throw new Error('Tag name cannot be empty');
     }
-    
-    const { tag } = await fetchAPI('/tag', {
-      method: 'POST',
-      body: JSON.stringify({ name: normalizedName, color }),
-    });
-    return tag;
+
+    return tagsApi.create(resolvedBookId, { name: normalizedName, color });
   },
 
-  async update(id: string, updates: { name?: string; color?: string }): Promise<void> {
+  async update(
+    id: string,
+    updates: { name?: string; color?: string; bookId?: string },
+  ): Promise<void> {
+    const resolvedBookId = await resolveBookId(updates.bookId);
+    if (!resolvedBookId) {
+      throw new Error("Cannot update tags without selecting a book");
+    }
     if (updates.name) {
       updates.name = updates.name.trim().toLowerCase();
       if (!updates.name) {
         throw new Error('Tag name cannot be empty');
       }
     }
-    
-    await fetchAPI(`/tag/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates),
-    });
+
+    await tagsApi.update(resolvedBookId, id, updates);
   },
 
-  async remove(id: string): Promise<void> {
-    await fetchAPI(`/tag/${id}`, {
-      method: 'DELETE',
-    });
+  async remove(id: string, bookId?: string): Promise<void> {
+    const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
+    await tagsApi.remove(resolvedBookId, id);
   },
 
-  async listForEntity(entityType: string, entityId: string): Promise<Tag[]> {
-    // Guard: validate entityId before making API call
+  async listForEntity(
+    entityType: TagEntityType,
+    entityId: string,
+    bookId?: string,
+  ): Promise<Tag[]> {
     if (!entityId || entityId.trim() === '') {
       console.warn(`listForEntity called with empty entityId for entityType: ${entityType}`);
       return [];
     }
-    
-    const { tags } = await fetchAPI(`/tags/entity/${entityType}/${entityId}`);
+
+    const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return [];
+    }
+    const tags = await tagsApi.listForEntity(resolvedBookId, entityType, entityId);
     return tags.sort((a: Tag, b: Tag) => a.name.localeCompare(b.name));
   },
 
-  async addToEntity(tagId: string, entityType: string, entityId: string): Promise<void> {
-    await fetchAPI('/tag-link', {
-      method: 'POST',
-      body: JSON.stringify({ tagId, entityType, entityId }),
-    });
+  async addToEntity(
+    tagId: string,
+    entityType: TagEntityType,
+    entityId: string,
+    bookId?: string,
+  ): Promise<void> {
+    const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
+    await tagsApi.attachToEntity(resolvedBookId, entityType, entityId, tagId);
   },
 
-  async removeFromEntity(tagId: string, entityType: string, entityId: string): Promise<void> {
-    await fetchAPI(`/tag-link/${tagId}/${entityType}/${entityId}`, {
-      method: 'DELETE',
-    });
+  async removeFromEntity(
+    tagId: string,
+    entityType: TagEntityType,
+    entityId: string,
+    bookId?: string,
+  ): Promise<void> {
+    const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
+    await tagsApi.detachFromEntity(resolvedBookId, entityType, entityId, tagId);
   },
 
-  // Helper to sync tags for an entity
-  async syncEntityTags(entityType: string, entityId: string, newTags: Tag[]): Promise<void> {
-    const currentTags = await this.listForEntity(entityType, entityId);
-    
-    // Find tags to add
+  async syncEntityTags(
+    entityType: TagEntityType,
+    entityId: string,
+    newTags: Tag[],
+    bookId?: string,
+  ): Promise<void> {
+    const resolvedBookId = await resolveBookId(bookId);
+    if (!resolvedBookId) {
+      return;
+    }
+    const currentTags = await this.listForEntity(entityType, entityId, resolvedBookId);
+
     const toAdd = newTags.filter(nt => !currentTags.find(ct => ct.id === nt.id));
-    
-    // Find tags to remove
     const toRemove = currentTags.filter(ct => !newTags.find(nt => nt.id === ct.id));
-    
-    // Execute changes
+
     await Promise.all([
-      ...toAdd.map(tag => this.addToEntity(tag.id, entityType, entityId)),
-      ...toRemove.map(tag => this.removeFromEntity(tag.id, entityType, entityId)),
+      ...toAdd.map(tag => this.addToEntity(tag.id, entityType, entityId, resolvedBookId)),
+      ...toRemove.map(tag => this.removeFromEntity(tag.id, entityType, entityId, resolvedBookId)),
     ]);
   },
 };

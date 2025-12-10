@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Search, Filter } from 'lucide-react';
-import { useFilters } from '../../contexts/FilterContext';
-import { Tag, tagService } from '../../services/tag';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+import { useFilters } from '@/contexts/FilterContext';
+import { Tag, tagService } from '@/services/tag';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export function SearchAndFilterOverlay() {
   const {
@@ -19,12 +19,7 @@ export function SearchAndFilterOverlay() {
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const overlayRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
-  // Load all tags
-  useEffect(() => {
-    loadTags();
-  }, []);
-  
+
   const loadTags = async () => {
     try {
       const tags = await tagService.listAll();
@@ -33,6 +28,11 @@ export function SearchAndFilterOverlay() {
       console.error('Failed to load tags:', error);
     }
   };
+  
+  // Load all tags
+  useEffect(() => {
+    loadTags();
+  }, []);
   
   // Focus search input when overlay opens
   useEffect(() => {

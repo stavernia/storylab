@@ -13,7 +13,7 @@ import type { LucideIcon } from 'lucide-react';
 
 export type AppViewId =
   | 'books' // NEW: Multi-book support
-  | 'editor'
+  | 'manuscript'
   | 'outline'
   | 'corkboard'
   | 'grid'
@@ -36,7 +36,7 @@ export interface AppViewDefinition {
 
 export const APP_VIEWS: AppViewDefinition[] = [
   { id: 'books', label: 'Books', icon: BookMarked, usesBinder: false }, // NEW: Multi-book support - Add to top
-  { id: 'editor', label: 'Manuscript', icon: PencilLine, usesBinder: true },
+  { id: 'manuscript', label: 'Manuscript', icon: PencilLine, usesBinder: true },
   { id: 'outline', label: 'Outline', icon: ClipboardList, usesBinder: true },
   { id: 'corkboard', label: 'Corkboard', icon: LayoutGrid, usesBinder: false },
   { id: 'grid', label: 'Grid', icon: Grid3x3, usesBinder: false },

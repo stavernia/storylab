@@ -1,8 +1,10 @@
+import React from 'react';
 import { useDrop } from 'react-dnd';
-import { CorkboardCard as CardType } from "../../api/corkboard";
+import { CorkboardCard as CardType } from "@/api/corkboard";
 import { CorkboardCard } from './CorkboardCard';
-import { useEntityTags } from '../../hooks/useEntityTags';
-import { useTagFilter } from '../../contexts/TagFilterContext';
+import { useEntityTags } from '@/hooks/useEntityTags';
+import { useTagFilter } from '@/contexts/TagFilterContext';
+import type { Tag } from '@/services/tag';
 
 interface CorkboardLaneProps {
   laneId: string;
@@ -63,7 +65,7 @@ export function CorkboardLane({
       </div>
       
       <div
-        ref={drop}
+        ref={drop as unknown as React.Ref<HTMLDivElement>}
         className={`
           flex-1 overflow-y-auto p-4 space-y-3
           ${isOver ? 'bg-blue-50' : 'bg-gray-50/50'}
@@ -116,7 +118,7 @@ function CardWithTags({
   compact: boolean;
   onClick: () => void;
   onDelete: () => void;
-  matches: (tags: any[]) => boolean;
+  matches: (tags: Tag[]) => boolean;
   mode: 'dim' | 'hide';
   isActive: boolean;
 }) {

@@ -1,6 +1,3 @@
-// Placeholder schema for upcoming normalized Supabase Postgres database.
-// Update the datasource with your DATABASE_URL before running migrations.
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,31 +7,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// NextAuth base models (Prisma adapter)
+enum Role {
+  USER
+  ADMIN
+}
+
+enum FeedbackStatus {
+  WAITING
+  IN_PROGRESS
+  CANCELLED
+  COMPLETE
+}
+
 model User {
-  id            String    @id @default(uuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
+  id                 String    @id @default(uuid())
+  name               String?
+  email              String?   @unique
+  emailVerified      DateTime?
+  image              String?
+  role               Role      @default(USER)
+  disabled           Boolean   @default(false)
+  showOnboardingTour Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now())
 
   accounts Account[]
   sessions Session[]
+  books    Book[]
+  Feedback Feedback[]
 }
 
 model Account {
-  id                 String  @id @default(uuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -59,60 +74,76 @@ model VerificationToken {
 }
 
 model Book {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  description String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isArchived  Boolean  @default(false)
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  isArchived  Boolean   @default(false)
+  archivedAt  DateTime?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   chapters   Chapter[]
   parts      Part[]
   themes     Theme[]
   characters Character[]
+
+  gridCells GridCell[]
+
+  tags     Tag[]
+  tagLinks TagLink[]
+
+  corkboardBoards CorkboardBoard[]
+  corkboardCards  CorkboardCard[]
+
+  @@index([userId])
 }
 
 model Part {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   title     String
-  notes     String?  @db.Text
-  sortOrder Int      @default(0)
+  notes     String? @db.Text
+  sortOrder Int     @default(0)
   bookId    String
-  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  book      Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
-  chapters Chapter[]
+  chapters      Chapter[]
+  CorkboardCard CorkboardCard[]
 }
 
 model Chapter {
-  id         String   @id @default(uuid())
-  title      String
-  content    String   @db.Text
-  outline    String?  @db.Text
-  outlinePOV String?
-  outlinePurpose String?
-  outlineEstimate Int?
-  outlineGoal     String?
-  outlineConflict String?
-  outlineStakes   String?
+  id                  String    @id @default(uuid())
+  title               String
+  content             String    @db.Text
+  outline             String?   @db.Text
+  outlinePOV          String?
+  outlinePurpose      String?
+  outlineEstimate     Int?
+  outlineGoal         String?
+  outlineConflict     String?
+  outlineStakes       String?
   customOutlineFields Json?
-  sortOrder  Int?    @default(0)
-  wordCount  Int     @default(0)
-  lastEdited DateTime? @db.Timestamptz(6)
-  partId     String?
-  bookId     String
-  book       Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  part       Part?   @relation(fields: [partId], references: [id], onDelete: SetNull)
+  sortOrder           Int?      @default(0)
+  wordCount           Int       @default(0)
+  lastEdited          DateTime? @db.Timestamptz(6)
+  partId              String?
+  bookId              String
+  book                Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  part                Part?     @relation(fields: [partId], references: [id], onDelete: SetNull)
 
-  themeNotes ThemeNote[]
+  themeNotes    ThemeNote[]
+  gridCells     GridCell[]
+  CorkboardCard CorkboardCard[]
 }
 
 model Theme {
-  id        String   @id @default(uuid())
-  name      String
-  color     String
-  kind      String?
-  source    String?
-  mode      String?
+  id          String   @id @default(uuid())
+  name        String
+  color       String
+  kind        String?
+  source      String?
+  mode        String?
   sourceRefId String?
   description String?
   aiGuide     String?
@@ -120,33 +151,146 @@ model Theme {
   isHidden    Boolean? @default(false)
   threadLabel String?
 
-  bookId  String
-  book    Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  notes   ThemeNote[]
+  bookId    String
+  book      Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  notes     ThemeNote[]
+  gridCells GridCell[]
 }
 
 model Character {
-  id     String  @id @default(uuid())
-  name   String
-  color  String
-  role   String?
-  notes  String? @db.Text
+  id    String  @id @default(uuid())
+  name  String
+  color String
+  role  String?
+  notes String? @db.Text
 
   bookId String
   book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model ThemeNote {
-  id        String   @id @default(uuid())
-  chapterId String
-  themeId   String
-  note      String   @db.Text
-  presence  Boolean? @default(false)
-  intensity Int?
+  id         String   @id @default(uuid())
+  chapterId  String
+  themeId    String
+  note       String   @db.Text
+  presence   Boolean? @default(false)
+  intensity  Int?
   threadRole String?
 
   chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   theme   Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
 
   @@unique([chapterId, themeId])
+}
+
+model CorkboardBoard {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  sortOrder   Int?     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  cards CorkboardCard[]
+
+  @@index([bookId])
+}
+
+model CorkboardCard {
+  id           String   @id @default(uuid())
+  title        String
+  summary      String?  @db.Text
+  notes        String?  @db.Text
+  status       String?
+  color        String?
+  laneRank     String
+  wordEstimate Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  x            Int?
+  y            Int?
+  scope        String?
+
+  chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  partId String?
+  part   Part?   @relation(fields: [partId], references: [id], onDelete: SetNull)
+
+  boardId String?
+  board   CorkboardBoard? @relation(fields: [boardId], references: [id], onDelete: SetNull)
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+  @@index([boardId])
+  @@index([chapterId])
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  links TagLink[]
+
+  @@unique([bookId, name])
+  @@index([bookId])
+}
+
+model TagLink {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  createdAt  DateTime @default(now())
+
+  bookId String
+  tagId  String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, entityType, entityId])
+  @@index([bookId])
+}
+
+model GridCell {
+  id         String  @id @default(cuid())
+  bookId     String
+  chapterId  String
+  themeId    String
+  presence   Boolean @default(false)
+  intensity  Int     @default(0)
+  note       String?
+  threadRole String?
+
+  book    Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  theme   Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, chapterId, themeId])
+  @@index([bookId])
+  @@index([chapterId])
+  @@index([themeId])
+}
+
+// TODO: Expand admin feedback reporting with pagination and export options.
+model Feedback {
+  id        String         @id @default(cuid())
+  userId    String?
+  userEmail String?
+  message   String
+  pagePath  String?
+  status    FeedbackStatus @default(WAITING)
+  createdAt DateTime       @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }

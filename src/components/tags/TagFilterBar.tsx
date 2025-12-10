@@ -1,8 +1,8 @@
 import { Eye, EyeOff, X, Filter } from 'lucide-react';
-import { Tag, displayTagName } from '../../services/tag';
-import { FilterMode } from '../../hooks/useTagFilter';
+import { Tag, displayTagName } from '@/services/tag';
+import { FilterMode } from '@/contexts/TagFilterContext';
 import { TagChipInput } from './TagChipInput';
-import { theme } from '../../theme';
+import { theme } from '@/theme';
 
 interface TagFilterBarProps {
   selectedTags: Tag[];

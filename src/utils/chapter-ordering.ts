@@ -1,4 +1,4 @@
-import type { Chapter, Part } from '../App';
+import type { Chapter, Part } from '@/App';
 
 /**
  * Returns chapters in the same order as displayed in the ChapterList sidebar:

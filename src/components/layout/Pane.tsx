@@ -1,12 +1,13 @@
-import { APP_VIEWS, getViewDefinition, type AppViewId } from '../../config/views';
-import { PaneProvider, type PaneId } from '../../contexts/PaneContext';
+import { APP_VIEWS, getViewDefinition, type AppViewId } from '@/config/views';
+import { PaneProvider, type PaneId } from '@/contexts/PaneContext';
 import { BreadcrumbBar } from './BreadcrumbBar';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 import { Filter, Columns, X } from 'lucide-react';
-import { useFilters } from '../../contexts/FilterContext';
+import { useFilters } from '@/contexts/FilterContext';
 import { ContextBar } from './ContextBar';
-import { EditorContext } from '../editor/EditorContext';
+import { EditorContext } from '@/components/editor/EditorContext';
 import { useState } from 'react';
+import type { Editor } from '@tiptap/react';
 
 // Breadcrumb data structure for clickable navigation
 export interface BreadcrumbData {
@@ -56,7 +57,7 @@ export function Pane({
 }: PaneProps) {
   const currentView = getViewDefinition(activeViewId);
   const { openOverlay } = useFilters();
-  const [activeEditor, setActiveEditor] = useState<any>(null);
+  const [activeEditor, setActiveEditor] = useState<Editor | null>(null);
   const [partDropdownOpen, setPartDropdownOpen] = useState(false);
   const [chapterDropdownOpen, setChapterDropdownOpen] = useState(false);
 

@@ -1,9 +1,17 @@
-import { useState } from 'react';
-import { Book } from '../App';
-import { LayoutGrid, List, Plus, Calendar, FolderOpen, Settings } from 'lucide-react';
-import { Button } from './ui/button';
-import { BookManageSheet } from './BookManageSheet';
-import { CreateBookDialog } from './CreateBookDialog';
+import { useState } from "react";
+import type { Book } from "@/types/book";
+import {
+  LayoutGrid,
+  List,
+  Plus,
+  Calendar,
+  FolderOpen,
+  Settings,
+  Download,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { BookManageSheet } from "./BookManageSheet";
+import { CreateBookDialog } from "./CreateBookDialog";
 
 interface BooksViewProps {
   books: Book[];
@@ -12,23 +20,34 @@ interface BooksViewProps {
   onCreateBook: (title: string, description: string) => Promise<void>;
   onUpdateBook?: (book: Book) => void;
   onDeleteBook?: (bookId: string) => void;
+  onExportBook?: (bookId: string) => void;
+  canExportTemplates?: boolean;
 }
 
-type ViewMode = 'cards' | 'table';
+type ViewMode = "cards" | "table";
 
-export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, onUpdateBook, onDeleteBook }: BooksViewProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('cards');
+export function BooksView({
+  books,
+  currentBookId,
+  onSelectBook,
+  onCreateBook,
+  onUpdateBook,
+  onDeleteBook,
+  onExportBook,
+  canExportTemplates,
+}: BooksViewProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [manageBookId, setManageBookId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const manageBook = books.find(b => b.id === manageBookId);
+  const manageBook = books.find((b) => b.id === manageBookId);
 
   const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -57,33 +76,42 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
     }
   };
 
+  const handleExportBook = (bookId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onExportBook) {
+      onExportBook(bookId);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header with title and controls */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
         <div>
           <h1 className="text-lg text-gray-900">Your Books</h1>
-          <p className="text-xs text-gray-500 mt-1">{books.length} {books.length === 1 ? 'book' : 'books'}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {books.length} {books.length === 1 ? "book" : "books"}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {/* View toggle */}
           <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50">
             <button
-              onClick={() => setViewMode('cards')}
+              onClick={() => setViewMode("cards")}
               className={`px-3 py-1.5 rounded-l-lg text-xs transition-colors ${
-                viewMode === 'cards'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                viewMode === "cards"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setViewMode('table')}
+              onClick={() => setViewMode("table")}
               className={`px-3 py-1.5 rounded-r-lg text-xs transition-colors ${
-                viewMode === 'table'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                viewMode === "table"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               <List className="w-4 h-4" />
@@ -91,7 +119,11 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
           </div>
 
           {/* Create book button */}
-          <Button onClick={() => setIsCreateDialogOpen(true)} size="sm" className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            size="sm"
+            className="flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" />
             New Book
           </Button>
@@ -109,12 +141,15 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
             <p className="text-sm text-gray-500 mb-6 max-w-sm">
               Create your first book to start writing your story.
             </p>
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2">
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" />
               Create Your First Book
             </Button>
           </div>
-        ) : viewMode === 'cards' ? (
+        ) : viewMode === "cards" ? (
           // Cards View
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {books.map((book) => {
@@ -124,8 +159,8 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                   key={book.id}
                   className={`group relative p-5 rounded-lg border-2 text-left transition-all flex flex-col ${
                     isCurrentBook
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white'
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 bg-white"
                   }`}
                 >
                   {isCurrentBook && (
@@ -135,7 +170,7 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                       </span>
                     </div>
                   )}
-                  
+
                   {/* Top section: Title and subtitle */}
                   <div className="mb-auto">
                     <h3 className="text-base text-gray-900 mb-1 pr-16">
@@ -149,7 +184,7 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Bottom section: Date and actions */}
                   <div className="mt-4">
                     <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
@@ -200,6 +235,11 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                   <th className="px-4 py-3 text-left text-xs text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
+                  {canExportTemplates && (
+                    <th className="px-4 py-3 text-left text-xs text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -210,16 +250,14 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
                       key={book.id}
                       onClick={() => handleOpenBook(book.id)}
                       className={`cursor-pointer transition-colors ${
-                        isCurrentBook
-                          ? 'bg-blue-50'
-                          : 'hover:bg-gray-50'
+                        isCurrentBook ? "bg-blue-50" : "hover:bg-gray-50"
                       }`}
                     >
                       <td className="px-4 py-3 text-sm text-gray-900">
                         {book.title}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
-                        {book.description || '—'}
+                        {book.description || "—"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {formatDate(book.updatedAt)}
@@ -248,6 +286,8 @@ export function BooksView({ books, currentBookId, onSelectBook, onCreateBook, on
           onClose={handleCloseManage}
           onUpdate={handleUpdateBook}
           onDelete={handleDeleteBook}
+          onExport={onExportBook}
+          canExportTemplates={canExportTemplates}
         />
       )}
 

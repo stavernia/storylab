@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Theme, Character } from '../App';
+import { Theme, Character } from '@/App';
 import { ThemeInfoForm } from './info-forms/ThemeInfoForm';
 import { InfoPanelModal } from './shared/InfoPanelModal';
 import { Button } from './ui/button';
 import { Edit2, Trash2, Plus, Info, Palette, GripVertical } from 'lucide-react';
-import { themeService, ThemeData } from '../services/theme';
-import { useInspector } from '../contexts/InspectorContext';
-import { Tag, tagService } from '../services/tag';
+import { themeService, ThemeData } from '@/services/theme';
+import { useInspector } from '@/contexts/InspectorContext';
+import { Tag, tagService } from '@/services/tag';
 
 interface ThemeManagerProps {
   themes: Theme[];
   characters: Character[];
-  addTheme: (name?: string) => Promise<string>;
+  addTheme: (name?: string) => Promise<Theme>;
   updateThemeDetails: (id: string, values: Partial<Theme>) => Promise<void>;
   deleteTheme: (id: string) => Promise<void>;
   // NEW: UI Cohesion - Lifted state for Context Bar controls
@@ -159,15 +159,20 @@ export function ThemeManager({
     }
   }, [selectedTheme, themeTags]); // Update when theme data OR tags change
 
-  const handleCreateTheme = async (values: any) => {
-    const id = await addTheme(values.name);
-    // Update with full details including Grid 2.0 fields
-    await updateThemeDetails(id, values);
-    setIsCreating(false);
-    (setShowAddDialog ?? setIsCreating)(false);
+  const handleCreateTheme = async (values: Partial<Theme>) => {
+    try {
+      const createdTheme = await addTheme(values.name);
+      // Update with full details including Grid 2.0 fields
+      await updateThemeDetails(createdTheme.id, values);
+    } catch (error) {
+      console.error('Failed to create theme:', error);
+    } finally {
+      setIsCreating(false);
+      (setShowAddDialog ?? setIsCreating)(false);
+    }
   };
 
-  const handleUpdateTheme = async (values: any) => {
+  const handleUpdateTheme = async (values: Partial<Theme>) => {
     if (selectedTheme) {
       await updateThemeDetails(selectedTheme.id, values);
       setSelectedTheme(null);

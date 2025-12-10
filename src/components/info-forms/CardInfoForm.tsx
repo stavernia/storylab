@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
-import { CorkboardCard } from "../../api/corkboard";
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
+import { CorkboardCard } from "@/api/corkboard";
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { TagChipInput } from '../tags/TagChipInput';
-import { Tag } from '../../services/tag';
-import { useDebounce } from '../../hooks/useDebounce';
+} from '@/components/ui/select';
+import { TagChipInput } from '@/components/tags/TagChipInput';
+import { Tag } from '@/services/tag';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Check, Loader2 } from 'lucide-react';
 
 interface CardInfoFormProps {
@@ -40,20 +40,20 @@ export function CardInfoForm({
 }: CardInfoFormProps) {
   const [title, setTitle] = useState(card.title);
   const [summary, setSummary] = useState(card.summary || '');
-  const [chapterId, setChapterId] = useState<string | undefined>(card.chapterId);
-  const [status, setStatus] = useState<'idea' | 'draft' | 'done' | undefined>(card.status);
-  const [color, setColor] = useState<'blue' | 'amber' | 'gray' | 'green' | 'purple' | 'red' | undefined>(card.color);
-  const [wordEstimate, setWordEstimate] = useState<number | undefined>(card.wordEstimate);
+  const [chapterId, setChapterId] = useState<string | undefined>(card.chapterId ?? undefined);
+  const [status, setStatus] = useState<string | undefined>(card.status ?? undefined);
+  const [color, setColor] = useState<string | undefined>(card.color ?? undefined);
+  const [wordEstimate, setWordEstimate] = useState<number | undefined>(card.wordEstimate ?? undefined);
   const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
 
   // Update local state when card prop changes (for when switching between cards)
   useEffect(() => {
     setTitle(card.title);
     setSummary(card.summary || '');
-    setChapterId(card.chapterId);
-    setStatus(card.status);
-    setColor(card.color);
-    setWordEstimate(card.wordEstimate);
+    setChapterId(card.chapterId ?? undefined);
+    setStatus(card.status ?? undefined);
+    setColor(card.color ?? undefined);
+    setWordEstimate(card.wordEstimate ?? undefined);
   }, [card.id]);
 
   // Debounced save for text fields
@@ -118,7 +118,7 @@ export function CardInfoForm({
 
   // Handle status change - immediate save
   const handleStatusChange = (val: string) => {
-    const newStatus = val === 'none' ? undefined : val as any;
+    const newStatus: CorkboardCard["status"] | undefined = val === 'none' ? undefined : val;
     setStatus(newStatus);
     onChange({ status: newStatus });
     immediateSave({ status: newStatus });
@@ -126,7 +126,7 @@ export function CardInfoForm({
 
   // Handle color change - immediate save
   const handleColorChange = (val: string) => {
-    const newColor = val === 'none' ? undefined : val as any;
+    const newColor: CorkboardCard["color"] | undefined = val === 'none' ? undefined : val;
     setColor(newColor);
     onChange({ color: newColor });
     immediateSave({ color: newColor });
@@ -159,7 +159,8 @@ export function CardInfoForm({
   };
 
   // Show "Saved" for 2 seconds after save
-  const showSaved = lastSavedTime && (Date.now() - lastSavedTime < 2000);
+  // eslint-disable-next-line react-hooks/purity -- lightweight render-time check for a transient badge
+  const showSaved = lastSavedTime && Date.now() - lastSavedTime < 2000;
 
   return (
     <div className="space-y-4">

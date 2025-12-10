@@ -1,4 +1,4 @@
-import { tagService } from '../services/tag';
+import { tagService } from '@/services/tag';
 
 export async function seedTags() {
   try {
