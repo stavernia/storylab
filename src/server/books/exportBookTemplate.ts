@@ -1,9 +1,10 @@
-import type { PrismaClient } from "@prisma/client";
-
 import type { BookTemplate } from "@/types/bookTemplate";
+import { prisma as defaultPrisma } from "@/lib/prisma";
+
+type PrismaClientType = typeof defaultPrisma;
 
 export async function exportBookTemplate(
-  prisma: PrismaClient,
+  prisma: PrismaClientType,
   bookId: string,
 ): Promise<BookTemplate> {
   const [book, parts, chapters, themes, tags, characters, boards, cards, gridCells] =
@@ -27,7 +28,7 @@ export async function exportBookTemplate(
   }
 
   const partIndexById = new Map<string, number>();
-  const partTemplates = parts.map((part, index) => {
+  const partTemplates = parts.map((part: (typeof parts)[0], index: number) => {
     partIndexById.set(part.id, index);
     return {
       title: part.title,
@@ -37,7 +38,7 @@ export async function exportBookTemplate(
   });
 
   const chapterIndexById = new Map<string, number>();
-  const chapterTemplates = chapters.map((chapter, index) => {
+  const chapterTemplates = chapters.map((chapter: (typeof chapters)[0], index: number) => {
     chapterIndexById.set(chapter.id, index);
     return {
       title: chapter.title,
@@ -58,7 +59,7 @@ export async function exportBookTemplate(
   });
 
   const themeIndexById = new Map<string, number>();
-  const themeTemplates = themes.map((theme, index) => {
+  const themeTemplates = themes.map((theme: (typeof themes)[0], index: number) => {
     themeIndexById.set(theme.id, index);
     return {
       name: theme.name,
@@ -76,7 +77,7 @@ export async function exportBookTemplate(
   });
 
   const boardIndexById = new Map<string, number>();
-  const boardTemplates = boards.map((board, index) => {
+  const boardTemplates = boards.map((board: (typeof boards)[0], index: number) => {
     boardIndexById.set(board.id, index);
     return {
       name: board.name,
@@ -130,7 +131,9 @@ export async function exportBookTemplate(
         threadRole: cell.threadRole,
       };
     })
-    .filter((cell): cell is NonNullable<typeof cell> => Boolean(cell));
+    .filter(
+      (cell: (typeof gridCells)[0] | null): cell is NonNullable<(typeof gridCells)[0]> => Boolean(cell),
+    );
 
   return {
     book: {
