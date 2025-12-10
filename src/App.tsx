@@ -2110,18 +2110,26 @@ function LandingPage() {
                 StoryLab
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-slate-800/70 bg-slate-900/70 px-3 py-1 text-[11px] font-semibold text-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
-                <span className="uppercase tracking-[0.18em] text-slate-100">{APP_STAGE}</span>
-                <span className="h-3 w-px rounded-full bg-slate-700" aria-hidden />
+                <span className="uppercase tracking-[0.18em] text-slate-100">
+                  {APP_STAGE}
+                </span>
+                <span
+                  className="h-3 w-px rounded-full bg-slate-700"
+                  aria-hidden
+                />
                 <span className="text-slate-300">v{APP_VERSION}</span>
               </span>
             </div>
 
             <div className="space-y-4">
               <h1 className="text-4xl font-semibold leading-[1.1] sm:text-5xl lg:text-6xl">
-                The writer&apos;s OS for outlining, drafting, and story structure.
+                The writer&apos;s OS for outlining, drafting, and story
+                structure.
               </h1>
               <p className="max-w-2xl text-lg text-slate-300">
-                StoryLab keeps your manuscript, outline, grid, and corkboard in one calm workspace so you can plan arcs, draft chapters, and track every thread without losing momentum.
+                StoryLab keeps your manuscript, outline, grid, and corkboard in
+                one calm workspace so you can plan arcs, draft chapters, and
+                track every thread without losing momentum.
               </p>
             </div>
 
@@ -2142,21 +2150,26 @@ function LandingPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              {["Manuscript & outline", "Grid views for every thread", "Corkboard + tags that stay in sync"].map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-4 text-sm text-slate-300 shadow-[0_15px_45px_-30px_rgba(0,0,0,0.8)]"
-                  >
-                    {item}
-                  </div>
-                ),
-              )}
+              {[
+                "Manuscript & outline",
+                "Grid views for every thread",
+                "Corkboard + tags that stay in sync",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl border border-slate-800/60 bg-slate-900/60 p-4 text-sm text-slate-300 shadow-[0_15px_45px_-30px_rgba(0,0,0,0.8)]"
+                >
+                  {item}
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="relative">
-            <div className="absolute -left-6 -top-6 h-24 w-24 rounded-full bg-cyan-500/10 blur-3xl" aria-hidden />
+            <div
+              className="absolute -left-6 -top-6 h-24 w-24 rounded-full bg-cyan-500/10 blur-3xl"
+              aria-hidden
+            />
             <div className="relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/70 shadow-[0_30px_100px_-50px_rgba(0,0,0,0.9)]">
               <div className="grid gap-4 p-6 sm:p-8">
                 <div className="rounded-2xl border border-slate-800/70 bg-slate-900/80 p-4">
@@ -2164,7 +2177,9 @@ function LandingPage() {
                     <span className="inline-flex items-center gap-2 font-semibold text-slate-100">
                       <BookOpenText className="h-4 w-4" /> Manuscript
                     </span>
-                    <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-200">Outline synced</span>
+                    <span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-200">
+                      Outline synced
+                    </span>
                   </div>
                   <div className="h-20 rounded-xl bg-gradient-to-br from-slate-800/70 to-slate-900/60" />
                 </div>
@@ -2174,8 +2189,12 @@ function LandingPage() {
                       <LayoutGrid className="h-4 w-4" />
                     </div>
                     <div className="text-sm text-slate-200">
-                      <div className="font-semibold text-white">Grid themes</div>
-                      <p className="text-slate-400">Track POV, tension, and beats chapter by chapter.</p>
+                      <div className="font-semibold text-white">
+                        Grid themes
+                      </div>
+                      <p className="text-slate-400">
+                        Track POV, tension, and beats chapter by chapter.
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -2183,8 +2202,12 @@ function LandingPage() {
                       <Tag className="h-4 w-4" />
                     </div>
                     <div className="text-sm text-slate-200">
-                      <div className="font-semibold text-white">Corkboard tags</div>
-                      <p className="text-slate-400">Pin scenes, label cards, and keep research close.</p>
+                      <div className="font-semibold text-white">
+                        Corkboard tags
+                      </div>
+                      <p className="text-slate-400">
+                        Pin scenes, label cards, and keep research close.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2195,10 +2218,15 @@ function LandingPage() {
 
         <section id="features" className="space-y-8">
           <div className="flex flex-col gap-3">
-            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Features</p>
-            <h2 className="text-3xl font-semibold text-white">Everything organized for long-form stories.</h2>
+            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">
+              Features
+            </p>
+            <h2 className="text-3xl font-semibold text-white">
+              Everything organized for long-form stories.
+            </h2>
             <p className="max-w-2xl text-slate-300">
-              Outline, draft, and rearrange chapters with synchronized views built for novel-length projects.
+              Outline, draft, and rearrange chapters with synchronized views
+              built for novel-length projects.
             </p>
           </div>
 
@@ -2231,7 +2259,9 @@ function LandingPage() {
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-xl font-semibold text-white">{title}</h3>
-                <p className="mt-2 text-sm text-slate-300 leading-relaxed">{description}</p>
+                <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+                  {description}
+                </p>
               </div>
             ))}
           </div>
@@ -2339,7 +2369,11 @@ function ProfileMenu() {
                   </Link>
                 )}
                 <button
-                  onClick={() => signOut()}
+                  onClick={() =>
+                    signOut({
+                      callbackUrl: "/", // send to landing page after logout
+                    })
+                  }
                   className="w-full rounded-lg bg-slate-800 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition"
                 >
                   Sign out
