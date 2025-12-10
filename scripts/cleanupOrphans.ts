@@ -26,27 +26,27 @@ async function cleanupOrphans() {
     prisma.gridCell.findMany({ select: { id: true, bookId: true } }),
   ]);
 
-  const bookIds = new Set(books.map((book) => book.id));
-  const partIds = new Set(parts.map((part) => part.id));
-  const chapterIds = new Set(chapters.map((chapter) => chapter.id));
-  const boardIds = new Set(boards.map((board) => board.id));
-  const tagIds = new Set(tags.map((tag) => tag.id));
-  const themeIds = new Set(themes.map((theme) => theme.id));
-  const characterIds = new Set(characters.map((character) => character.id));
-  const cardIds = new Set(cards.map((card) => card.id));
-  const gridIds = new Set(gridCells.map((cell) => cell.id));
+  const bookIds = new Set(books.map((book: (typeof books)[0]) => book.id));
+  const partIds = new Set(parts.map((part: (typeof parts)[0]) => part.id));
+  const chapterIds = new Set(chapters.map((chapter: (typeof chapters)[0]) => chapter.id));
+  const boardIds = new Set(boards.map((board: (typeof boards)[0]) => board.id));
+  const tagIds = new Set(tags.map((tag: (typeof tags)[0]) => tag.id));
+  const themeIds = new Set(themes.map((theme: (typeof themes)[0]) => theme.id));
+  const characterIds = new Set(characters.map((character: (typeof characters)[0]) => character.id));
+  const cardIds = new Set(cards.map((card: (typeof cards)[0]) => card.id));
+  const gridIds = new Set(gridCells.map((cell: (typeof gridCells)[0]) => cell.id));
 
-  const orphanParts = parts.filter((part) => !bookIds.has(part.bookId)).map((part) => part.id);
+  const orphanParts = parts.filter((part) => !bookIds.has(part.bookId)).map((part: (typeof parts)[0]) => part.id);
   const orphanChapters = chapters
     .filter(
       (chapter) => !bookIds.has(chapter.bookId) || (chapter.partId && !partIds.has(chapter.partId)),
     )
-    .map((chapter) => chapter.id);
-  const orphanThemes = themes.filter((theme) => !bookIds.has(theme.bookId)).map((theme) => theme.id);
+    .map((chapter: (typeof chapters)[0]) => chapter.id);
+  const orphanThemes = themes.filter((theme) => !bookIds.has(theme.bookId)).map((theme: (typeof themes)[0]) => theme.id);
   const orphanCharacters = characters
     .filter((character) => !bookIds.has(character.bookId))
-    .map((character) => character.id);
-  const orphanBoards = boards.filter((board) => !bookIds.has(board.bookId)).map((board) => board.id);
+    .map((character: (typeof characters)[0]) => character.id);
+  const orphanBoards = boards.filter((board) => !bookIds.has(board.bookId)).map((board: (typeof boards)[0]) => board.id);
   const orphanCards = cards
     .filter(
       (card) =>
@@ -55,14 +55,14 @@ async function cleanupOrphans() {
         (card.partId && !partIds.has(card.partId)) ||
         (card.boardId && !boardIds.has(card.boardId)),
     )
-    .map((card) => card.id);
+    .map((card: (typeof cards)[0]) => card.id);
 
   const orphanThemeNotes = await prisma.themeNote.findMany({
     select: { id: true, chapterId: true, themeId: true },
   });
   const orphanThemeNoteIds = orphanThemeNotes
     .filter((note) => !chapterIds.has(note.chapterId) || !themeIds.has(note.themeId))
-    .map((note) => note.id);
+    .map((note: (typeof orphanThemeNotes)[0]) => note.id);
 
   const orphanTagLinks = await prisma.tagLink.findMany({
     select: { id: true, tagId: true, bookId: true, entityId: true, entityType: true },
@@ -78,11 +78,11 @@ async function cleanupOrphans() {
         (link.entityType === "card" && !cardIds.has(link.entityId)) ||
         (link.entityType === "grid_cell" && !gridIds.has(link.entityId)),
     )
-    .map((link) => link.id);
+    .map((link: (typeof orphanTagLinks)[0]) => link.id);
 
   const orphanGridCells = gridCells
     .filter((cell) => !bookIds.has(cell.bookId))
-    .map((cell) => cell.id);
+    .map((cell: (typeof gridCells)[0]) => cell.id);
 
   logDeletions("Parts with missing book", orphanParts);
   logDeletions("Chapters with missing book/part", orphanChapters);

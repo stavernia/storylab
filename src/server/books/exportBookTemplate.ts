@@ -85,16 +85,16 @@ export async function exportBookTemplate(
     };
   });
 
-  const tagTemplates = tags.map((tag) => ({ name: tag.name, color: tag.color }));
+  const tagTemplates = tags.map((tag: (typeof tags)[0]) => ({ name: tag.name, color: tag.color }));
 
-  const characterTemplates = characters.map((character) => ({
+  const characterTemplates = characters.map((character: (typeof characters)[0]) => ({
     name: character.name,
     color: character.color,
     role: character.role,
     notes: character.notes,
   }));
 
-  const cardTemplates = cards.map((card) => ({
+  const cardTemplates = cards.map((card: (typeof cards)[0]) => ({
     title: card.title,
     summary: card.summary,
     notes: card.notes,
@@ -113,7 +113,7 @@ export async function exportBookTemplate(
   }));
 
   const gridCellTemplates = gridCells
-    .map((cell) => {
+    .map((cell: (typeof gridCells)[0]) => {
       const chapterIndex = chapterIndexById.get(cell.chapterId);
       const themeIndex = themeIndexById.get(cell.themeId);
 

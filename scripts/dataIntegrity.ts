@@ -215,7 +215,7 @@ function logIssue<T extends { id: string }>(
 ) {
   console.log(`${label}: count = ${items.length}`);
   if (items.length > 0) {
-    const samples = items.slice(0, 10).map((item) => formatter?.(item) ?? item.id);
+    const samples = items.slice(0, 10).map((item: T) => formatter?.(item) ?? item.id);
     console.log(`  sample: ${samples.join(", ")}${items.length > 10 ? " ..." : ""}`);
   }
 }
@@ -240,15 +240,15 @@ async function checkOrphansAndCrossBookMismatches() {
       prisma.gridCell.findMany({ select: { id: true, bookId: true, chapterId: true, themeId: true } }),
     ]);
 
-  const bookIds = new Set(books.map((book) => book.id));
-  const partBook = new Map(parts.map((part) => [part.id, part.bookId]));
-  const chapterBook = new Map(chapters.map((chapter) => [chapter.id, chapter.bookId]));
-  const themeBook = new Map(themes.map((theme) => [theme.id, theme.bookId]));
-  const characterBook = new Map(characters.map((character) => [character.id, character.bookId]));
-  const boardBook = new Map(boards.map((board) => [board.id, board.bookId]));
-  const cardBook = new Map(cards.map((card) => [card.id, card.bookId]));
-  const tagBook = new Map(tags.map((tag) => [tag.id, tag.bookId]));
-  const gridBook = new Map(gridCells.map((cell) => [cell.id, cell.bookId]));
+  const bookIds = new Set(books.map((book: (typeof books)[0]) => book.id));
+  const partBook = new Map(parts.map((part: (typeof parts)[0]) => [part.id, part.bookId]));
+  const chapterBook = new Map(chapters.map((chapter: (typeof chapters)[0]) => [chapter.id, chapter.bookId]));
+  const themeBook = new Map(themes.map((theme: (typeof themes)[0]) => [theme.id, theme.bookId]));
+  const characterBook = new Map(characters.map((character: (typeof characters)[0]) => [character.id, character.bookId]));
+  const boardBook = new Map(boards.map((board: (typeof boards)[0]) => [board.id, board.bookId]));
+  const cardBook = new Map(cards.map((card: (typeof cards)[0]) => [card.id, card.bookId]));
+  const tagBook = new Map(tags.map((tag: (typeof tags)[0]) => [tag.id, tag.bookId]));
+  const gridBook = new Map(gridCells.map((cell: (typeof gridCells)[0]) => [cell.id, cell.bookId]));
 
   const orphanParts = parts.filter((part) => !bookIds.has(part.bookId));
   const orphanChapters = chapters.filter(
@@ -379,7 +379,7 @@ async function checkOrphansAndCrossBookMismatches() {
     (link) => `${link.id} → link book ${link.bookId}, entity book ${entityBookLookup(link.entityType, link.entityId)}`,
   );
 
-  const archivedBookIds = new Set(books.filter((book) => book.isArchived).map((book) => book.id));
+  const archivedBookIds = new Set(books.filter((book) => book.isArchived).map((book: (typeof books)[0]) => book.id));
   const activeChildrenOfArchivedBooks = {
     parts: parts.filter((part) => archivedBookIds.has(part.bookId)),
     chapters: chapters.filter((chapter) => archivedBookIds.has(chapter.bookId)),
