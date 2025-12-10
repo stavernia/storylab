@@ -21,12 +21,16 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-slate-900">User administration</h1>
-        <p className="text-slate-600">Review workspace members, toggle access, and grant admin privileges.</p>
+        <h1 className="text-3xl font-semibold text-slate-900">
+          User administration
+        </h1>
+        <p className="text-slate-600">
+          Review workspace members, toggle access, and grant admin privileges.
+        </p>
       </div>
 
       <UserTable
-        users={users.map((user) => ({
+        users={users.map((user: (typeof users)[0]) => ({
           ...user,
           createdAt: user.createdAt.toISOString(),
         }))}
