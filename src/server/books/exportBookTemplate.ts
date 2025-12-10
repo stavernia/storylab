@@ -1,9 +1,10 @@
-import type { PrismaClient } from "@prisma/client";
-
 import type { BookTemplate } from "@/types/bookTemplate";
+import { prisma as defaultPrisma } from "@/lib/prisma";
+
+type PrismaClientType = typeof defaultPrisma;
 
 export async function exportBookTemplate(
-  prisma: PrismaClient,
+  prisma: PrismaClientType,
   bookId: string,
 ): Promise<BookTemplate> {
   const [book, parts, chapters, themes, tags, characters, boards, cards, gridCells] =
@@ -27,7 +28,7 @@ export async function exportBookTemplate(
   }
 
   const partIndexById = new Map<string, number>();
-  const partTemplates = parts.map((part, index) => {
+  const partTemplates = parts.map((part: (typeof parts)[0], index: number) => {
     partIndexById.set(part.id, index);
     return {
       title: part.title,
@@ -37,7 +38,7 @@ export async function exportBookTemplate(
   });
 
   const chapterIndexById = new Map<string, number>();
-  const chapterTemplates = chapters.map((chapter, index) => {
+  const chapterTemplates = chapters.map((chapter: (typeof chapters)[0], index: number) => {
     chapterIndexById.set(chapter.id, index);
     return {
       title: chapter.title,
@@ -58,7 +59,7 @@ export async function exportBookTemplate(
   });
 
   const themeIndexById = new Map<string, number>();
-  const themeTemplates = themes.map((theme, index) => {
+  const themeTemplates = themes.map((theme: (typeof themes)[0], index: number) => {
     themeIndexById.set(theme.id, index);
     return {
       name: theme.name,
@@ -76,7 +77,7 @@ export async function exportBookTemplate(
   });
 
   const boardIndexById = new Map<string, number>();
-  const boardTemplates = boards.map((board, index) => {
+  const boardTemplates = boards.map((board: (typeof boards)[0], index: number) => {
     boardIndexById.set(board.id, index);
     return {
       name: board.name,
@@ -85,16 +86,16 @@ export async function exportBookTemplate(
     };
   });
 
-  const tagTemplates = tags.map((tag) => ({ name: tag.name, color: tag.color }));
+  const tagTemplates = tags.map((tag: (typeof tags)[0]) => ({ name: tag.name, color: tag.color }));
 
-  const characterTemplates = characters.map((character) => ({
+  const characterTemplates = characters.map((character: (typeof characters)[0]) => ({
     name: character.name,
     color: character.color,
     role: character.role,
     notes: character.notes,
   }));
 
-  const cardTemplates = cards.map((card) => ({
+  const cardTemplates = cards.map((card: (typeof cards)[0]) => ({
     title: card.title,
     summary: card.summary,
     notes: card.notes,
@@ -113,7 +114,7 @@ export async function exportBookTemplate(
   }));
 
   const gridCellTemplates = gridCells
-    .map((cell) => {
+    .map((cell: (typeof gridCells)[0]) => {
       const chapterIndex = chapterIndexById.get(cell.chapterId);
       const themeIndex = themeIndexById.get(cell.themeId);
 
@@ -130,7 +131,16 @@ export async function exportBookTemplate(
         threadRole: cell.threadRole,
       };
     })
-    .filter((cell): cell is NonNullable<typeof cell> => Boolean(cell));
+    .filter(
+      (cell: ReturnType<typeof gridCells.map>[0]): cell is {
+        chapterIndex: number;
+        themeIndex: number;
+        presence: boolean;
+        intensity: number;
+        note: string | null;
+        threadRole: string | null;
+      } => cell !== null,
+    );
 
   return {
     book: {

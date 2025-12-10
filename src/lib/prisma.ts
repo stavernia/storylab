@@ -1,11 +1,28 @@
-import { PrismaClient } from "@prisma/client";
+// src/lib/prisma.ts
+/* eslint-disable @typescript-eslint/no-var-requires */
+// Use require to avoid TypeScript named import issues with @prisma/client
+const PrismaClientConstructor = require("@prisma/client").PrismaClient;
 
-declare global {
-  var prisma: PrismaClient | undefined;
-}
+type PrismaClientConstructorType = typeof PrismaClientConstructor;
 
-export const prisma = global.prisma || new PrismaClient();
+const globalForPrisma = globalThis as unknown as {
+  prisma?: InstanceType<PrismaClientConstructorType>;
+};
 
+const prismaInstance =
+  globalForPrisma.prisma ??
+  new PrismaClientConstructor({
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
+  });
+
+export const prisma = prismaInstance;
+
+export type PrismaClientType = typeof prisma;
+
+// Reuse the same instance in dev to avoid too many connections
 if (process.env.NODE_ENV !== "production") {
-  global.prisma = prisma;
+  globalForPrisma.prisma = prismaInstance;
 }

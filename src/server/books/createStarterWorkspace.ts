@@ -1,13 +1,14 @@
-import type { PrismaClient } from "@prisma/client";
-
 import starterTemplate from "@/data/starter-book-template.json";
 import type { BookTemplate } from "@/types/bookTemplate";
 import { stripHtml } from "@/utils/stripHtml";
+import { prisma as defaultPrisma } from "@/lib/prisma";
+
+type PrismaClientType = typeof defaultPrisma;
 
 const template: BookTemplate = starterTemplate;
 
 export async function createStarterWorkspaceForUser(
-  prisma: PrismaClient,
+  prisma: PrismaClientType,
   userId: string,
 ): Promise<string | null> {
   const existingBooks = await prisma.book.count({ where: { userId, isArchived: false } });
@@ -16,7 +17,8 @@ export async function createStarterWorkspaceForUser(
     return null;
   }
 
-  return prisma.$transaction(async (tx) => {
+  type TransactionClient = Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
+  return prisma.$transaction(async (tx: TransactionClient) => {
     const book = await tx.book.create({
       data: {
         title: template.book.title || "My Book",

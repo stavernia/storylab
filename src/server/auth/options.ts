@@ -1,10 +1,40 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import type { AuthOptions } from "next-auth";
+import type { AuthOptions, DefaultSession } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
 
-import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createStarterWorkspaceForUser } from "@/server/books/createStarterWorkspace";
+
+type Role = "ADMIN" | "EDITOR" | "READER" | "VIEWER" | "USER";
+const DEFAULT_ROLE: Role = "USER";
+
+/**
+ * Module augmentation to extend NextAuth types with custom user properties.
+ * This allows us to type token and session properties without using any.
+ */
+declare module "next-auth" {
+  interface Session {
+    user?: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      role: Role;
+      disabled: boolean;
+      showOnboardingTour: boolean;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role?: Role;
+    disabled?: boolean;
+    showOnboardingTour?: boolean;
+  }
+}
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -34,7 +64,10 @@ export const authOptions: AuthOptions = {
     },
     jwt: async ({ token, user }) => {
       if (user) {
-        token.role = (user as { role?: Role }).role ?? token.role ?? Role.USER;
+        const userRole = (user as { role?: string }).role;
+        if (userRole) {
+          token.role = userRole as Role;
+        }
         token.disabled = (user as { disabled?: boolean }).disabled ?? token.disabled ?? false;
         token.showOnboardingTour = (user as { showOnboardingTour?: boolean }).showOnboardingTour ?? true;
       } else if (token.sub) {
@@ -44,7 +77,8 @@ export const authOptions: AuthOptions = {
         });
 
         if (dbUser) {
-          token.role = dbUser.role;
+          token.id = token.sub;
+          token.role = dbUser.role as Role;
           token.disabled = dbUser.disabled;
           token.showOnboardingTour = dbUser.showOnboardingTour ?? true;
         }
@@ -54,9 +88,9 @@ export const authOptions: AuthOptions = {
     },
     session: async ({ session, token }) => {
       if (session.user) {
-        session.user.id = token.sub ?? session.user.id;
-        session.user.role = (token.role as Role | undefined) ?? Role.USER;
-        session.user.disabled = Boolean(token.disabled);
+        session.user.id = (token.sub ?? session.user?.id) as string;
+        session.user.role = token.role ?? DEFAULT_ROLE;
+        session.user.disabled = token.disabled ?? false;
         session.user.showOnboardingTour = token.showOnboardingTour ?? true;
       }
 

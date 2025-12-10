@@ -17,8 +17,8 @@ async function loadScopedChapterAndThemeIds(bookId: string, userId: string) {
   ]);
 
   return {
-    chapterIds: new Set(chapters.map((chapter) => chapter.id)),
-    themeIds: new Set(themes.map((theme) => theme.id)),
+    chapterIds: new Set(chapters.map((chapter: (typeof chapters)[0]) => chapter.id)),
+    themeIds: new Set(themes.map((theme: (typeof themes)[0]) => theme.id)),
   };
 }
 
@@ -128,8 +128,9 @@ export async function POST(
       return NextResponse.json({ cells: [] });
     }
 
-    const cells = await prisma.$transaction(async (tx) => {
-      const updatedCells = [] as Awaited<ReturnType<typeof tx.gridCell.upsert>>[];
+    type TransactionClient = Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
+    const cells = await prisma.$transaction(async (tx: TransactionClient) => {
+      const updatedCells: Awaited<ReturnType<typeof tx.gridCell.upsert>>[] = [];
 
       for (const cell of sanitizedCells) {
         const hasContent =
