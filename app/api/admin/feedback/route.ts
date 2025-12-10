@@ -1,15 +1,16 @@
 import * as Sentry from "@sentry/nextjs";
-import { FeedbackStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/server/auth/requireUser";
+// TODO: don't hardcode statuses
+type FeedbackStatus = "WAITING" | "IN_PROGRESS" | "CANCELLED" | "COMPLETE";
 
 const validStatuses = new Set<FeedbackStatus>([
-  FeedbackStatus.WAITING,
-  FeedbackStatus.IN_PROGRESS,
-  FeedbackStatus.CANCELLED,
-  FeedbackStatus.COMPLETE,
+  "WAITING",
+  "IN_PROGRESS",
+  "CANCELLED",
+  "COMPLETE",
 ]);
 
 export async function PATCH(request: Request) {
@@ -27,7 +28,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    const normalizedStatus = status as FeedbackStatus;
+    const normalizedStatus: FeedbackStatus = status as FeedbackStatus;
 
     const feedback = await prisma.feedback.update({
       where: { id: feedbackId },

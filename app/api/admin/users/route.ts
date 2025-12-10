@@ -1,11 +1,14 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
-import { Role } from "@prisma/client";
 import { getServerSession } from "next-auth";
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/server/auth/requireUser";
 import { authOptions } from "@/server/auth/options";
+// TODO: don't hardcode roles
+type Role = "ADMIN" | "EDITOR" | "READER" | "VIEWER";
+
+const validRoles = new Set<Role>(["ADMIN", "EDITOR", "READER", "VIEWER"]);
 
 export async function PATCH(request: Request) {
   try {
@@ -20,10 +23,10 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
-    const data: { role?: Role; disabled?: boolean; showOnboardingTour?: boolean } = {};
+    const data: { role?: string; disabled?: boolean; showOnboardingTour?: boolean } = {};
 
     if (typeof role !== "undefined") {
-      if (!Object.values(Role).includes(role)) {
+      if (!validRoles.has(role as Role)) {
         return NextResponse.json({ error: "Invalid role" }, { status: 400 });
       }
       data.role = role;
@@ -52,7 +55,7 @@ export async function PATCH(request: Request) {
 
     const user = await prisma.user.update({
       where: { id: userId },
-      data,
+      data: data as any,
       select: {
         id: true,
         name: true,

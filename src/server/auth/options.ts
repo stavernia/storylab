@@ -2,9 +2,12 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import type { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createStarterWorkspaceForUser } from "@/server/books/createStarterWorkspace";
+// TODO: don't hardcode roles
+type Role = "ADMIN" | "EDITOR" | "READER" | "VIEWER" | "USER";
+
+const DEFAULT_ROLE: Role = "USER";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -34,9 +37,12 @@ export const authOptions: AuthOptions = {
     },
     jwt: async ({ token, user }) => {
       if (user) {
-        token.role = (user as { role?: Role }).role ?? token.role ?? Role.USER;
-        token.disabled = (user as { disabled?: boolean }).disabled ?? token.disabled ?? false;
-        token.showOnboardingTour = (user as { showOnboardingTour?: boolean }).showOnboardingTour ?? true;
+        const userRole = (user as { role?: string }).role;
+        if (userRole) {
+          (token as any).role = userRole;
+        }
+        (token as any).disabled = (user as { disabled?: boolean }).disabled ?? (token as any).disabled ?? false;
+        (token as any).showOnboardingTour = (user as { showOnboardingTour?: boolean }).showOnboardingTour ?? true;
       } else if (token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
@@ -44,9 +50,9 @@ export const authOptions: AuthOptions = {
         });
 
         if (dbUser) {
-          token.role = dbUser.role;
-          token.disabled = dbUser.disabled;
-          token.showOnboardingTour = dbUser.showOnboardingTour ?? true;
+          (token as any).role = dbUser.role;
+          (token as any).disabled = dbUser.disabled;
+          (token as any).showOnboardingTour = dbUser.showOnboardingTour ?? true;
         }
       }
 
@@ -55,9 +61,9 @@ export const authOptions: AuthOptions = {
     session: async ({ session, token }) => {
       if (session.user) {
         session.user.id = token.sub ?? session.user.id;
-        session.user.role = (token.role as Role | undefined) ?? Role.USER;
-        session.user.disabled = Boolean(token.disabled);
-        session.user.showOnboardingTour = token.showOnboardingTour ?? true;
+        (session.user as any).role = ((token as any).role as string | undefined) ?? DEFAULT_ROLE;
+        (session.user as any).disabled = Boolean((token as any).disabled);
+        (session.user as any).showOnboardingTour = (token as any).showOnboardingTour ?? true;
       }
 
       return session;
