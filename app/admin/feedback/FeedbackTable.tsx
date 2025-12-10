@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { FeedbackStatus } from "@prisma/client";
+import type { FeedbackStatus } from "@prisma/client";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -14,30 +14,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 export type AdminFeedback = {
   id: string;
   message: string;
-  status: FeedbackStatus;
+  status: string; // FeedbackStatus enum value as string
   pagePath?: string | null;
   userEmail?: string;
   userName?: string;
   createdAt: string;
 };
 
-const statusLabels: Record<FeedbackStatus, string> = {
+const statusLabels: Record<string, string> = {
   WAITING: "Waiting",
   IN_PROGRESS: "In Progress",
   CANCELLED: "Cancelled",
   COMPLETE: "Complete",
 };
 
-const statusOrder: FeedbackStatus[] = [
-  FeedbackStatus.WAITING,
-  FeedbackStatus.IN_PROGRESS,
-  FeedbackStatus.CANCELLED,
-  FeedbackStatus.COMPLETE,
+const statusOrder = [
+  "WAITING",
+  "IN_PROGRESS",
+  "CANCELLED",
+  "COMPLETE",
 ];
 
 export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
   const router = useRouter();
-  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | "ALL">("ALL");
+  const [statusFilter, setStatusFilter] = useState<string | "ALL">("ALL");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [isPending, startTransition] = useTransition();
 
@@ -54,7 +54,7 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
     });
   }, [feedback, sortOrder, statusFilter]);
 
-  const updateStatus = async (feedbackId: string, status: FeedbackStatus) => {
+  const updateStatus = async (feedbackId: string, status: string) => {
     const response = await fetch("/api/admin/feedback", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -68,7 +68,7 @@ export function FeedbackTable({ feedback }: { feedback: AdminFeedback[] }) {
     }
   };
 
-  const handleStatusChange = (feedbackId: string, status: FeedbackStatus) => {
+  const handleStatusChange = (feedbackId: string, status: string) => {
     startTransition(async () => {
       try {
         await updateStatus(feedbackId, status);
