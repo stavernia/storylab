@@ -16,13 +16,6 @@ const prismaInstance =
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
         : ["error"],
-    // Disable prepared statement caching when using Supabase connection pooler
-    // The pooler (port 6543) reuses connections across clients, causing prepared
-    // statement name conflicts. This is safe to disable as Prisma will re-prepare
-    // statements as needed.
-    ...(process.env.DATABASE_URL?.includes(":6543")
-      ? { disablePreparedStatements: true }
-      : {}),
   });
 
 export const prisma = prismaInstance;
