@@ -8,6 +8,7 @@ import { Label } from "./ui/label";
 import { booksApi } from "@/api/books";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { PLACEHOLDERS } from "@/constants/ui";
 
 interface BookManageSheetProps {
   book: Book;
