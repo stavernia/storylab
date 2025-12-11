@@ -26,7 +26,7 @@ import {
   type GridCell,
   type GridKey,
 } from "@/lib/grid";
-import { EditorView } from "./components/EditorView";
+import { ManuscriptView } from "./components/ManuscriptView";
 import { GridView } from "./components/GridView";
 import { OutlineView } from "./components/OutlineView";
 import { Corkboard } from "./components/corkboard/Corkboard";
@@ -318,7 +318,7 @@ function AppContent() {
         id: part.id,
         data: {
           part: part,
-          updatePartName: updatePartName,
+          updatePartTitle: updatePartTitle,
           deletePart: deletePart,
         },
       },
@@ -820,7 +820,7 @@ function AppContent() {
     return part;
   };
 
-  const updatePartName = async (id: string, name: string) => {
+  const updatePartTitle = async (id: string, name: string) => {
     const part = parts.find((p) => p.id === id);
     if (!part) {
       throw new Error("Part not found");
@@ -1613,7 +1613,7 @@ function AppContent() {
             reorderChapters={reorderChapters}
             addPart={addPart}
             deletePart={deletePart}
-            updatePartName={updatePartName}
+            updatePartTitle={updatePartTitle}
             reorderParts={reorderParts}
             leftSidebarOpen={leftSidebarOpen}
             setLeftSidebarOpen={setLeftSidebarOpen}
@@ -1623,7 +1623,7 @@ function AppContent() {
             onPartInfoClick={handlePartInfoClick}
           >
             {(filteredChapters) => (
-              <EditorView
+              <ManuscriptView
                 chapters={filteredChapters}
                 selection={paneSelections[paneId] || { kind: "manuscript" }}
                 currentChapterId={currentChapterId}
@@ -1633,6 +1633,7 @@ function AppContent() {
                 deleteChapter={deleteChapter}
                 updateChapterTitle={updateChapterTitle}
                 updateChapterDetails={updateChapterDetails}
+                updatePartTitle={updatePartTitle}
                 reorderChapters={reorderChapters}
                 parts={bookParts}
                 onChapterInfoClick={handleChapterInfoClick}
@@ -1660,7 +1661,7 @@ function AppContent() {
             reorderChapters={reorderChapters}
             addPart={addPart}
             deletePart={deletePart}
-            updatePartName={updatePartName}
+            updatePartTitle={updatePartTitle}
             reorderParts={reorderParts}
             leftSidebarOpen={leftSidebarOpen}
             setLeftSidebarOpen={setLeftSidebarOpen}
@@ -1681,6 +1682,7 @@ function AppContent() {
                 addChapter={addChapter}
                 deleteChapter={deleteChapter}
                 updateChapterTitle={updateChapterTitle}
+                updatePartTitle={updatePartTitle}
                 parts={bookParts}
                 onChapterInfoClick={handleChapterInfoClick}
                 onPartInfoClick={handlePartInfoClick}
@@ -1732,7 +1734,7 @@ function AppContent() {
             reorderChapters={reorderChapters}
             addPart={addPart}
             deletePart={deletePart}
-            updatePartName={updatePartName}
+            updatePartTitle={updatePartTitle}
             reorderParts={reorderParts}
             leftSidebarOpen={leftSidebarOpen}
             setLeftSidebarOpen={setLeftSidebarOpen}
@@ -1753,7 +1755,7 @@ function AppContent() {
                 }
                 addPart={addPart}
                 deletePart={deletePart}
-                updatePartName={updatePartName}
+                updatePartTitle={updatePartTitle}
                 reorderParts={reorderParts}
                 updateChapterTitle={updateChapterTitle}
                 updateChapterDetails={updateChapterDetails}

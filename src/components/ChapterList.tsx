@@ -1,24 +1,36 @@
-import type React from 'react';
-import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Info, GripVertical, ChevronRight, ChevronDown, BookOpen } from 'lucide-react';
-import type { Chapter, Part } from '@/App';
-import { TagBadges } from './tags/TagBadges';
-import { useTagFilter, type FilterMode } from '@/contexts/TagFilterContext';
-import { useEntityTags } from '@/hooks/useEntityTags';
-import { useChapterNumbering } from '@/contexts/ChapterNumberingContext';
+import type React from "react";
+import { useState } from "react";
+import {
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  Info,
+  GripVertical,
+  ChevronRight,
+  ChevronDown,
+  BookOpen,
+} from "lucide-react";
+import type { Chapter, Part } from "@/App";
+import { TagBadges } from "./tags/TagBadges";
+import { useTagFilter, type FilterMode } from "@/contexts/TagFilterContext";
+import { useEntityTags } from "@/hooks/useEntityTags";
+import { useChapterNumbering } from "@/contexts/ChapterNumberingContext";
+import { PLACEHOLDERS } from "@/constants/ui";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import type { Tag } from '@/services/tag';
+} from "./ui/dropdown-menu";
+import type { Tag } from "@/services/tag";
 
 // NEW: Multi-Chapter View - Selection type
 type ManuscriptSelection =
-  | { kind: 'manuscript' }
-  | { kind: 'part'; partId: string }
-  | { kind: 'chapter'; chapterId: string };
+  | { kind: "manuscript" }
+  | { kind: "part"; partId: string }
+  | { kind: "chapter"; chapterId: string };
 
 type ChapterListProps = {
   chapters: Chapter[];
@@ -34,7 +46,7 @@ type ChapterListProps = {
   parts?: Part[];
   addPart?: (data: { title: string; notes?: string }) => Promise<Part>;
   deletePart?: (id: string) => void;
-  updatePartName?: (id: string, name: string) => void;
+  updatePartTitle?: (id: string, name: string) => void;
   reorderParts?: (parts: Part[]) => void;
   onSelectManuscript?: () => void; // NEW: Multi-Chapter View
   onSelectPart?: (partId: string) => void; // NEW: Multi-Chapter View
@@ -43,7 +55,7 @@ type ChapterListProps = {
   onPartInfoClick?: (part: Part) => void; // NEW: Part info
 };
 
-type DragPosition = 'before' | 'after' | null;
+type DragPosition = "before" | "after" | null;
 
 type PartHeaderProps = {
   part: Part;
@@ -110,54 +122,63 @@ export function ChapterList({
   parts,
   addPart,
   deletePart,
-  updatePartName,
+  updatePartTitle,
   reorderParts,
   onSelectManuscript,
   onSelectPart,
   selection,
   onManuscriptInfoClick,
-  onPartInfoClick
+  onPartInfoClick,
 }: ChapterListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
+  const [editTitle, setEditTitle] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [addingType, setAddingType] = useState<'chapter' | 'part' | null>(null);
-  const [newTitle, setNewTitle] = useState('');
+  const [addingType, setAddingType] = useState<"chapter" | "part" | null>(null);
+  const [newTitle, setNewTitle] = useState("");
   const [collapsedParts, setCollapsedParts] = useState<Set<string>>(new Set());
 
   // Drag-and-drop state
-  const [draggingItem, setDraggingItem] = useState<{ id: string; type: 'chapter' | 'part' } | null>(null);
-  const [dragOverItem, setDragOverItem] = useState<{ id: string; type: 'chapter' | 'part'; position: 'before' | 'after' } | null>(null);
+  const [draggingItem, setDraggingItem] = useState<{
+    id: string;
+    type: "chapter" | "part";
+  } | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<{
+    id: string;
+    type: "chapter" | "part";
+    position: "before" | "after";
+  } | null>(null);
 
   // Tag filtering
   const { matches, isActive, mode } = useTagFilter();
 
   // Create ordered list of items (parts and chapters in correct order)
-  const orderedItems: Array<{ type: 'part'; data: Part } | { type: 'chapter'; data: Chapter }> = [];
-  
+  const orderedItems: Array<
+    { type: "part"; data: Part } | { type: "chapter"; data: Chapter }
+  > = [];
+
   if (parts && parts.length > 0) {
     const sortedParts = [...parts].sort((a, b) => a.sortOrder - b.sortOrder);
-    
-    sortedParts.forEach(part => {
+
+    sortedParts.forEach((part) => {
       // Add the part itself
-      orderedItems.push({ type: 'part', data: part });
-      
+      orderedItems.push({ type: "part", data: part });
+
       // Add chapters in this part (maintain their original order)
-      const partChapters = chapters.filter(ch => ch.partId === part.id);
-      partChapters.forEach(chapter => {
-        orderedItems.push({ type: 'chapter', data: chapter });
+      const partChapters = chapters.filter((ch) => ch.partId === part.id);
+      partChapters.forEach((chapter) => {
+        orderedItems.push({ type: "chapter", data: chapter });
       });
     });
-    
+
     // Add unassigned chapters at the end
-    const unassignedChapters = chapters.filter(ch => !ch.partId);
-    unassignedChapters.forEach(chapter => {
-      orderedItems.push({ type: 'chapter', data: chapter });
+    const unassignedChapters = chapters.filter((ch) => !ch.partId);
+    unassignedChapters.forEach((chapter) => {
+      orderedItems.push({ type: "chapter", data: chapter });
     });
   } else {
     // No parts, just show all chapters
-    chapters.forEach(chapter => {
-      orderedItems.push({ type: 'chapter', data: chapter });
+    chapters.forEach((chapter) => {
+      orderedItems.push({ type: "chapter", data: chapter });
     });
   }
 
@@ -168,13 +189,13 @@ export function ChapterList({
 
   const saveEdit = () => {
     if (editingId && editTitle.trim()) {
-      const chapter = chapters.find(ch => ch.id === editingId);
-      const part = parts?.find(p => p.id === editingId);
-      
+      const chapter = chapters.find((ch) => ch.id === editingId);
+      const part = parts?.find((p) => p.id === editingId);
+
       if (chapter) {
         updateChapterTitle(editingId, editTitle.trim());
-      } else if (part && updatePartName) {
-        updatePartName(editingId, editTitle.trim());
+      } else if (part && updatePartTitle) {
+        updatePartTitle(editingId, editTitle.trim());
       }
     }
     setEditingId(null);
@@ -182,32 +203,32 @@ export function ChapterList({
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditTitle('');
+    setEditTitle("");
   };
 
-  const startAdding = (type: 'chapter' | 'part') => {
+  const startAdding = (type: "chapter" | "part") => {
     setIsAdding(true);
     setAddingType(type);
-    setNewTitle('');
+    setNewTitle("");
   };
 
   const saveNew = async () => {
     if (newTitle.trim()) {
-      if (addingType === 'chapter') {
+      if (addingType === "chapter") {
         addChapter(newTitle.trim());
-      } else if (addingType === 'part' && addPart) {
+      } else if (addingType === "part" && addPart) {
         await addPart({ title: newTitle.trim() });
       }
     }
     setIsAdding(false);
     setAddingType(null);
-    setNewTitle('');
+    setNewTitle("");
   };
 
   const cancelNew = () => {
     setIsAdding(false);
     setAddingType(null);
-    setNewTitle('');
+    setNewTitle("");
   };
 
   const togglePartCollapse = (partId: string) => {
@@ -220,7 +241,7 @@ export function ChapterList({
     setCollapsedParts(newCollapsed);
   };
 
-  const handleDragStart = (id: string, type: 'chapter' | 'part') => {
+  const handleDragStart = (id: string, type: "chapter" | "part") => {
     setDraggingItem({ id, type });
   };
 
@@ -229,23 +250,31 @@ export function ChapterList({
     setDragOverItem(null);
   };
 
-  const handleDragOver = (e: React.DragEvent, id: string, type: 'chapter' | 'part') => {
+  const handleDragOver = (
+    e: React.DragEvent,
+    id: string,
+    type: "chapter" | "part",
+  ) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!draggingItem) return;
-    
+
     // Determine position based on mouse Y position
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const midpoint = rect.top + rect.height / 2;
-    const position = e.clientY < midpoint ? 'before' : 'after';
-    
+    const position = e.clientY < midpoint ? "before" : "after";
+
     setDragOverItem({ id, type, position });
   };
 
-  const handleDrop = (e: React.DragEvent, targetId: string, targetType: 'chapter' | 'part') => {
+  const handleDrop = (
+    e: React.DragEvent,
+    targetId: string,
+    targetType: "chapter" | "part",
+  ) => {
     e.preventDefault();
-    
+
     if (!draggingItem || !dragOverItem) return;
     if (draggingItem.id === targetId) {
       handleDragEnd();
@@ -256,60 +285,73 @@ export function ChapterList({
     const { position } = dragOverItem;
 
     // Handle part reordering
-    if (draggedType === 'part' && targetType === 'part' && reorderParts && parts) {
-      const sourceIndex = parts.findIndex(p => p.id === draggedId);
-      const targetIndex = parts.findIndex(p => p.id === targetId);
-      
+    if (
+      draggedType === "part" &&
+      targetType === "part" &&
+      reorderParts &&
+      parts
+    ) {
+      const sourceIndex = parts.findIndex((p) => p.id === draggedId);
+      const targetIndex = parts.findIndex((p) => p.id === targetId);
+
       if (sourceIndex === -1 || targetIndex === -1) return;
-      
+
       const newParts = [...parts];
       const [moved] = newParts.splice(sourceIndex, 1);
-      
+
       // Adjust target index if inserting after
-      const insertIndex = position === 'before' ? targetIndex : targetIndex + 1;
-      const adjustedIndex = sourceIndex < targetIndex ? insertIndex - 1 : insertIndex;
-      
+      const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
+      const adjustedIndex =
+        sourceIndex < targetIndex ? insertIndex - 1 : insertIndex;
+
       newParts.splice(adjustedIndex, 0, moved);
-      
+
       // Update sortOrder
       const withOrder = newParts.map((p, i) => ({ ...p, sortOrder: i }));
       reorderParts(withOrder);
     }
-    
+
     // Handle chapter reordering and part assignment
-    else if (draggedType === 'chapter' && updateChapterDetails && (onReorderChapters || onReorder)) {
-      const draggedChapter = chapters.find(ch => ch.id === draggedId);
+    else if (
+      draggedType === "chapter" &&
+      updateChapterDetails &&
+      (onReorderChapters || onReorder)
+    ) {
+      const draggedChapter = chapters.find((ch) => ch.id === draggedId);
       if (!draggedChapter) return;
 
       // Determine target part and position
       let targetPartId: string | null = null;
       let targetChapterId: string | null = null;
-      
-      if (targetType === 'part') {
+
+      if (targetType === "part") {
         // Dropping on a part header - assign to that part at the beginning
         targetPartId = targetId;
-      } else if (targetType === 'chapter') {
+      } else if (targetType === "chapter") {
         // Dropping on a chapter - use that chapter's part and position
-        const targetChapter = chapters.find(ch => ch.id === targetId);
+        const targetChapter = chapters.find((ch) => ch.id === targetId);
         targetPartId = targetChapter?.partId || null;
         targetChapterId = targetId;
       }
 
       // Get all chapters for the target part
-      const targetPartChapters = chapters.filter(ch => 
-        (targetPartId ? ch.partId === targetPartId : !ch.partId)
+      const targetPartChapters = chapters.filter((ch) =>
+        targetPartId ? ch.partId === targetPartId : !ch.partId,
       );
 
       // Create new order within target part
       let newOrder: string[];
-      
+
       if (targetChapterId) {
         // Dropping relative to another chapter
-        const targetPartIds = targetPartChapters.map(ch => ch.id).filter(id => id !== draggedId);
+        const targetPartIds = targetPartChapters
+          .map((ch) => ch.id)
+          .filter((id) => id !== draggedId);
         const targetIndex = targetPartIds.indexOf(targetChapterId);
-        
+
         if (targetIndex !== -1) {
-          const insertIndex = position === 'before' ? targetIndex : targetIndex + 1;
+          const insertIndex =
+            position === "before" ? targetIndex : targetIndex + 1;
           targetPartIds.splice(insertIndex, 0, draggedId);
           newOrder = targetPartIds;
         } else {
@@ -317,12 +359,14 @@ export function ChapterList({
         }
       } else {
         // Dropping on a part header - put at beginning
-        const targetPartIds = targetPartChapters.map(ch => ch.id).filter(id => id !== draggedId);
+        const targetPartIds = targetPartChapters
+          .map((ch) => ch.id)
+          .filter((id) => id !== draggedId);
         newOrder = [draggedId, ...targetPartIds];
       }
 
       // Build complete reordered chapter list with updated partId
-      const updatedChapters = chapters.map(ch => {
+      const updatedChapters = chapters.map((ch) => {
         if (ch.id === draggedId) {
           // Update the dragged chapter's partId
           return { ...ch, partId: targetPartId || undefined };
@@ -332,23 +376,25 @@ export function ChapterList({
 
       // Calculate global order: maintain order within each part
       const finalOrder: string[] = [];
-      
+
       if (parts && parts.length > 0) {
-        const sortedParts = [...parts].sort((a, b) => a.sortOrder - b.sortOrder);
-        
-        sortedParts.forEach(part => {
+        const sortedParts = [...parts].sort(
+          (a, b) => a.sortOrder - b.sortOrder,
+        );
+
+        sortedParts.forEach((part) => {
           if (part.id === targetPartId) {
             // Use the new order for the target part
             finalOrder.push(...newOrder);
           } else {
             // Keep existing order for other parts, but remove dragged chapter if it was here
             const partChapterIds = updatedChapters
-              .filter(ch => ch.partId === part.id && ch.id !== draggedId)
-              .map(ch => ch.id);
+              .filter((ch) => ch.partId === part.id && ch.id !== draggedId)
+              .map((ch) => ch.id);
             finalOrder.push(...partChapterIds);
           }
         });
-        
+
         // Handle unassigned chapters
         if (!targetPartId) {
           // Target is unassigned - use new order
@@ -356,8 +402,8 @@ export function ChapterList({
         } else {
           // Keep existing unassigned chapters, but remove dragged chapter if it was here
           const unassignedIds = updatedChapters
-            .filter(ch => !ch.partId && ch.id !== draggedId)
-            .map(ch => ch.id);
+            .filter((ch) => !ch.partId && ch.id !== draggedId)
+            .map((ch) => ch.id);
           finalOrder.push(...unassignedIds);
         }
       } else {
@@ -366,9 +412,9 @@ export function ChapterList({
       }
 
       // Create final ordered chapters array with updated partId
-      const idToChapter = new Map(updatedChapters.map(ch => [ch.id, ch]));
+      const idToChapter = new Map(updatedChapters.map((ch) => [ch.id, ch]));
       const reorderedChapters = finalOrder
-        .map(id => idToChapter.get(id))
+        .map((id) => idToChapter.get(id))
         .filter((ch): ch is Chapter => !!ch);
 
       // Apply the reorder - prefer onReorder for full chapter objects
@@ -377,7 +423,9 @@ export function ChapterList({
       } else if (onReorderChapters) {
         // Fallback to ID-based reorder, but also update partId separately
         if (draggedChapter.partId !== targetPartId) {
-          updateChapterDetails(draggedId, { partId: targetPartId || undefined });
+          updateChapterDetails(draggedId, {
+            partId: targetPartId || undefined,
+          });
         }
         onReorderChapters(finalOrder);
       }
@@ -388,16 +436,16 @@ export function ChapterList({
 
   // Group chapters by part for rendering
   const groupedChapters: Array<{ part: Part | null; chapters: Chapter[] }> = [];
-  
+
   if (parts && parts.length > 0) {
     const sortedParts = [...parts].sort((a, b) => a.sortOrder - b.sortOrder);
-    
-    sortedParts.forEach(part => {
-      const partChapters = chapters.filter(ch => ch.partId === part.id);
+
+    sortedParts.forEach((part) => {
+      const partChapters = chapters.filter((ch) => ch.partId === part.id);
       groupedChapters.push({ part, chapters: partChapters });
     });
-    
-    const unassignedChapters = chapters.filter(ch => !ch.partId);
+
+    const unassignedChapters = chapters.filter((ch) => !ch.partId);
     if (unassignedChapters.length > 0) {
       groupedChapters.push({ part: null, chapters: unassignedChapters });
     }
@@ -409,8 +457,10 @@ export function ChapterList({
     <div className="h-full flex flex-col bg-white">
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-gray-700 text-sm uppercase tracking-wide">Chapters</h2>
-          
+          <h2 className="text-gray-700 text-sm uppercase tracking-wide">
+            Chapters
+          </h2>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -421,11 +471,11 @@ export function ChapterList({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="z-50">
-              <DropdownMenuItem onClick={() => startAdding('chapter')}>
+              <DropdownMenuItem onClick={() => startAdding("chapter")}>
                 Add Chapter
               </DropdownMenuItem>
               {addPart && (
-                <DropdownMenuItem onClick={() => startAdding('part')}>
+                <DropdownMenuItem onClick={() => startAdding("part")}>
                   Add Part
                 </DropdownMenuItem>
               )}
@@ -439,20 +489,18 @@ export function ChapterList({
         {onSelectManuscript && (
           <div
             className={`group relative px-3 py-2.5 border-b border-gray-200 cursor-pointer ${
-              selection?.kind === 'manuscript' ? 'bg-blue-200' : 'hover:bg-gray-50'
+              selection?.kind === "manuscript"
+                ? "bg-blue-200"
+                : "hover:bg-gray-50"
             }`}
           >
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-gray-600 flex-shrink-0" />
-              <div 
-                onClick={onSelectManuscript}
-                className="flex-1 min-w-0"
-              >
-                <div className="text-sm text-gray-900">
-                  Full Manuscript
-                </div>
+              <div onClick={onSelectManuscript} className="flex-1 min-w-0">
+                <div className="text-sm text-gray-900">Full Manuscript</div>
                 <div className="text-xs text-gray-500">
-                  {chapters.length} {chapters.length === 1 ? 'chapter' : 'chapters'}
+                  {chapters.length}{" "}
+                  {chapters.length === 1 ? "chapter" : "chapters"}
                 </div>
               </div>
               {/* NEW: Project info for full manuscript */}
@@ -460,8 +508,10 @@ export function ChapterList({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    console.log('[ChapterList] Info button clicked for full manuscript');
-                    console.log('[ChapterList] Calling onManuscriptInfoClick');
+                    console.log(
+                      "[ChapterList] Info button clicked for full manuscript",
+                    );
+                    console.log("[ChapterList] Calling onManuscriptInfoClick");
                     onManuscriptInfoClick();
                   }}
                   className="p-1 hover:bg-gray-200 rounded opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0"
@@ -473,19 +523,23 @@ export function ChapterList({
             </div>
           </div>
         )}
-        
+
         {isAdding && (
           <div className="p-3 bg-gray-50 border-b border-gray-200">
             <input
               type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              placeholder={addingType === 'part' ? 'Part name...' : 'Chapter title...'}
+              placeholder={
+                addingType === "part"
+                  ? PLACEHOLDERS.PART_TITLE
+                  : PLACEHOLDERS.CHAPTER_TITLE
+              }
               className="w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded text-sm"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === 'Enter') saveNew();
-                if (e.key === 'Escape') cancelNew();
+                if (e.key === "Enter") saveNew();
+                if (e.key === "Escape") cancelNew();
               }}
             />
             <div className="flex gap-1 mt-2">
@@ -504,12 +558,14 @@ export function ChapterList({
             </div>
           </div>
         )}
-        
+
         {groupedChapters.map((group) => {
-          const isCollapsed = !!(group.part && collapsedParts.has(group.part.id));
-          
+          const isCollapsed = !!(
+            group.part && collapsedParts.has(group.part.id)
+          );
+
           return (
-            <div key={group.part?.id || 'unassigned'}>
+            <div key={group.part?.id || "unassigned"}>
               {/* Part Header */}
               {group.part && (
                 <PartHeader
@@ -523,27 +579,37 @@ export function ChapterList({
                   cancelEdit={cancelEdit}
                   startEditing={startEditing}
                   deletePart={deletePart}
-                  onDragStart={() => handleDragStart(group.part!.id, 'part')}
+                  onDragStart={() => handleDragStart(group.part!.id, "part")}
                   onDragEnd={handleDragEnd}
-                  onDragOver={(e: React.DragEvent) => handleDragOver(e, group.part!.id, 'part')}
-                  onDrop={(e: React.DragEvent) => handleDrop(e, group.part!.id, 'part')}
+                  onDragOver={(e: React.DragEvent) =>
+                    handleDragOver(e, group.part!.id, "part")
+                  }
+                  onDrop={(e: React.DragEvent) =>
+                    handleDrop(e, group.part!.id, "part")
+                  }
                   isDragging={draggingItem?.id === group.part.id}
                   isDragOver={dragOverItem?.id === group.part.id}
-                  dragPosition={dragOverItem?.id === group.part.id ? dragOverItem.position : null}
+                  dragPosition={
+                    dragOverItem?.id === group.part.id
+                      ? dragOverItem.position
+                      : null
+                  }
                   onSelectPart={onSelectPart}
                   selection={selection}
                   onPartInfoClick={onPartInfoClick}
                 />
               )}
-              
+
               {/* Chapters in this group */}
               {!isCollapsed && (
                 <div>
                   {group.chapters.length === 0 && group.part && (
-                    <div 
+                    <div
                       className="px-3 py-3 text-xs text-gray-400 italic text-center bg-gray-50/50 border-b border-gray-200"
-                      onDragOver={(e) => handleDragOver(e, group.part!.id, 'part')}
-                      onDrop={(e) => handleDrop(e, group.part!.id, 'part')}
+                      onDragOver={(e) =>
+                        handleDragOver(e, group.part!.id, "part")
+                      }
+                      onDrop={(e) => handleDrop(e, group.part!.id, "part")}
                     >
                       Drag chapters here
                     </div>
@@ -567,13 +633,21 @@ export function ChapterList({
                       matches={matches}
                       isActive={isActive}
                       mode={mode}
-                      onDragStart={() => handleDragStart(chapter.id, 'chapter')}
+                      onDragStart={() => handleDragStart(chapter.id, "chapter")}
                       onDragEnd={handleDragEnd}
-                      onDragOver={(e: React.DragEvent) => handleDragOver(e, chapter.id, 'chapter')}
-                      onDrop={(e: React.DragEvent) => handleDrop(e, chapter.id, 'chapter')}
+                      onDragOver={(e: React.DragEvent) =>
+                        handleDragOver(e, chapter.id, "chapter")
+                      }
+                      onDrop={(e: React.DragEvent) =>
+                        handleDrop(e, chapter.id, "chapter")
+                      }
                       isDragging={draggingItem?.id === chapter.id}
                       isDragOver={dragOverItem?.id === chapter.id}
-                      dragPosition={dragOverItem?.id === chapter.id ? dragOverItem.position : null}
+                      dragPosition={
+                        dragOverItem?.id === chapter.id
+                          ? dragOverItem.position
+                          : null
+                      }
                       inPart={!!group.part}
                       selection={selection}
                     />
@@ -609,16 +683,22 @@ function PartHeader({
   dragPosition,
   onSelectPart,
   selection,
-  onPartInfoClick
+  onPartInfoClick,
 }: PartHeaderProps) {
   return (
     <div
       className={`group relative ${
-        selection?.kind === 'part' && selection.partId === part.id ? 'bg-blue-200' : 'bg-gray-100'
-      } border-b border-gray-200 ${isDragging ? 'opacity-40' : ''} ${
-        isDragOver && dragPosition === 'before' ? 'border-t-2 border-t-blue-500' : ''
+        selection?.kind === "part" && selection.partId === part.id
+          ? "bg-blue-200"
+          : "bg-gray-100"
+      } border-b border-gray-200 ${isDragging ? "opacity-40" : ""} ${
+        isDragOver && dragPosition === "before"
+          ? "border-t-2 border-t-blue-500"
+          : ""
       } ${
-        isDragOver && dragPosition === 'after' ? 'border-b-2 border-b-blue-500' : ''
+        isDragOver && dragPosition === "after"
+          ? "border-b-2 border-b-blue-500"
+          : ""
       }`}
       draggable
       onDragStart={onDragStart}
@@ -635,15 +715,21 @@ function PartHeader({
             className="w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded text-sm"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === 'Enter') saveEdit();
-              if (e.key === 'Escape') cancelEdit();
+              if (e.key === "Enter") saveEdit();
+              if (e.key === "Escape") cancelEdit();
             }}
           />
           <div className="flex gap-1 mt-2">
-            <button onClick={saveEdit} className="p-1 hover:bg-gray-200 rounded">
+            <button
+              onClick={saveEdit}
+              className="p-1 hover:bg-gray-200 rounded"
+            >
               <Check className="w-3 h-3 text-green-600" />
             </button>
-            <button onClick={cancelEdit} className="p-1 hover:bg-gray-200 rounded">
+            <button
+              onClick={cancelEdit}
+              className="p-1 hover:bg-gray-200 rounded"
+            >
               <X className="w-3 h-3 text-red-600" />
             </button>
           </div>
@@ -660,12 +746,14 @@ function PartHeader({
               <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
             )}
           </button>
-          
+
           <GripVertical className="w-3.5 h-3.5 text-gray-400 cursor-grab active:cursor-grabbing flex-shrink-0" />
-          
-          <div 
+
+          <div
             className={`flex-1 min-w-0 cursor-pointer ${
-              selection?.kind === 'part' && selection.partId === part.id ? 'font-semibold' : ''
+              selection?.kind === "part" && selection.partId === part.id
+                ? "font-semibold"
+                : ""
             }`}
             onClick={() => onSelectPart?.(part.id)}
           >
@@ -673,7 +761,7 @@ function PartHeader({
               {part.title}
             </div>
           </div>
-          
+
           {/* Part Info Button */}
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
             {onPartInfoClick && (
@@ -696,13 +784,13 @@ function PartHeader({
 }
 
 // Separate component to handle tag loading for each row
-function ChapterRow({ 
-  chapter, 
+function ChapterRow({
+  chapter,
   index,
   chapters,
-  currentChapterId, 
-  editingId, 
-  editTitle, 
+  currentChapterId,
+  editingId,
+  editTitle,
   setEditTitle,
   saveEdit,
   cancelEdit,
@@ -721,22 +809,31 @@ function ChapterRow({
   isDragOver,
   dragPosition,
   inPart,
-  selection
+  selection,
 }: ChapterRowProps) {
-  const { tags } = useEntityTags('chapter', chapter.id);
+  const { tags } = useEntityTags("chapter", chapter.id);
   const { getChapterNumber } = useChapterNumbering();
   const visible = !isActive || (tags && matches(tags));
-  const dimClass = isActive && !visible && mode === 'dim' ? 'opacity-50 pointer-events-none' : '';
-  const hideClass = isActive && !visible && mode === 'hide' ? 'hidden' : '';
+  const dimClass =
+    isActive && !visible && mode === "dim"
+      ? "opacity-50 pointer-events-none"
+      : "";
+  const hideClass = isActive && !visible && mode === "hide" ? "hidden" : "";
 
   return (
     <div
       className={`group relative ${
-        (selection?.kind === 'chapter' && selection.chapterId === chapter.id) ? 'bg-blue-100' : 'hover:bg-gray-50'
-      } ${dimClass} ${hideClass} ${isDragging ? 'opacity-40' : ''} ${
-        isDragOver && dragPosition === 'before' ? 'border-t-2 border-t-blue-500' : ''
+        selection?.kind === "chapter" && selection.chapterId === chapter.id
+          ? "bg-blue-100"
+          : "hover:bg-gray-50"
+      } ${dimClass} ${hideClass} ${isDragging ? "opacity-40" : ""} ${
+        isDragOver && dragPosition === "before"
+          ? "border-t-2 border-t-blue-500"
+          : ""
       } ${
-        isDragOver && dragPosition === 'after' ? 'border-b-2 border-b-blue-500' : ''
+        isDragOver && dragPosition === "after"
+          ? "border-b-2 border-b-blue-500"
+          : ""
       }`}
       draggable
       onDragStart={onDragStart}
@@ -745,7 +842,7 @@ function ChapterRow({
       onDrop={onDrop}
     >
       {editingId === chapter.id ? (
-        <div className={`py-2 px-2 ${inPart ? 'pl-8' : 'pl-3'}`}>
+        <div className={`py-2 px-2 ${inPart ? "pl-8" : "pl-3"}`}>
           <input
             type="text"
             value={editTitle}
@@ -753,8 +850,8 @@ function ChapterRow({
             className="w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded text-sm"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === 'Enter') saveEdit();
-              if (e.key === 'Escape') cancelEdit();
+              if (e.key === "Enter") saveEdit();
+              if (e.key === "Escape") cancelEdit();
             }}
           />
           <div className="flex gap-1 mt-2">
@@ -773,12 +870,14 @@ function ChapterRow({
           </div>
         </div>
       ) : (
-        <div className={`py-1.5 px-2 flex items-start gap-2 border-b border-gray-100 ${inPart ? 'pl-8' : 'pl-3'}`}>
+        <div
+          className={`py-1.5 px-2 flex items-start gap-2 border-b border-gray-100 ${inPart ? "pl-8" : "pl-3"}`}
+        >
           <div className="w-5 text-xs text-gray-400 mt-0.5 flex-shrink-0">
             {getChapterNumber(chapter.id)}
           </div>
           <GripVertical className="w-3.5 h-3.5 mt-0.5 text-gray-400 cursor-grab active:cursor-grabbing flex-shrink-0" />
-          <div 
+          <div
             onClick={() => setCurrentChapterId(chapter.id)}
             className="flex-1 min-w-0 cursor-pointer"
           >
@@ -798,8 +897,11 @@ function ChapterRow({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('[ChapterList] Info button clicked for chapter:', chapter.title);
-                  console.log('[ChapterList] Calling onChapterInfoClick');
+                  console.log(
+                    "[ChapterList] Info button clicked for chapter:",
+                    chapter.title,
+                  );
+                  console.log("[ChapterList] Calling onChapterInfoClick");
                   onChapterInfoClick(chapter);
                 }}
                 className="p-1 hover:bg-gray-200 rounded"
@@ -809,7 +911,10 @@ function ChapterRow({
               </button>
             )}
             {!onChapterInfoClick && (
-              <div className="p-1 text-xs text-gray-400" title="Info handler not provided">
+              <div
+                className="p-1 text-xs text-gray-400"
+                title="Info handler not provided"
+              >
                 <Info className="w-3 h-3 text-gray-400" />
               </div>
             )}

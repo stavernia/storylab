@@ -1,43 +1,54 @@
 import { useState, useEffect } from "react";
-import { Info } from "lucide-react";
-import type { Chapter, Part, ManuscriptSelection } from "@/App";
-import { TiptapChapterEditor } from "./editor/TiptapChapterEditor";
 import { EditorToolbar } from "./editor/EditorToolbar";
+import { TiptapChapterEditor } from "./editor/TiptapChapterEditor";
 import { EditableTitle } from "./editor/EditableTitle";
+import { X, Info } from "lucide-react";
+import type { Chapter, Part, ManuscriptSelection } from "@/App";
+import { PLACEHOLDERS } from "@/constants/ui";
+import { useTagFilter } from "@/contexts/TagFilterContext";
+import { useEntityTags } from "@/hooks/useEntityTags";
 import { useChapterNumbering } from "@/contexts/ChapterNumberingContext";
 import { useDebounce } from "@/hooks/useDebounce";
-import { PLACEHOLDERS } from "@/constants/ui";
+import { toast } from "sonner";
 
-type OutlineViewProps = {
+type ManuscriptViewProps = {
   chapters: Chapter[]; // Pre-filtered chapters from BinderWrapper
   selection: ManuscriptSelection; // Add selection prop
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
+  updateChapter: (id: string, content: string) => void;
   addChapter: (title?: string) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
-  updateChapter: (id: string, content: string) => void;
+  updateChapterDetails: (id: string, updates: Partial<Chapter>) => void;
   updatePartTitle?: (id: string, title: string) => void;
+  reorderChapters: (chapters: Chapter[]) => void;
   parts?: Part[];
   onChapterInfoClick?: (chapter: Chapter) => void;
   onPartInfoClick?: (part: Part) => void;
 };
 
-export function OutlineView({
+export function ManuscriptView({
   chapters,
   selection, // Add selection
   currentChapterId,
   setCurrentChapterId,
+  updateChapter,
   addChapter,
   deleteChapter,
   updateChapterTitle,
-  updateChapter,
+  updateChapterDetails,
   updatePartTitle,
+  reorderChapters,
   parts,
   onChapterInfoClick,
   onPartInfoClick,
-}: OutlineViewProps) {
+}: ManuscriptViewProps) {
+  const [showFilterBanner, setShowFilterBanner] = useState(true);
   const [isClient, setIsClient] = useState(false);
+
+  // Tag filtering for current chapter
+  const { matches, isActive } = useTagFilter();
   const { getChapterNumber, getPartNumber } = useChapterNumbering();
 
   // Determine display mode based on selection kind, not chapter count
@@ -46,21 +57,32 @@ export function OutlineView({
   const mode = selection.kind === "chapter" ? "single" : "multi";
   const visibleChapters = chapters; // All chapters passed in are already filtered by BinderWrapper
   const currentChapter = mode === "single" ? chapters[0] : null;
+  const { tags: currentTags } = useEntityTags(
+    "chapter",
+    currentChapter?.id || "",
+  );
+
+  // Check if current chapter is hidden by filters
+  const currentHidden = isActive && currentTags && !matches(currentTags);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Auto-save with debounce
-  const debouncedUpdateChapter = useDebounce((id: string, content: string) => {
-    updateChapter(id, content);
-  }, 500);
+  // Debounced handler for chapter content changes - saves after 500ms of no typing
+  const debouncedUpdateChapter = useDebounce(
+    (chapterId: string, html: string) => {
+      updateChapter(chapterId, html);
+    },
+    500,
+  );
 
-  const handleOutlineChange = (chapterId: string, html: string) => {
+  // Handler for individual chapter changes
+  const handleChapterContentChange = (chapterId: string, html: string) => {
     debouncedUpdateChapter(chapterId, html);
   };
 
-  if (chapters.length === 0) {
+  if (visibleChapters.length === 0) {
     // In multi-chapter mode (part or manuscript), show part headers even if no chapters
     if (mode !== "single") {
       // Determine which parts to show based on selection
@@ -72,7 +94,7 @@ export function OutlineView({
           ? [...parts].sort((a, b) => a.sortOrder - b.sortOrder)
           : [];
         console.log(
-          "OutlineView manuscript empty state - parts:",
+          "EditorView manuscript empty state - parts:",
           parts,
           "partsToShow:",
           partsToShow,
@@ -84,7 +106,7 @@ export function OutlineView({
           partsToShow = [selectedPart];
         }
         console.log(
-          "OutlineView part empty state - selected part:",
+          "EditorView part empty state - selected part:",
           selectedPart,
         );
       }
@@ -97,8 +119,8 @@ export function OutlineView({
               {/* Show part headers */}
               {partsToShow.map((part, index) => (
                 <div key={part.id}>
-                  <div className="mb-12 mt-16 first:mt-0">
-                    <div>
+                  <div className="text-center mb-12 mt-16 first:mt-0">
+                    <div className="inline-block">
                       <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
                         PART {getPartNumber(part.id)}
                       </div>
@@ -110,14 +132,14 @@ export function OutlineView({
                           {part.notes}
                         </p>
                       )}
-                      <div className="h-px bg-gray-200 mt-8 w-24" />
+                      <div className="h-px bg-gray-200 mt-8 w-24 mx-auto" />
                     </div>
                   </div>
                 </div>
               ))}
 
               {/* Empty state message */}
-              <div className="mt-16">
+              <div className="text-center mt-16">
                 <p className="text-gray-400">No chapters to display</p>
               </div>
             </div>
@@ -146,6 +168,21 @@ export function OutlineView({
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white">
+      {/* Filter Warning Banner */}
+      {currentHidden && showFilterBanner && mode === "single" && (
+        <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2 flex items-center justify-between">
+          <p className="text-sm text-yellow-800">
+            This chapter is hidden by tag filters. Clear filters to edit.
+          </p>
+          <button
+            onClick={() => setShowFilterBanner(false)}
+            className="text-yellow-600 hover:text-yellow-800"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Editor Toolbar - shared toolbar for both single and multi-chapter modes */}
       <EditorToolbar />
 
@@ -155,8 +192,8 @@ export function OutlineView({
           {/* Single Chapter Mode */}
           {mode === "single" && currentChapter && (
             <>
-              {/* Chapter Header (editable) - LEFT ALIGNED */}
-              <div className="group mb-10 relative">
+              {/* Chapter Header (editable) */}
+              <div className="group text-center mb-10 relative">
                 <div className="text-sm uppercase tracking-widest text-gray-400 mb-2">
                   CHAPTER {getChapterNumber(currentChapter.id)}
                 </div>
@@ -168,7 +205,7 @@ export function OutlineView({
                   placeholder={PLACEHOLDERS.CHAPTER_TITLE}
                   maxLength={100}
                   className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block"
-                  editClassName="text-2xl font-normal text-gray-900 w-full max-w-2xl px-2 py-1"
+                  editClassName="text-2xl font-normal text-gray-900 text-center w-full max-w-2xl mx-auto px-2 py-1"
                 />
                 {onChapterInfoClick && (
                   <button
@@ -181,18 +218,18 @@ export function OutlineView({
                 )}
               </div>
 
-              {/* Editable outline content using TiptapChapterEditor */}
+              {/* Editable content using TiptapChapterEditor */}
               <TiptapChapterEditor
                 chapterId={currentChapter.id}
-                value={currentChapter.outline || ""}
+                value={currentChapter.content || ""}
                 onChange={(html) =>
-                  handleOutlineChange(currentChapter.id, html)
+                  handleChapterContentChange(currentChapter.id, html)
                 }
                 readOnly={false}
               />
 
               {/* Chapter divider */}
-              <div className="h-px bg-gray-200 mt-12 w-24" />
+              <div className="h-px bg-gray-200 mt-12 w-24 mx-auto" />
             </>
           )}
 
@@ -216,9 +253,9 @@ export function OutlineView({
 
                   return (
                     <div key={part.id}>
-                      {/* Part Header - LEFT ALIGNED */}
-                      <div className="group mb-12 mt-16 first:mt-0">
-                        <div className="relative max-w-3xl">
+                      {/* Part Header */}
+                      <div className="group text-center mb-12 mt-16 first:mt-0">
+                        <div className="relative max-w-3xl mx-auto">
                           <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
                             PART {getPartNumber(part.id)}
                           </div>
@@ -231,14 +268,14 @@ export function OutlineView({
                             placeholder={PLACEHOLDERS.PART_TITLE}
                             maxLength={100}
                             className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block"
-                            editClassName="text-3xl font-normal text-gray-900 w-full max-w-3xl px-2 py-1 mb-1"
+                            editClassName="text-3xl font-normal text-gray-900 text-center w-full max-w-3xl mx-auto px-2 py-1 mb-1"
                           />
                           {part.notes && (
-                            <p className="text-sm text-gray-500 italic mt-2 max-w-xl">
+                            <p className="text-sm text-gray-500 italic mt-2 max-w-xl mx-auto">
                               {part.notes}
                             </p>
                           )}
-                          <div className="h-px bg-gray-200 mt-8 w-24" />
+                          <div className="h-px bg-gray-200 mt-8 w-24 mx-auto" />
                           {onPartInfoClick && (
                             <button
                               onClick={() => onPartInfoClick(part)}
@@ -255,9 +292,9 @@ export function OutlineView({
                       {partChapters.length > 0 ? (
                         partChapters.map((chapter) => (
                           <section key={chapter.id} className="mb-16">
-                            {/* Editable chapter header - LEFT ALIGNED */}
-                            <div className="group mb-10">
-                              <div className="relative max-w-3xl">
+                            {/* Read-only chapter header */}
+                            <div className="group text-center mb-10">
+                              <div className="relative max-w-3xl mx-auto">
                                 <div className="text-sm uppercase tracking-widest text-gray-400 mb-2">
                                   CHAPTER {getChapterNumber(chapter.id)}
                                 </div>
@@ -269,7 +306,7 @@ export function OutlineView({
                                   placeholder={PLACEHOLDERS.CHAPTER_TITLE}
                                   maxLength={100}
                                   className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block"
-                                  editClassName="text-2xl font-normal text-gray-900 w-full max-w-2xl px-2 py-1"
+                                  editClassName="text-2xl font-normal text-gray-900 text-center w-full max-w-2xl mx-auto px-2 py-1"
                                 />
                                 {onChapterInfoClick && (
                                   <button
@@ -283,22 +320,22 @@ export function OutlineView({
                               </div>
                             </div>
 
-                            {/* Editable chapter outline content */}
+                            {/* Editable chapter content */}
                             <TiptapChapterEditor
                               chapterId={chapter.id}
-                              value={chapter.outline || ""}
+                              value={chapter.content || ""}
                               onChange={(html) =>
-                                handleOutlineChange(chapter.id, html)
+                                handleChapterContentChange(chapter.id, html)
                               }
                               readOnly={false}
                             />
 
                             {/* Chapter divider */}
-                            <div className="h-px bg-gray-200 mt-12 w-24" />
+                            <div className="h-px bg-gray-200 mt-12 w-24 mx-auto" />
                           </section>
                         ))
                       ) : (
-                        <div className="mb-16">
+                        <div className="text-center mb-16">
                           <p className="text-gray-400">
                             No chapters to display
                           </p>
@@ -321,45 +358,47 @@ export function OutlineView({
 
                 return (
                   <div key={chapter.id}>
-                    {/* Part Header - only show when a new part starts - LEFT ALIGNED */}
+                    {/* Part Header - only show when a new part starts */}
                     {isFirstChapterOfPart && currentPart && (
-                      <div className="group mb-12 mt-16 first:mt-0 relative">
-                        <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
-                          PART {getPartNumber(currentPart.id)}
+                      <div className="group text-center mb-12 mt-16 first:mt-0">
+                        <div className="relative max-w-3xl mx-auto">
+                          <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
+                            PART {getPartNumber(currentPart.id)}
+                          </div>
+                          <EditableTitle
+                            value={currentPart.title}
+                            onSave={(newTitle) =>
+                              updatePartTitle &&
+                              updatePartTitle(currentPart.id, newTitle)
+                            }
+                            placeholder={PLACEHOLDERS.PART_TITLE}
+                            maxLength={100}
+                            className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block"
+                            editClassName="text-3xl font-normal text-gray-900 text-center w-full max-w-3xl mx-auto px-2 py-1 mb-1"
+                          />
+                          {currentPart.notes && (
+                            <p className="text-sm text-gray-500 italic mt-2 max-w-xl mx-auto">
+                              {currentPart.notes}
+                            </p>
+                          )}
+                          <div className="h-px bg-gray-200 mt-8 w-24 mx-auto" />
+                          {onPartInfoClick && (
+                            <button
+                              onClick={() => onPartInfoClick(currentPart)}
+                              className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 p-1"
+                              title="Part info"
+                            >
+                              <Info className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
-                        <EditableTitle
-                          value={currentPart.title}
-                          onSave={(newTitle) =>
-                            updatePartTitle &&
-                            updatePartTitle(currentPart.id, newTitle)
-                          }
-                          placeholder={PLACEHOLDERS.PART_TITLE}
-                          maxLength={100}
-                          className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block"
-                          editClassName="text-3xl font-normal text-gray-900 w-full max-w-3xl px-2 py-1 mb-1"
-                        />
-                        {currentPart.notes && (
-                          <p className="text-sm text-gray-500 italic mt-2 max-w-xl">
-                            {currentPart.notes}
-                          </p>
-                        )}
-                        <div className="h-px bg-gray-200 mt-8 w-24" />
-                        {onPartInfoClick && (
-                          <button
-                            onClick={() => onPartInfoClick(currentPart)}
-                            className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 p-1"
-                            title="Part info"
-                          >
-                            <Info className="w-4 h-4" />
-                          </button>
-                        )}
                       </div>
                     )}
 
                     {/* Chapter Section */}
                     <section className="mb-16">
-                      {/* Editable chapter header - LEFT ALIGNED */}
-                      <div className="group mb-10 relative">
+                      {/* Editable chapter header */}
+                      <div className="group text-center mb-10 relative">
                         <div className="text-sm uppercase tracking-widest text-gray-400 mb-2">
                           CHAPTER {getChapterNumber(chapter.id)}
                         </div>
@@ -371,7 +410,7 @@ export function OutlineView({
                           placeholder={PLACEHOLDERS.CHAPTER_TITLE}
                           maxLength={100}
                           className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block"
-                          editClassName="text-2xl font-normal text-gray-900 w-full max-w-2xl px-2 py-1"
+                          editClassName="text-2xl font-normal text-gray-900 text-center w-full max-w-2xl mx-auto px-2 py-1"
                         />
                         {onChapterInfoClick && (
                           <button
@@ -384,18 +423,18 @@ export function OutlineView({
                         )}
                       </div>
 
-                      {/* Editable chapter outline content */}
+                      {/* Editable chapter content */}
                       <TiptapChapterEditor
                         chapterId={chapter.id}
-                        value={chapter.outline || ""}
+                        value={chapter.content || ""}
                         onChange={(html) =>
-                          handleOutlineChange(chapter.id, html)
+                          handleChapterContentChange(chapter.id, html)
                         }
                         readOnly={false}
                       />
 
                       {/* Chapter divider */}
-                      <div className="h-px bg-gray-200 mt-12 w-24" />
+                      <div className="h-px bg-gray-200 mt-12 w-24 mx-auto" />
                     </section>
                   </div>
                 );
