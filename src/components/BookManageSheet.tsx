@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import type { Book } from '@/types/book';
-import { Download, X, Trash2 } from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Label } from './ui/label';
+import { useState, useEffect } from "react";
+import type { Book } from "@/types/book";
+import { Download, X, Trash2 } from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
 import { booksApi } from "@/api/books";
-import { toast } from 'sonner';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface BookManageSheetProps {
   book: Book;
@@ -29,23 +29,23 @@ export function BookManageSheet({
   canExportTemplates,
 }: BookManageSheetProps) {
   const [title, setTitle] = useState(book.title);
-  const [subtitle, setSubtitle] = useState(''); // Placeholder for future
-  const [description, setDescription] = useState(book.description || '');
+  const [subtitle, setSubtitle] = useState(""); // Placeholder for future
+  const [description, setDescription] = useState(book.description || "");
   const [isSaving, setIsSaving] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
 
   // Reset form when book changes
   useEffect(() => {
     setTitle(book.title);
-    setDescription(book.description || '');
-    setSubtitle('');
+    setDescription(book.description || "");
+    setSubtitle("");
   }, [book.id]);
 
   if (!isOpen) return null;
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error('Book title is required');
+      toast.error("Book title is required");
       return;
     }
 
@@ -56,11 +56,11 @@ export function BookManageSheet({
         description,
       });
       onUpdate(updated);
-      toast.success('Book updated');
+      toast.success("Book updated");
       onClose();
     } catch (error) {
-      console.error('Failed to update book:', error);
-      toast.error('Failed to update book');
+      console.error("Failed to update book:", error);
+      toast.error("Failed to update book");
     } finally {
       setIsSaving(false);
     }
@@ -79,11 +79,11 @@ export function BookManageSheet({
     try {
       await booksApi.archive(book.id);
       onDelete(book.id);
-      toast.success('Book archived');
+      toast.success("Book archived");
       onClose();
     } catch (error) {
-      console.error('Failed to archive book:', error);
-      toast.error('Failed to archive book');
+      console.error("Failed to archive book:", error);
+      toast.error("Failed to archive book");
     } finally {
       setIsArchiving(false);
     }
@@ -98,11 +98,8 @@ export function BookManageSheet({
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/20 z-40"
-        onClick={onClose}
-      />
-      
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+
       {/* Sheet */}
       <div className="fixed right-0 top-0 h-full w-96 bg-white border-l border-gray-200 shadow-xl flex flex-col z-50 animate-in slide-in-from-right duration-200">
         {/* Header */}
@@ -127,7 +124,7 @@ export function BookManageSheet({
               id="book-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="My Novel"
+              placeholder={PLACEHOLDERS.BOOK_TITLE}
             />
           </div>
 
@@ -138,7 +135,7 @@ export function BookManageSheet({
               id="book-subtitle"
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="Optional subtitle"
+              placeholder={PLACEHOLDERS.BOOK_SUBTITLE}
               disabled
               className="opacity-50"
             />
@@ -152,7 +149,7 @@ export function BookManageSheet({
               id="book-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of your book..."
+              placeholder={PLACEHOLDERS.BOOK_DESCRIPTION}
               rows={6}
             />
           </div>
@@ -191,7 +188,7 @@ export function BookManageSheet({
               disabled={isSaving || isArchiving}
               className="flex-1"
             >
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
             <Button
               onClick={onClose}
@@ -211,11 +208,12 @@ export function BookManageSheet({
                 className="w-full flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
-                {isArchiving ? 'Archiving...' : 'Archive Book'}
+                {isArchiving ? "Archiving..." : "Archive Book"}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-xs text-left">
-              Moves this book to Trash. Archived books are kept for 30 days before permanent deletion.
+              Moves this book to Trash. Archived books are kept for 30 days
+              before permanent deletion.
             </TooltipContent>
           </Tooltip>
         </div>

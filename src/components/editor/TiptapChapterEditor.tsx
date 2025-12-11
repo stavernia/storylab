@@ -20,6 +20,7 @@ export function TiptapChapterEditor({
   const [isFocused, setIsFocused] = useState(false);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [StarterKit],
     content: value,
     editable: !readOnly,
@@ -56,11 +57,12 @@ export function TiptapChapterEditor({
   }, [editor, setActiveEditor]);
 
   // Update editor content when value changes from outside
+  // BUT ONLY if editor is not focused (prevents reverting while typing)
   useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
+    if (editor && !isFocused && value !== editor.getHTML()) {
       editor.commands.setContent(value);
     }
-  }, [value, editor]);
+  }, [value, editor, isFocused]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -75,6 +77,7 @@ export function TiptapChapterEditor({
     <div
       className={`tiptap-wrapper rounded-lg transition-all hover:ring-1 hover:ring-blue-100 ${isFocused ? "ring-2 ring-blue-200 ring-offset-2" : ""}`}
       style={{ minHeight: "120px" }}
+      onClick={() => editor?.commands.focus()}
     >
       <EditorContent editor={editor} style={{ minHeight: "120px" }} />
     </div>

@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react';
-import { ThemeData } from '@/services/theme';
-import { Character } from '@/App';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { ThemeData } from "@/services/theme";
+import { Character } from "@/App";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { PLACEHOLDERS } from "@/constants/ui";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { TagChipInput } from '@/components/tags/TagChipInput';
-import { Tag } from '@/services/tag';
-import { useDebounce } from '@/hooks/useDebounce';
-import { Check, Loader2 } from 'lucide-react';
+} from "@/components/ui/select";
+import { TagChipInput } from "@/components/tags/TagChipInput";
+import { Tag } from "@/services/tag";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Check, Loader2 } from "lucide-react";
 
 interface ThemeInfoFormProps {
   theme?: ThemeData;
@@ -32,48 +33,66 @@ interface ThemeInfoFormProps {
 }
 
 const colorOptions = [
-  { value: '#3b82f6', label: 'Blue' },
-  { value: '#8b5cf6', label: 'Purple' },
-  { value: '#ec4899', label: 'Pink' },
-  { value: '#10b981', label: 'Green' },
-  { value: '#f59e0b', label: 'Amber' },
-  { value: '#ef4444', label: 'Red' },
-  { value: '#6b7280', label: 'Gray' },
+  { value: "#3b82f6", label: "Blue" },
+  { value: "#8b5cf6", label: "Purple" },
+  { value: "#ec4899", label: "Pink" },
+  { value: "#10b981", label: "Green" },
+  { value: "#f59e0b", label: "Amber" },
+  { value: "#ef4444", label: "Red" },
+  { value: "#6b7280", label: "Gray" },
 ];
 
-export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, tags, onTagsChange, onSave, onTagsSave, isSaving, showSaveStatus }: ThemeInfoFormProps) {
-  const [name, setName] = useState(theme?.name || '');
-  const [color, setColor] = useState(theme?.color || '#3b82f6');
-  const [purpose, setPurpose] = useState(theme?.purpose || '');
-  const [notes, setNotes] = useState(theme?.notes || '');
-  
+export function ThemeInfoForm({
+  theme,
+  characters,
+  onChange,
+  onSubmit,
+  onClose,
+  tags,
+  onTagsChange,
+  onSave,
+  onTagsSave,
+  isSaving,
+  showSaveStatus,
+}: ThemeInfoFormProps) {
+  const [name, setName] = useState(theme?.name || "");
+  const [color, setColor] = useState(theme?.color || "#3b82f6");
+  const [purpose, setPurpose] = useState(theme?.purpose || "");
+  const [notes, setNotes] = useState(theme?.notes || "");
+
   // Grid 2.0 fields
-  const [source, setSource] = useState<'character' | 'theme' | 'custom' | 'thread'>(theme?.source || 'theme');
-  const [mode, setMode] = useState<'presence' | 'heatmap' | 'thread'>(theme?.mode || 'presence');
-  const [sourceRefId, setSourceRefId] = useState<string | null>(theme?.sourceRefId || null);
+  const [source, setSource] = useState<
+    "character" | "theme" | "custom" | "thread"
+  >(theme?.source || "theme");
+  const [mode, setMode] = useState<"presence" | "heatmap" | "thread">(
+    theme?.mode || "presence",
+  );
+  const [sourceRefId, setSourceRefId] = useState<string | null>(
+    theme?.sourceRefId || null,
+  );
 
   // NEW: Grid Enhancement Pack - Row Metadata
-  const [description, setDescription] = useState(theme?.description || '');
-  const [aiGuide, setAiGuide] = useState(theme?.aiGuide || '');
-  
+  const [description, setDescription] = useState(theme?.description || "");
+  const [aiGuide, setAiGuide] = useState(theme?.aiGuide || "");
+
   // NEW: Thread Lines v1
-  const [threadLabel, setThreadLabel] = useState(theme?.threadLabel || '');
-  
+  const [threadLabel, setThreadLabel] = useState(theme?.threadLabel || "");
+
   const [lastSavedTime, setLastSavedTime] = useState<number | null>(null);
 
   // Phase 1.5: Update form when theme prop changes
   useEffect(() => {
     if (theme) {
-      setName(theme.name || '');
-      setColor(theme.color || '#3b82f6');
-      setPurpose(theme.purpose || '');
-      setNotes(theme.notes || '');
-      setSource(theme.source || 'theme');
-      setMode(theme.mode || 'presence');
+      setName(theme.name || "");
+      setColor(theme.color || "#3b82f6");
+      setPurpose(theme.purpose || "");
+      setNotes(theme.notes || "");
+      setSource(theme.source || "theme");
+      setMode(theme.mode || "presence");
       setSourceRefId(theme.sourceRefId || null);
-      setDescription(theme.description || '');
-      setAiGuide(theme.aiGuide || '');
-      setThreadLabel(theme.threadLabel || '');
+      setDescription(theme.description || "");
+      setAiGuide(theme.aiGuide || "");
+      setThreadLabel(theme.threadLabel || "");
     }
   }, [theme?.id]); // Only re-run when theme ID changes
 
@@ -138,13 +157,15 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
     debouncedSave({ threadLabel: value.trim() || undefined });
   };
 
-  const handleSourceChange = (value: 'character' | 'theme' | 'custom' | 'thread') => {
+  const handleSourceChange = (
+    value: "character" | "theme" | "custom" | "thread",
+  ) => {
     setSource(value);
     onChange?.({ source: value });
     immediateSave({ source: value });
   };
 
-  const handleModeChange = (value: 'presence' | 'heatmap' | 'thread') => {
+  const handleModeChange = (value: "presence" | "heatmap" | "thread") => {
     setMode(value);
     onChange?.({ mode: value });
     immediateSave({ mode: value });
@@ -182,14 +203,27 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
         threadLabel: threadLabel.trim() || undefined,
       });
     }
-  }, [name, color, purpose, notes, source, mode, sourceRefId, description, aiGuide, threadLabel, onChange, onSave]);
+  }, [
+    name,
+    color,
+    purpose,
+    notes,
+    source,
+    mode,
+    sourceRefId,
+    description,
+    aiGuide,
+    threadLabel,
+    onChange,
+    onSave,
+  ]);
 
   // For the submit pattern (used in ThemeManager)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (onSubmit) {
       onSubmit({
-        name: name.trim() || 'Unnamed Theme',
+        name: name.trim() || "Unnamed Theme",
         color,
         purpose: purpose.trim() || undefined,
         notes: notes.trim() || undefined,
@@ -209,12 +243,12 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
   const content = (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="theme-name">Name {onSubmit && '*'}</Label>
+        <Label htmlFor="theme-name">Name {onSubmit && "*"}</Label>
         <Input
           id="theme-name"
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
-          placeholder="Theme name"
+          placeholder={PLACEHOLDERS.THEME_NAME}
           autoFocus
         />
       </div>
@@ -250,7 +284,7 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
       {/* Grid 2.0: Row Type Configuration */}
       <div className="border-t pt-4 space-y-4">
         <h3 className="text-sm text-gray-700">Row Type (Grid 2.0)</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="theme-source">Source</Label>
@@ -258,7 +292,11 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
               <SelectTrigger id="theme-source">
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>
-              <SelectContent position="popper" className="z-[9999]" sideOffset={5}>
+              <SelectContent
+                position="popper"
+                className="z-[9999]"
+                sideOffset={5}
+              >
                 <SelectItem value="theme">Theme</SelectItem>
                 <SelectItem value="character">Character</SelectItem>
                 <SelectItem value="custom">Custom</SelectItem>
@@ -273,7 +311,11 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
               <SelectTrigger id="theme-mode">
                 <SelectValue placeholder="Select mode" />
               </SelectTrigger>
-              <SelectContent position="popper" className="z-[9999]" sideOffset={5}>
+              <SelectContent
+                position="popper"
+                className="z-[9999]"
+                sideOffset={5}
+              >
                 <SelectItem value="presence">Presence (✔/✖)</SelectItem>
                 <SelectItem value="heatmap">Heatmap (0–3)</SelectItem>
                 <SelectItem value="thread">Thread</SelectItem>
@@ -282,14 +324,21 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
           </div>
         </div>
 
-        {source === 'character' && characters && characters.length > 0 && (
+        {source === "character" && characters && characters.length > 0 && (
           <div className="space-y-2">
             <Label htmlFor="theme-character">Linked Character</Label>
-            <Select value={sourceRefId || 'none'} onValueChange={handleSourceRefIdChange}>
+            <Select
+              value={sourceRefId || "none"}
+              onValueChange={handleSourceRefIdChange}
+            >
               <SelectTrigger id="theme-character">
                 <SelectValue placeholder="Select character" />
               </SelectTrigger>
-              <SelectContent position="popper" className="z-[9999]" sideOffset={5}>
+              <SelectContent
+                position="popper"
+                className="z-[9999]"
+                sideOffset={5}
+              >
                 <SelectItem value="none">None</SelectItem>
                 {characters.map((char) => (
                   <SelectItem key={char.id} value={char.id}>
@@ -354,7 +403,7 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
       </div>
 
       {/* NEW: Thread Lines v1 */}
-      {mode === 'thread' && (
+      {mode === "thread" && (
         <div className="space-y-2">
           <Label htmlFor="theme-thread-label">Thread Label</Label>
           <Input
@@ -369,10 +418,7 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
       {onTagsChange && (
         <div className="space-y-2">
           <Label htmlFor="theme-tags">Tags</Label>
-          <TagChipInput
-            value={tags || []}
-            onChange={handleTagsChange}
-          />
+          <TagChipInput value={tags || []} onChange={handleTagsChange} />
         </div>
       )}
 
@@ -383,7 +429,7 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
             Cancel
           </Button>
           <Button type="submit">
-            {theme ? 'Save Changes' : 'Create Theme'}
+            {theme ? "Save Changes" : "Create Theme"}
           </Button>
         </div>
       )}
@@ -391,11 +437,5 @@ export function ThemeInfoForm({ theme, characters, onChange, onSubmit, onClose, 
   );
 
   // Wrap in form if using submit pattern, otherwise just return content
-  return onSubmit ? (
-    <form onSubmit={handleSubmit}>
-      {content}
-    </form>
-  ) : (
-    content
-  );
+  return onSubmit ? <form onSubmit={handleSubmit}>{content}</form> : content;
 }

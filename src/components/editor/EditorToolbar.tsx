@@ -1,5 +1,13 @@
-import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3 } from 'lucide-react';
-import { useEditorContext } from './EditorContext';
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Heading1,
+  Heading2,
+  Heading3,
+} from "lucide-react";
+import { useEditorContext } from "./EditorContext";
 
 // Toolbar component that works with Tiptap Editor via EditorContext
 export function EditorToolbar() {
@@ -10,7 +18,7 @@ export function EditorToolbar() {
       <button
         type="button"
         onMouseDown={(e) => {
-          e.preventDefault(); // Prevent losing focus
+          e.preventDefault();
           editor?.chain().focus().toggleHeading({ level: 1 }).run();
         }}
         disabled={!editor}

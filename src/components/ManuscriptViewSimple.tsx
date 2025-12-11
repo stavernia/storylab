@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
-import { RichTextEditor } from './editor/RichTextEditor';
-import { BookOpenText } from 'lucide-react';
-import type { Chapter, Part } from '@/App';
-import { useInspector } from '@/contexts/InspectorContext';
-import { EditorProjectInfoPanel } from './info-panels/EditorProjectInfoPanel';
-import { ChapterData } from '@/services/chapter';
-import { tagService, Tag } from '@/services/tag';
-import { useTagFilter } from '@/contexts/TagFilterContext';
-import { useEntityTags } from '@/hooks/useEntityTags';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { RichTextEditor } from "./editor/RichTextEditor";
+import { BookOpenText } from "lucide-react";
+import type { Chapter, Part } from "@/App";
+import { useInspector } from "@/contexts/InspectorContext";
+import { EditorProjectInfoPanel } from "./info-panels/EditorProjectInfoPanel";
+import { ChapterData } from "@/services/chapter";
+import { tagService, Tag } from "@/services/tag";
+import { useTagFilter } from "@/contexts/TagFilterContext";
+import { useEntityTags } from "@/hooks/useEntityTags";
+import { toast } from "sonner";
 import { corkboardApi } from "@/api/corkboard";
-import { X } from 'lucide-react';
+import { X } from "lucide-react";
 
-type EditorViewProps = {
+type ManuscriptViewProps = {
   bookId?: string;
-  chapters: Chapter[];  // Pre-filtered chapters from BinderWrapper
+  chapters: Chapter[]; // Pre-filtered chapters from BinderWrapper
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
   updateChapter: (id: string, content: string) => void;
@@ -26,7 +26,7 @@ type EditorViewProps = {
   parts?: Part[];
 };
 
-export function EditorView({
+export function ManuscriptViewSimple({
   bookId,
   chapters,
   currentChapterId,
@@ -50,13 +50,19 @@ export function EditorView({
   // Determine display mode
   const isSingleChapter = chapters.length === 1;
   const currentChapter = chapters[0];
-  const { tags: currentTags } = useEntityTags('chapter', currentChapter?.id || '');
+  const { tags: currentTags } = useEntityTags(
+    "chapter",
+    currentChapter?.id || "",
+  );
 
   // Check if current chapter is hidden by filters
   const currentHidden = isActive && currentTags && !matches(currentTags);
 
   // NEW: Multi-Chapter View - Handler for updating chapter content
-  const handleChapterContentChange = (chapterId: string, newContent: string) => {
+  const handleChapterContentChange = (
+    chapterId: string,
+    newContent: string,
+  ) => {
     updateChapter(chapterId, newContent);
   };
 
@@ -64,7 +70,7 @@ export function EditorView({
   const handleCreateBoardCardForCurrentChapter = async () => {
     if (!currentChapter) return;
     if (!bookId) {
-      toast.error('Select a book before creating a board card');
+      toast.error("Select a book before creating a board card");
       return;
     }
 
@@ -74,13 +80,13 @@ export function EditorView({
         bookId,
       );
       if (alreadyExists) {
-        toast.success('This chapter is already on the board');
+        toast.success("This chapter is already on the board");
       } else {
-        toast.success('Card added to board!');
+        toast.success("Card added to board!");
       }
     } catch (error) {
-      console.error('Failed to create board card from chapter:', error);
-      toast.error('Failed to add card to board');
+      console.error("Failed to create board card from chapter:", error);
+      toast.error("Failed to add card to board");
     }
   };
 
@@ -89,21 +95,24 @@ export function EditorView({
     // Load tags for this chapter
     let tags: Tag[] = [];
     try {
-      tags = await tagService.listForEntity('chapter', chapter.id);
+      tags = await tagService.listForEntity("chapter", chapter.id);
     } catch (error) {
-      console.error('Failed to load chapter tags:', error);
+      console.error("Failed to load chapter tags:", error);
     }
-    
+
     // Phase 1.5: Use NEW structured data API
-    openInspector({
-      type: 'chapter',
-      id: chapter.id,
-      data: {
-        chapter: chapter as ChapterData,
-        tags,
-        parts: parts || [],
-      }
-    }, 'inspector');
+    openInspector(
+      {
+        type: "chapter",
+        id: chapter.id,
+        data: {
+          chapter: chapter as ChapterData,
+          tags,
+          parts: parts || [],
+        },
+      },
+      "inspector",
+    );
   };
 
   // NEW: Inspector v2 - Handler for current chapter info from toolbar
@@ -115,8 +124,8 @@ export function EditorView({
   // NEW: Inspector v2 - Handler for project info
   const handleOpenProjectInfo = () => {
     openInspector({
-      title: 'Manuscript overview',
-      subtitle: 'Project-wide stats',
+      title: "Manuscript overview",
+      subtitle: "Project-wide stats",
       icon: <BookOpenText className="w-4 h-4" />,
       content: <EditorProjectInfoPanel chapters={chapters} />,
     });
@@ -157,7 +166,9 @@ export function EditorView({
             <RichTextEditor
               editorId={`chapter-${currentChapter.id}`}
               value={currentChapter.content}
-              onChange={(html) => handleChapterContentChange(currentChapter.id, html)}
+              onChange={(html) =>
+                handleChapterContentChange(currentChapter.id, html)
+              }
               chapter={currentChapter}
             />
           </div>
@@ -165,10 +176,7 @@ export function EditorView({
           // Multi-chapter / part / full-manuscript mode - Book-style layout
           <div className="max-w-4xl mx-auto py-12 px-8">
             {chapters.map((chapter, index) => (
-              <section
-                key={chapter.id}
-                className="relative"
-              >
+              <section key={chapter.id} className="relative">
                 {/* Book-style chapter heading */}
                 <div className="pt-8 pb-6">
                   <div className="text-center space-y-2">
@@ -176,18 +184,20 @@ export function EditorView({
                       Chapter {index + 1}
                     </div>
                     <h2 className="text-2xl text-gray-900">
-                      {chapter.title || 'Untitled'}
+                      {chapter.title || "Untitled"}
                     </h2>
                   </div>
                 </div>
 
                 {/* Chapter content */}
-                  <RichTextEditor
-                    editorId={`chapter-${chapter.id}`}
-                    value={chapter.content}
-                    onChange={(html) => handleChapterContentChange(chapter.id, html)}
-                    chapter={chapter}
-                  />
+                <RichTextEditor
+                  editorId={`chapter-${chapter.id}`}
+                  value={chapter.content}
+                  onChange={(html) =>
+                    handleChapterContentChange(chapter.id, html)
+                  }
+                  chapter={chapter}
+                />
 
                 {/* Divider between chapters (not on last chapter) */}
                 {index < chapters.length - 1 && (

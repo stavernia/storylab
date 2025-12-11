@@ -12,6 +12,7 @@ import { InspectorPayload } from "@/contexts/InspectorContext";
 import { useState, useEffect } from "react";
 import { timeAgo } from "@/utils/timeAgo";
 import { OutlineMetadataPanel } from "@/components/info-panels/OutlineMetadataPanel";
+import { PLACEHOLDERS } from "@/constants/ui";
 
 // Narrowed data shape for inspector payloads so TS knows about chapter/part fields
 type InspectorChapter = {
@@ -43,7 +44,7 @@ type InspectorData = {
   updateChapterDetails?: (id: string, updates: unknown) => void;
   updateChapterTitle?: (id: string, title: string) => void;
   deleteChapter?: (id: string) => void;
-  updatePartName?: (id: string, title: string) => void;
+  updatePartTitle?: (id: string, title: string) => void;
   deletePart?: (id: string) => void;
   // allow other fields without forcing you to type everything right now
   [key: string]: unknown;
@@ -126,7 +127,7 @@ export function InspectorDetails({
                 value={chapterTitleLocal}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 className="w-full text-sm text-gray-900 mb-1 px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="Chapter title"
+                placeholder={PLACEHOLDERS.CHAPTER_TITLE}
               />
             ) : (
               <div className="text-sm text-gray-900 mb-1">{chapter.title}</div>
@@ -183,7 +184,7 @@ export function InspectorDetails({
               value={chapterTitleLocal}
               onChange={(e) => handleTitleChange(e.target.value)}
               className="w-full text-sm text-gray-900 mb-1 px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
-              placeholder="Chapter title"
+              placeholder={PLACEHOLDERS.CHAPTER_TITLE}
             />
           ) : (
             <div className="text-sm text-gray-900 mb-1">{chapter.title}</div>
@@ -316,13 +317,13 @@ export function InspectorDetails({
   // Render part details
   if (payload.type === "part" && data.part) {
     const part = data.part;
-    const updatePartName = data.updatePartName;
+    const updatePartTitle = data.updatePartTitle;
     const deletePart = data.deletePart;
 
     const handlePartTitleChange = (newTitle: string) => {
       setPartTitleLocal(newTitle);
-      if (updatePartName) {
-        updatePartName(part.id, newTitle);
+      if (updatePartTitle) {
+        updatePartTitle(part.id, newTitle);
       }
     };
 
@@ -344,13 +345,13 @@ export function InspectorDetails({
           <div className="text-[10px] tracking-wider text-gray-500 mb-1">
             PART TITLE
           </div>
-          {updatePartName ? (
+          {updatePartTitle ? (
             <input
               type="text"
               value={partTitleLocal}
               onChange={(e) => handlePartTitleChange(e.target.value)}
               className="w-full text-sm text-gray-900 mb-1 px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
-              placeholder="Part title"
+              placeholder={PLACEHOLDERS.PART_TITLE}
             />
           ) : (
             <div className="text-sm text-gray-900 mb-1">{part.title}</div>

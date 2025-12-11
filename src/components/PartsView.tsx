@@ -1,17 +1,36 @@
-import { useState } from 'react';
-import { Plus, GripVertical, Edit2, Trash2, Check, X, Library } from 'lucide-react';
-import type { Part } from '@/App';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from './ui/dialog';
-import { Textarea } from './ui/textarea';
+import { useState } from "react";
+import {
+  Plus,
+  GripVertical,
+  Edit2,
+  Trash2,
+  Check,
+  X,
+  Library,
+} from "lucide-react";
+import type { Part } from "@/App";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "./ui/dialog";
+import { Textarea } from "./ui/textarea";
+import { PLACEHOLDERS } from "@/constants/ui";
 
 type PartsViewProps = {
   parts: Part[];
   onUpdate: (parts: Part[]) => void;
   onAdd: (data: { title: string; notes?: string }) => Promise<Part>;
-  onUpdatePart: (id: string, data: Partial<Pick<Part, 'title' | 'notes'>>) => Promise<Part>;
+  onUpdatePart: (
+    id: string,
+    data: Partial<Pick<Part, "title" | "notes">>,
+  ) => Promise<Part>;
   onDelete: (id: string) => Promise<void>;
   onReorder: (parts: Part[]) => Promise<void>;
   // NEW: Manager Consistency - Lifted state for Context Bar controls
@@ -27,14 +46,14 @@ export function PartsView({
   onDelete,
   onReorder,
   showAddDialog,
-  setShowAddDialog
+  setShowAddDialog,
 }: PartsViewProps) {
   const [isAddingPart, setIsAddingPart] = useState(false);
-  const [newPartTitle, setNewPartTitle] = useState('');
-  const [newPartNotes, setNewPartNotes] = useState('');
+  const [newPartTitle, setNewPartTitle] = useState("");
+  const [newPartNotes, setNewPartNotes] = useState("");
   const [editingPartId, setEditingPartId] = useState<string | null>(null);
-  const [editPartTitle, setEditPartTitle] = useState('');
-  const [editPartNotes, setEditPartNotes] = useState('');
+  const [editPartTitle, setEditPartTitle] = useState("");
+  const [editPartNotes, setEditPartNotes] = useState("");
   const [draggingPartId, setDraggingPartId] = useState<string | null>(null);
 
   // Sort parts by sortOrder
@@ -42,31 +61,38 @@ export function PartsView({
 
   const handleAddPart = async () => {
     if (newPartTitle.trim()) {
-      await onAdd({ title: newPartTitle.trim(), notes: newPartNotes.trim() || undefined });
+      await onAdd({
+        title: newPartTitle.trim(),
+        notes: newPartNotes.trim() || undefined,
+      });
       setIsAddingPart(false);
-      setNewPartTitle('');
-      setNewPartNotes('');
+      setNewPartTitle("");
+      setNewPartNotes("");
     }
   };
 
   const handleStartEdit = (part: Part) => {
     setEditingPartId(part.id);
     setEditPartTitle(part.title);
-    setEditPartNotes(part.notes || '');
+    setEditPartNotes(part.notes || "");
   };
 
   const handleSaveEdit = async () => {
     if (editingPartId && editPartTitle.trim()) {
       await onUpdatePart(editingPartId, {
         title: editPartTitle.trim(),
-        notes: editPartNotes.trim() || undefined
+        notes: editPartNotes.trim() || undefined,
       });
       setEditingPartId(null);
     }
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (confirm(`Delete part "${title}"? Chapters in this part will be moved to "Ungrouped".`)) {
+    if (
+      confirm(
+        `Delete part "${title}"? Chapters in this part will be moved to "Ungrouped".`,
+      )
+    ) {
       await onDelete(id);
     }
   };
@@ -85,8 +111,8 @@ export function PartsView({
       return;
     }
 
-    const sourceIndex = sortedParts.findIndex(p => p.id === draggingPartId);
-    const targetIndex = sortedParts.findIndex(p => p.id === targetPartId);
+    const sourceIndex = sortedParts.findIndex((p) => p.id === draggingPartId);
+    const targetIndex = sortedParts.findIndex((p) => p.id === targetPartId);
 
     if (sourceIndex === -1 || targetIndex === -1) {
       setDraggingPartId(null);
@@ -100,7 +126,7 @@ export function PartsView({
     // Update sortOrder
     const updated = reordered.map((part, index) => ({
       ...part,
-      sortOrder: index
+      sortOrder: index,
     }));
 
     onUpdate(updated);
@@ -130,9 +156,15 @@ export function PartsView({
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedParts.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                <td
+                  colSpan={4}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
                   <Library className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                  <p>No parts yet. Add your first part to organize your manuscript.</p>
+                  <p>
+                    No parts yet. Add your first part to organize your
+                    manuscript.
+                  </p>
                 </td>
               </tr>
             ) : (
@@ -144,7 +176,7 @@ export function PartsView({
                   onDragOver={handleDragOver}
                   onDrop={() => handleDrop(part.id)}
                   className={`hover:bg-gray-50 transition-colors group h-[52px] ${
-                    draggingPartId === part.id ? 'opacity-50' : ''
+                    draggingPartId === part.id ? "opacity-50" : ""
                   }`}
                 >
                   <td className="px-3 py-3">
@@ -157,8 +189,8 @@ export function PartsView({
                         onChange={(e) => setEditPartTitle(e.target.value)}
                         autoFocus
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSaveEdit();
-                          if (e.key === 'Escape') setEditingPartId(null);
+                          if (e.key === "Enter") handleSaveEdit();
+                          if (e.key === "Escape") setEditingPartId(null);
                         }}
                         className="text-sm"
                       />
@@ -177,7 +209,7 @@ export function PartsView({
                       />
                     ) : (
                       <div className="text-sm text-gray-600 truncate max-w-md">
-                        {part.notes || '—'}
+                        {part.notes || "—"}
                       </div>
                     )}
                   </td>
@@ -228,12 +260,15 @@ export function PartsView({
       </div>
 
       {/* Add Part Dialog */}
-      <Dialog open={showAddDialog || isAddingPart} onOpenChange={(open) => {
-        if (!open) {
-          setIsAddingPart(false);
-          if (setShowAddDialog) setShowAddDialog(false);
-        }
-      }}>
+      <Dialog
+        open={showAddDialog || isAddingPart}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsAddingPart(false);
+            if (setShowAddDialog) setShowAddDialog(false);
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Add Part</DialogTitle>
@@ -248,9 +283,9 @@ export function PartsView({
                 id="partTitle"
                 value={newPartTitle}
                 onChange={(e) => setNewPartTitle(e.target.value)}
-                placeholder="e.g., Part I: The Beginning"
+                placeholder={PLACEHOLDERS.PART_TITLE}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleAddPart();
+                  if (e.key === "Enter") handleAddPart();
                 }}
               />
             </div>
@@ -271,8 +306,8 @@ export function PartsView({
               variant="outline"
               onClick={() => {
                 setIsAddingPart(false);
-                setNewPartTitle('');
-                setNewPartNotes('');
+                setNewPartTitle("");
+                setNewPartNotes("");
                 if (setShowAddDialog) setShowAddDialog(false);
               }}
             >

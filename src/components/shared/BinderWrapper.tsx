@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { ChapterList } from '@/components/ChapterList';
-import { ResizableSidebar } from './ResizableSidebar';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Chapter, Part, ManuscriptSelection } from '@/App';
+import { ChapterList } from "@/components/ChapterList";
+import { ResizableSidebar } from "./ResizableSidebar";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { Chapter, Part, ManuscriptSelection } from "@/App";
 import type { BreadcrumbData } from "@/components/layout/Pane";
 
 interface BinderWrapperProps {
@@ -10,11 +10,11 @@ interface BinderWrapperProps {
   chapters: Chapter[];
   parts?: Part[];
   bookTitle?: string;
-  
+
   // Selection state
   selection: ManuscriptSelection;
   onSelectionChange: (selection: ManuscriptSelection) => void;
-  
+
   // Chapter operations
   currentChapterId?: string;
   setCurrentChapterId?: (id: string) => void;
@@ -23,25 +23,25 @@ interface BinderWrapperProps {
   updateChapterTitle: (id: string, title: string) => void;
   updateChapterDetails?: (id: string, updates: Partial<Chapter>) => void;
   reorderChapters: (chapters: Chapter[]) => void;
-  
+
   // Part operations
   addPart?: (data: { title: string; notes?: string }) => Promise<Part>;
   deletePart?: (id: string) => void;
-  updatePartName?: (id: string, name: string) => void;
+  updatePartTitle?: (id: string, name: string) => void;
   reorderParts?: (parts: Part[]) => void;
-  
+
   // UI state
   leftSidebarOpen: boolean;
   setLeftSidebarOpen?: (open: boolean) => void;
-  
+
   // Breadcrumb callback
   setBreadcrumbData?: (data: BreadcrumbData) => void;
-  
+
   // Inspector callback
   onChapterInfoClick?: (chapter: Chapter) => void;
   onManuscriptInfoClick?: () => void;
   onPartInfoClick?: (part: Part) => void;
-  
+
   // Children (the actual view content)
   children: (filteredChapters: Chapter[]) => React.ReactNode;
 }
@@ -61,7 +61,7 @@ export function BinderWrapper({
   reorderChapters,
   addPart,
   deletePart,
-  updatePartName,
+  updatePartTitle,
   reorderParts,
   leftSidebarOpen,
   setLeftSidebarOpen,
@@ -74,7 +74,7 @@ export function BinderWrapper({
   // Track binder position for fixed positioning of open tab
   const binderRef = useRef<HTMLDivElement>(null);
   const [binderRightEdge, setBinderRightEdge] = useState(0);
-  
+
   // Update binder right edge position when it changes
   useEffect(() => {
     const updateBinderPosition = () => {
@@ -83,18 +83,18 @@ export function BinderWrapper({
         setBinderRightEdge(rect.right);
       }
     };
-    
+
     updateBinderPosition();
-    window.addEventListener('resize', updateBinderPosition);
-    
+    window.addEventListener("resize", updateBinderPosition);
+
     // Use ResizeObserver to detect binder width changes
     const resizeObserver = new ResizeObserver(updateBinderPosition);
     if (binderRef.current) {
       resizeObserver.observe(binderRef.current);
     }
-    
+
     return () => {
-      window.removeEventListener('resize', updateBinderPosition);
+      window.removeEventListener("resize", updateBinderPosition);
       resizeObserver.disconnect();
     };
   }, [leftSidebarOpen]);
@@ -120,26 +120,30 @@ export function BinderWrapper({
 
   // Filter chapters based on selection
   let visibleChapters: Chapter[] = [];
-  if (selection.kind === 'manuscript') {
+  if (selection.kind === "manuscript") {
     visibleChapters = sortedChapters;
-  } else if (selection.kind === 'part') {
-    visibleChapters = sortedChapters.filter((ch) => ch.partId === selection.partId);
+  } else if (selection.kind === "part") {
+    visibleChapters = sortedChapters.filter(
+      (ch) => ch.partId === selection.partId,
+    );
   } else {
-    const chapter = sortedChapters.find((ch) => ch.id === selection.chapterId) ?? sortedChapters[0];
+    const chapter =
+      sortedChapters.find((ch) => ch.id === selection.chapterId) ??
+      sortedChapters[0];
     visibleChapters = chapter ? [chapter] : [];
   }
 
   // Handlers for selection changes from binder
   const handleSelectManuscript = () => {
-    onSelectionChange({ kind: 'manuscript' });
+    onSelectionChange({ kind: "manuscript" });
   };
 
   const handleSelectPart = (partId: string) => {
-    onSelectionChange({ kind: 'part', partId });
+    onSelectionChange({ kind: "part", partId });
   };
 
   const handleSelectChapter = (chapterId: string) => {
-    onSelectionChange({ kind: 'chapter', chapterId });
+    onSelectionChange({ kind: "chapter", chapterId });
     if (setCurrentChapterId) {
       setCurrentChapterId(chapterId);
     }
@@ -147,9 +151,9 @@ export function BinderWrapper({
 
   // Handlers for chapter list
   const handleReorderChapters = (orderedIds: string[]) => {
-    const idToChapter = new Map(chapters.map(ch => [ch.id, ch]));
+    const idToChapter = new Map(chapters.map((ch) => [ch.id, ch]));
     const reordered = orderedIds
-      .map(id => idToChapter.get(id))
+      .map((id) => idToChapter.get(id))
       .filter((ch): ch is Chapter => !!ch);
     reorderChapters(reordered);
   };
@@ -210,10 +214,22 @@ export function BinderWrapper({
       lastBreadcrumbSig.current = signature;
       setBreadcrumbData(payload);
     }
-  }, [selection, sortedChapters, sortedParts, bookTitle, setBreadcrumbData, handleSelectChapter, handleSelectManuscript, handleSelectPart]);
+  }, [
+    selection,
+    sortedChapters,
+    sortedParts,
+    bookTitle,
+    setBreadcrumbData,
+    handleSelectChapter,
+    handleSelectManuscript,
+    handleSelectPart,
+  ]);
 
   return (
-    <div data-tour-id="workspace" className="h-full flex min-h-0 relative overflow-hidden">
+    <div
+      data-tour-id="workspace"
+      className="h-full flex min-h-0 relative overflow-hidden"
+    >
       {/* Left Sidebar - Chapter List (Collapsible Binder) - with SideTab when open */}
       <div ref={binderRef} className="relative flex-shrink-0">
         <ResizableSidebar
@@ -225,7 +241,7 @@ export function BinderWrapper({
         >
           <ChapterList
             chapters={chapters}
-            currentChapterId={currentChapterId || ''}
+            currentChapterId={currentChapterId || ""}
             setCurrentChapterId={handleSelectChapter}
             addChapter={addChapter}
             deleteChapter={deleteChapter}
@@ -238,7 +254,7 @@ export function BinderWrapper({
             parts={parts}
             addPart={addPart}
             deletePart={deletePart}
-            updatePartName={updatePartName}
+            updatePartTitle={updatePartTitle}
             reorderParts={reorderParts}
             onSelectManuscript={handleSelectManuscript}
             onSelectPart={handleSelectPart}
@@ -246,7 +262,7 @@ export function BinderWrapper({
             onPartInfoClick={onPartInfoClick}
           />
         </ResizableSidebar>
-        
+
         {/* Binder SideTab (CLOSED state) - open the binder */}
         {!leftSidebarOpen && setLeftSidebarOpen && (
           <button
@@ -257,7 +273,7 @@ export function BinderWrapper({
             <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
           </button>
         )}
-        
+
         {/* Binder SideTab (OPEN state) - fixed positioning to match v219 */}
         {leftSidebarOpen && setLeftSidebarOpen && binderRightEdge > 0 && (
           <button
