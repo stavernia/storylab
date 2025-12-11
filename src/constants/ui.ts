@@ -16,4 +16,7 @@ export const PLACEHOLDERS = {
   
   // Theme names
   THEME_NAME: 'Theme name',
+  
+  // Editor content
+  CHAPTER_CONTENT: 'Start writing your chapter...',
 } as const;

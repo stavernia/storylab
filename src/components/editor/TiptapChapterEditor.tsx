@@ -1,7 +1,11 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import Placeholder from "@tiptap/extension-placeholder";
 import { useEffect, useState } from "react";
 import { useEditorContext } from "./EditorContext";
+import { PLACEHOLDERS } from "@/constants/ui";
 
 export type TiptapChapterEditorProps = {
   chapterId: string;
@@ -21,7 +25,16 @@ export function TiptapChapterEditor({
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Underline,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+      Placeholder.configure({
+        placeholder: PLACEHOLDERS.CHAPTER_CONTENT,
+      }),
+    ],
     content: value,
     editable: !readOnly,
     onUpdate: ({ editor }) => {
