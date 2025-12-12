@@ -1,71 +1,477 @@
 {
   "book": {
-    "title": "StoryLab Starter",
-    "description": "A quick sample project to help you explore StoryLab."
+    "title": "My First Novel",
+    "description": "A guided starter project following Paige as she learns to write her first novel using StoryLab—complete with tutorials, tips, and a little meta-fiction magic."
   },
   "parts": [
     {
-      "title": "Part I",
+      "title": "Part I – The Day I Finally Start",
       "sortOrder": 0,
-      "notes": "Organize your chapters into parts to keep the story tidy."
+      "notes": "Paige discovers the core features: manuscript, outline, corkboard, and grid."
+    },
+    {
+      "title": "Part II – Seeing the Story",
+      "sortOrder": 1,
+      "notes": "Paige explores deeper analytical tools and commits to the long game of drafting."
     }
   ],
   "chapters": [
     {
-      "title": "Chapter 1: Arrival",
-      "content": "Welcome to your starter project. Use this space to explore the editor and make it your own.",
-      "outline": "<p>Story beats and structure go here.<br>Let's hit the following beats:<br>- Introduce the world</p><p>- Set up the conflict</p>",
+      "title": "Chapter 1 – Alarm, Coffee, and Good Intentions",
+      "content": "<p>The alarm sang at 6:00 AM with a cheerful reminder Paige had programmed three months ago: <em>\"Write the Damn Book.\"</em> She groaned, silenced it, and padded to the kitchen where Comma the Cat was already judging her from atop the fridge. Coffee first. Then courage.</p><p>By 6:47, she sat at her desk, mug steaming, and opened <strong>StoryLab</strong>. The project glowed at her: <em>My First Novel</em>. The manuscript pane stretched blank and infinite, cursor blinking with quiet menace. Paige cracked her knuckles. Today was the day. Probably.</p>",
+      "outline": "<ul><li>Paige wakes to \"Write the Damn Book\" alarm</li><li>Makes coffee while Comma judges</li><li>Opens StoryLab project for the first time in weeks</li><li>Faces the blank manuscript with a mix of terror and determination</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Establish Paige's intention to finally start writing and introduce the StoryLab interface.",
+      "outlineGoal": "Paige wants to open the project and feel ready to write, proving to herself that today is different.",
+      "outlineConflict": "The blank page is intimidating, and Paige's history of false starts looms over her.",
+      "outlineStakes": "If she doesn't start now, the cycle of procrastination continues and the novel never gets written.",
+      "customOutlineFields": null,
       "sortOrder": 0,
+      "wordCount": 98,
+      "lastEdited": "2025-12-11T08:30:00.000Z",
       "partIndex": 0
     },
     {
-      "title": "Chapter 2: Next Steps",
-      "content": "Try adding themes, tags, and corkboard cards to organize your ideas.",
-      "outline": "<p>Story beats:<br>- Learn about protagonist's past</p><p>- Meet the love interest<p>- Introduce the roadblock</p>",
+      "title": "Chapter 2 – The Blank Page Stares Back",
+      "content": "<p>Paige stared at the manuscript. The manuscript stared back. She toggled to the <strong>outline pane</strong>—also blank. Back to manuscript. Still blank. This was fine. Totally fine.</p><p>She typed: <em>\"The protagonist walked into the room.\"</em> Paige grimaced. Weak. Vague. But it was <em>something</em>. She hit enter twice and added: <em>\"The room was... a room.\"</em> Comma hopped onto the desk, tail swishing. Even the cat knew this was bad. But bad words were better than no words, right? <em>Right?</em></p>",
+      "outline": "<ul><li>Paige toggles between blank manuscript and outline</li><li>Writer's block hits hard</li><li>Types deliberately bad sentences just to break the silence</li><li>Comma appears and silently judges the prose</li><li>Paige questions whether bad writing is progress</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Show the painful reality of starting: everything feels wrong and clumsy.",
+      "outlineGoal": "Write literally anything to prove the blank page doesn't own her.",
+      "outlineConflict": "Perfectionism and self-doubt make even simple sentences feel impossible.",
+      "outlineStakes": "If she can't push through the awkwardness now, she'll delete it all and quit.",
+      "customOutlineFields": null,
       "sortOrder": 1,
+      "wordCount": 87,
+      "lastEdited": "2025-12-11T09:15:00.000Z",
       "partIndex": 0
+    },
+    {
+      "title": "Chapter 3 – Outlines, Rabbitholes, and Color-Coded Hope",
+      "content": "<p>Paige gave up on the manuscript for now and clicked over to the <strong>outline view</strong>. Maybe structure would save her. She added bullet points: <em>Opening scene. Introduce conflict. Character wants something.</em> Basic, but visible.</p><p>Then she discovered <strong>tags</strong>. Blue for POV. Amber for subplot threads. Gray for drafts-in-progress. Suddenly the outline wasn't just a list—it was a <em>map</em>. She color-coded her first three chapters, then leaned back. Paige smiled. She could <em>see</em> the structure now, even if the words weren't there yet.</p>",
+      "outline": "<ul><li>Paige switches to outline view to escape the blank manuscript</li><li>Adds initial chapter beats and discovers tags</li><li>Experiments with color-coding chapters by POV and subplot</li><li>Realizes structure makes the book feel less overwhelming</li><li>First moment of genuine optimism</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Introduce outlining and tagging as tools for creating visible structure.",
+      "outlineGoal": "Build a roadmap so the story feels less like chaos and more like a plan.",
+      "outlineConflict": "Paige tends to overthink structure and fall into research rabbitholes instead of writing.",
+      "outlineStakes": "If she gets lost in planning, she'll never return to drafting real scenes.",
+      "customOutlineFields": null,
+      "sortOrder": 2,
+      "wordCount": 81,
+      "lastEdited": "2025-12-12T01:33:08.742Z",
+      "partIndex": 0
+    },
+    {
+      "title": "Chapter 4 – Corkboard Chaos (In a Good Way)",
+      "content": "<p>Paige clicked the <strong>Corkboard</strong> tab and gasped. Cards. Dozens of them, colorful and draggable, each representing a scene or idea. One card read: <em>\"Drag me to another chapter.\"</em> She did. It moved. Magic.</p><p>She added a new card: <em>\"Scene Idea: Protagonist realizes the truth.\"</em> Tagged it <em>key-thread</em>. Opened the <strong>inspector panel</strong> and set the status to <em>todo</em>. Then Comma stepped directly onto the keyboard, and a card titled \"jjjjjjjjjjjjj\" appeared. Paige laughed, deleted it, and gave Comma a scratch. Chaos, but the <em>fun</em> kind.</p>",
+      "outline": "<ul><li>Paige discovers the corkboard view with draggable scene cards</li><li>Experiments with moving cards between chapters</li><li>Creates new cards and explores the inspector panel</li><li>Comma walks on keyboard, creating accidental card</li><li>Paige feels playful and in control of the story's pieces</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Introduce the corkboard as a spatial, playful way to organize scenes.",
+      "outlineGoal": "Understand how to use scene cards to break down the story into movable, trackable pieces.",
+      "outlineConflict": "The sheer possibility of rearranging everything is overwhelming in a new way.",
+      "outlineStakes": "If she can't wrangle the corkboard, it becomes just another distraction tool.",
+      "customOutlineFields": null,
+      "sortOrder": 3,
+      "wordCount": 108,
+      "lastEdited": "2025-12-11T11:30:00.000Z",
+      "partIndex": 0
+    },
+    {
+      "title": "Chapter 5 – Threads, Themes, and Mild Panic",
+      "content": "<p>Paige opened the <strong>Grid</strong>. Rows for themes. Columns for chapters. Little cells marking where <em>Self-Doubt</em> spiked, where <em>Momentum</em> stalled. One row glowed with a label: <strong>Core Story Thread</strong>. Seed. Buildup. Event. Aftermath.</p><p>She clicked a cell in Chapter 2 and saw her own note: <em>\"Self-Doubt intensity: 3.\"</em> Accurate. Painfully so. But seeing it <em>mapped</em>—visible across chapters—made it feel less like drowning and more like <em>data</em>. She could fix data. Maybe. Comma meowed. Paige exhaled. \"Okay. I see you, story. Let's do this.\"</p>",
+      "outline": "<ul><li>Paige opens the grid view for the first time</li><li>Sees themes and a story thread mapped across chapters</li><li>Notices \"Self-Doubt\" intensity is highest in early chapters</li><li>Feels simultaneously panicked and in control</li><li>Realizes the grid makes invisible patterns visible</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Introduce the grid as a tool for visualizing themes and threads across the manuscript.",
+      "outlineGoal": "Understand where themes appear and how the core thread develops over time.",
+      "outlineConflict": "Seeing her own emotional patterns (Self-Doubt, Momentum) reflected in the grid is uncomfortable.",
+      "outlineStakes": "If the grid overwhelms her, she'll close it and lose the chance to see the story structurally.",
+      "customOutlineFields": null,
+      "sortOrder": 4,
+      "wordCount": 104,
+      "lastEdited": "2025-12-11T12:45:00.000Z",
+      "partIndex": 0
+    },
+    {
+      "title": "Chapter 6 – The First Real Scene",
+      "content": "<p>Paige returned to the <strong>manuscript</strong>. Armed with outline beats, corkboard cards, and a grid full of intentions, she wrote. Not perfectly. Not even well. But <em>real</em>.</p><p>The scene unfolded: her protagonist entering a library, looking for a book that didn't exist. Paige linked the scene to a card on the corkboard, checked it off as <em>draft</em>. She glanced at the outline. Check. She updated the grid cell for Chapter 6. Check. <strong>486 words</strong>. Imperfect, fixable, <em>hers</em>. Paige saved the file and felt something she hadn't felt in months: pride.</p>",
+      "outline": "<ul><li>Paige returns to manuscript, ready to write for real</li><li>Writes a full scene (protagonist in library)</li><li>Links scene to corkboard card and marks it as draft</li><li>Updates grid and outline to reflect progress</li><li>Sees word count climb and feels unexpected pride</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Show the payoff: using structure and tools leads to actual writing.",
+      "outlineGoal": "Write a complete, imperfect scene and feel like a real writer.",
+      "outlineConflict": "The scene isn't perfect, and Paige has to resist the urge to delete it.",
+      "outlineStakes": "If she deletes this, she'll spiral back into perfectionism and never finish a draft.",
+      "customOutlineFields": null,
+      "sortOrder": 5,
+      "wordCount": 88,
+      "lastEdited": "2025-12-12T01:31:44.843Z",
+      "partIndex": 0
+    },
+    {
+      "title": "Chapter 7 – Future Paige Visits the Grid",
+      "content": "<p>Paige closed her eyes and imagined herself six months from now, scrolling across a <strong>fully developed grid</strong>. Forty chapters. Eight themes. Story threads weaving through like highways on a map. A bird's-eye view of the entire novel.</p><p>She could see which chapters carried the revenge subplot, where the protagonist's arc turned, where foreshadowing bloomed into payoff. Future Paige hovered over a cell and saw notes: <em>\"Red herring planted here. Resolve in Ch. 38.\"</em> Comma meowed, snapping her back to the present. Chapter 6. Twelve to go. But now she could <em>see</em> the destination.</p>",
+      "outline": "<ul><li>Paige imagines a future version of herself with a complete manuscript</li><li>Envisions a fully developed grid showing all arcs and motifs</li><li>Sees the grid as a bird's-eye map of the entire novel</li><li>Realizes the grid will grow with her as the story develops</li><li>Snaps back to present but feels motivated</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Transition into Part II by showing Paige imagining future, deeper tools.",
+      "outlineGoal": "Envision what the completed story will look like in StoryLab's analytical views.",
+      "outlineConflict": "The gap between six chapters and forty feels impossibly wide.",
+      "outlineStakes": "If she can't hold onto the vision, she'll lose motivation before reaching the middle.",
+      "customOutlineFields": null,
+      "sortOrder": 6,
+      "wordCount": 105,
+      "lastEdited": "2025-12-11T15:30:00.000Z",
+      "partIndex": 1
+    },
+    {
+      "title": "Chapter 8 – Timeline Dreams",
+      "content": "<p>Paige daydreamed about a <strong>timeline slider</strong> that didn't exist yet. She imagined dragging it from Chapter 1 to Chapter 40, watching character states shift: <em>Protagonist: hopeful → betrayed → determined.</em> Items gained and lost. Secrets revealed and kept.</p><p>She pictured a little icon appearing over Chapter 14: <em>\"Necklace acquired.\"</em> Another at Chapter 29: <em>\"Necklace lost.\"</em> StoryLab tracking every object, every emotional beat. Paige scribbled a note on a corkboard card: <em>\"Timeline feature request: Track the damn necklace.\"</em> Comma knocked a pen off the desk. Paige grinned. \"Coming soon,\" she whispered.</p>",
+      "outline": "<ul><li>Paige imagines a timeline slider showing character and item states across chapters</li><li>Envisions tracking emotional arcs and object possession over time</li><li>Realizes a timeline could reveal continuity gaps</li><li>Writes a feature request card on the corkboard</li><li>Frames this as aspirational / \"coming soon\"</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Introduce the idea of a timeline tool for tracking continuity and change.",
+      "outlineGoal": "Imagine a tool that could help track complex continuity across many chapters.",
+      "outlineConflict": "The tool doesn't exist yet, and Paige must track things manually for now.",
+      "outlineStakes": "Without timeline tracking, continuity errors will slip through and weaken the story.",
+      "customOutlineFields": null,
+      "sortOrder": 7,
+      "wordCount": 102,
+      "lastEdited": "2025-12-11T16:00:00.000Z",
+      "partIndex": 1
+    },
+    {
+      "title": "Chapter 9 – Foreshadow, Payoff, and That One Lost Clue",
+      "content": "<p>Paige squinted at Chapter 2, where her protagonist had found a strange key. She'd almost forgotten about it. If she didn't <em>do something</em> with that key by Chapter 20, readers would riot.</p><p>She imagined <strong>visual lines</strong> connecting setup to payoff: a glowing thread from the key in Chapter 2 to a locked door in Chapter 18. StoryLab showing her every dangling thread, every unresolved question. She opened a corkboard card: <em>\"Resolve the key by Ch. 18.\"</em> Set it to <em>todo</em>, colored it red. Comma blinked slowly. \"I know,\" Paige said. \"I almost forgot. But not anymore.\"</p>",
+      "outline": "<ul><li>Paige realizes she planted a key in Chapter 2 but hasn't resolved it</li><li>Imagines visual foreshadow-payoff lines connecting chapters</li><li>Creates a corkboard reminder to resolve the key by Chapter 18</li><li>Understands that tracking setups prevents plot holes</li><li>Feels relieved to have caught the issue early</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Show how tracking foreshadowing and payoff prevents loose threads.",
+      "outlineGoal": "Identify and plan resolution for an early story element (the key).",
+      "outlineConflict": "Paige almost forgot the key entirely; the risk of dropped threads is real.",
+      "outlineStakes": "If she forgets to resolve the key, readers will feel cheated and the story loses credibility.",
+      "customOutlineFields": null,
+      "sortOrder": 8,
+      "wordCount": 107,
+      "lastEdited": "2025-12-11T16:45:00.000Z",
+      "partIndex": 1
+    },
+    {
+      "title": "Chapter 10 – Character Arcs and Emotional Weather",
+      "content": "<p>Paige envisioned <strong>character arc graphs</strong>: lines rising and falling across chapters, tracking confidence, trust, fear. She imagined clicking on <em>Protagonist</em> and seeing a curve: <em>Self-Doubt peaks at Chapter 11, drops at Chapter 23, rises again at Chapter 35.</em></p><p>Emotional weather. That's what it was. And StoryLab could map the forecast. She opened the grid again, staring at her own <em>Self-Doubt</em> theme row. The intensity climbed through early chapters, dipped at Chapter 6. She laughed. \"I'm writing my own arc without realizing it.\" Comma meowed in agreement. Paige took a screenshot of the grid. Evidence that she was learning.</p>",
+      "outline": "<ul><li>Paige imagines character evolution graphs showing emotional arcs</li><li>Envisions tracking protagonist's self-doubt, confidence, fear across chapters</li><li>Realizes she's been unconsciously writing her own emotional arc into the story</li><li>Sees the parallel between her struggle and her protagonist's</li><li>Takes a screenshot of the grid as a milestone</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Explore character arc tracking and the meta-parallel between Paige and her protagonist.",
+      "outlineGoal": "Understand how emotional arcs develop over time and can be visualized.",
+      "outlineConflict": "Paige sees her own self-doubt mirrored in the protagonist and must decide whether to embrace it.",
+      "outlineStakes": "If she doesn't track emotional arcs, the story will feel flat and characters won't grow believably.",
+      "customOutlineFields": null,
+      "sortOrder": 9,
+      "wordCount": 109,
+      "lastEdited": "2025-12-11T17:15:00.000Z",
+      "partIndex": 1
+    },
+    {
+      "title": "Chapter 11 – Heatmaps and Hard Truths",
+      "content": "<p>Paige opened an imaginary <strong>heatmap view</strong> overlaid on her manuscript. Chapters 1–6 glowed green: <em>Strong start.</em> Chapters 7–9: pale yellow. <em>Sagging middle.</em> Chapters 10–12: bright red. <em>Weak. Fix this.</em></p><p>Instead of panicking, Paige felt... clarity. The heatmap wasn't an insult. It was a <em>revision roadmap</em>. She opened a new corkboard card: <em>\"Strengthen Chapters 10–12: Add subplots, raise stakes, connect to thread.\"</em> Set the status to <em>revision</em>. Paige cracked her knuckles. \"Okay. Now I know where to dig.\"</p>",
+      "outline": "<ul><li>Paige imagines a heatmap showing chapter strength across the manuscript</li><li>Sees weak spots in the middle chapters highlighted in red</li><li>Feels clarity instead of panic: this is actionable data</li><li>Creates a revision card targeting weak chapters</li><li>Treats the heatmap as a roadmap, not a judgment</li></ul>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Introduce heatmaps as diagnostic tools for identifying weak structural areas.",
+      "outlineGoal": "Use a heatmap to identify and plan revisions for weak chapters.",
+      "outlineConflict": "Seeing weaknesses visualized could trigger perfectionism and despair.",
+      "outlineStakes": "If Paige can't handle honest feedback (even from herself), she'll never revise effectively.",
+      "customOutlineFields": null,
+      "sortOrder": 10,
+      "wordCount": 76,
+      "lastEdited": "2025-12-12T01:32:29.900Z",
+      "partIndex": 1
+    },
+    {
+      "title": "Chapter 12 – Hitting Save on Something That Matters",
+      "content": "<p>Paige leaned back in her chair. The manuscript wasn't done. Not even close. But it was <em>started</em>. Six chapters drafted. Twelve planned. A grid full of threads. A corkboard mapped with intentions. She'd learned more in one day than in six months of stalling.</p><p>She hit <strong>Save</strong>. The file updated. Comma purred. Paige stood, stretched, and made a promise to herself: <em>Tomorrow, I'll write Chapter 7. And the day after, Chapter 8. And I'll keep going until this thing is real.</em> She closed her laptop and gave Comma a treat. Today, she'd finally started. Tomorrow, she'd keep building.</p>",
+      "outline": "<ul><li><p>Paige reflects on the day's progress: six chapters drafted, twelve outlined</p></li><li><p>Realizes she's learned more by doing than by procrastinating</p></li><li><p>Saves the project and commits to continuing tomorrow</p></li><li><p>Gives Comma a treat as a small celebration</p></li><li><p>Closes laptop with a sense of accomplishment and momentum</p></li></ul><p></p>",
+      "outlinePOV": "Paige (3rd limited)",
+      "outlinePurpose": "Conclude the story with Paige committing to the long-term process of writing.",
+      "outlineGoal": "Acknowledge progress, save the work, and commit to showing up tomorrow.",
+      "outlineConflict": "The novel is far from finished, and the hardest work is still ahead.",
+      "outlineStakes": "If Paige doesn't commit to consistency, this will be just another false start.",
+      "customOutlineFields": null,
+      "sortOrder": 11,
+      "wordCount": 110,
+      "lastEdited": "2025-12-11T19:00:00.000Z",
+      "partIndex": 1
     }
   ],
   "themes": [
     {
-      "name": "Protagonist Arc",
-      "color": "#4f46e5",
-      "description": "Track your hero's journey and choices.",
-      "rowOrder": 0
+      "name": "Momentum vs. Procrastination",
+      "color": "#10b981",
+      "kind": null,
+      "source": null,
+      "mode": "heatmap",
+      "sourceRefId": null,
+      "description": "Tracks whether Paige is moving forward or stuck in avoidance.",
+      "aiGuide": null,
+      "rowOrder": 0,
+      "isHidden": false,
+      "threadLabel": null
     },
     {
-      "name": "World",
-      "color": "#0ea5e9",
-      "description": "Notes about the setting and stakes.",
-      "rowOrder": 1
+      "name": "Core Story Thread",
+      "color": "#f59e0b",
+      "kind": null,
+      "source": "thread",
+      "mode": "thread",
+      "sourceRefId": null,
+      "description": "The main through-line of Paige learning to write her first novel.",
+      "aiGuide": null,
+      "rowOrder": 1,
+      "isHidden": false,
+      "threadLabel": "The First Novel"
+    },
+    {
+      "name": "Play & Experimentation",
+      "color": "#8b5cf6",
+      "kind": null,
+      "source": null,
+      "mode": null,
+      "sourceRefId": null,
+      "description": "Marks where Paige allows herself to experiment and have fun with the tools.",
+      "aiGuide": null,
+      "rowOrder": 2,
+      "isHidden": false,
+      "threadLabel": null
+    },
+    {
+      "name": "Comma the Cat",
+      "color": "#6b7280",
+      "kind": null,
+      "source": "character",
+      "mode": null,
+      "sourceRefId": "2e609c98-ba5f-4db9-b2b1-03b669a43a79",
+      "description": "Tracks whether Comma the Cat is mentioned in each chapter.",
+      "aiGuide": null,
+      "rowOrder": 3,
+      "isHidden": false,
+      "threadLabel": null
+    },
+    {
+      "name": "Self-Doubt",
+      "color": "#ef4444",
+      "kind": null,
+      "source": "character",
+      "mode": "heatmap",
+      "sourceRefId": "58813ff5-a4c4-42c4-a32f-85c5ee6558c8",
+      "description": "Measures the intensity of Paige's self-doubt across chapters.",
+      "aiGuide": null,
+      "rowOrder": 4,
+      "isHidden": false,
+      "threadLabel": null
+    },
+    {
+      "name": "Paige Presence",
+      "color": "#f59e0b",
+      "kind": null,
+      "source": "character",
+      "mode": "heatmap",
+      "sourceRefId": null,
+      "description": null,
+      "aiGuide": null,
+      "rowOrder": null,
+      "isHidden": true,
+      "threadLabel": null
     }
   ],
   "tags": [
-    { "name": "starter", "color": "#2563eb" },
-    { "name": "demo", "color": "#10b981" }
+    {
+      "name": "future-feature",
+      "color": "purple"
+    },
+    {
+      "name": "key-thread",
+      "color": "amber"
+    },
+    {
+      "name": "pov-paige",
+      "color": "blue"
+    },
+    {
+      "name": "revision",
+      "color": "red"
+    },
+    {
+      "name": "tutorial-step",
+      "color": "green"
+    }
   ],
   "characters": [
     {
-      "name": "Alex",
-      "color": "#f59e0b",
-      "role": "Protagonist",
-      "notes": "A placeholder hero for your story."
+      "name": "Comma the Cat",
+      "color": "#10b981",
+      "role": "Paige's cat and silent accountability buddy",
+      "notes": "Comma shows up during writing sessions, sits on keyboards, and provides wordless judgment and companionship."
+    },
+    {
+      "name": "Paige",
+      "color": "#3b82f6",
+      "role": "Protagonist, aspiring novelist",
+      "notes": "Paige is determined to finally write her first novel. She's smart, self-aware, and battles perfectionism daily."
+    },
+    {
+      "name": "StoryLab",
+      "color": "#8b5cf6",
+      "role": "The writing app, personified in Paige's imagination",
+      "notes": "StoryLab is calm, quietly judgmental, but ultimately supportive—a digital muse that reveals structure and insight."
     }
   ],
   "boards": [
     {
-      "name": "Ideas",
-      "description": "Quick notes and beats to revisit.",
+      "name": "My First Novel – Getting Started",
+      "description": "Tutorial-style cards that demonstrate corkboard features while planning Paige's story.",
       "sortOrder": 0
     }
   ],
   "cards": [
     {
-      "title": "Opening beat",
-      "summary": "Set the scene and hint at the change to come.",
-      "laneRank": "a|starter-1",
+      "title": "Drag Me to Another Chapter",
+      "summary": "Try dragging this card to a different chapter to see how corkboard reordering works. It's surprisingly satisfying!",
+      "notes": null,
+      "status": "idea",
+      "color": "blue",
+      "laneRank": "a",
+      "scope": "chapter",
       "boardIndex": 0,
-      "chapterIndex": 0
+      "chapterIndex": 2,
+      "partIndex": null
+    },
+    {
+      "title": "Open My Inspector",
+      "summary": "Click the 'i' icon on this card to edit my status, color, tags, or add detailed notes. Inspector = your friend.",
+      "notes": null,
+      "status": "todo",
+      "color": "green",
+      "laneRank": "b",
+      "scope": "chapter",
+      "boardIndex": 0,
+      "chapterIndex": 3,
+      "partIndex": null
+    },
+    {
+      "title": "Try Tagging Me",
+      "summary": "Add a tag like 'subplot' or 'thread' and see where it appears across your project. Tags are organizational magic.",
+      "notes": null,
+      "status": "todo",
+      "color": "purple",
+      "laneRank": "c",
+      "scope": "chapter",
+      "boardIndex": 0,
+      "chapterIndex": 3,
+      "partIndex": null
+    },
+    {
+      "title": "Scene Idea: Paige's Worst Draft Ever",
+      "summary": "A messy scene where Paige writes the worst possible version on purpose to break perfectionism. Sometimes bad drafts are the breakthrough.",
+      "notes": "This could be a flashback or a moment of desperation. Either way, it's liberating.",
+      "status": "draft",
+      "color": "amber",
+      "laneRank": "d",
+      "wordEstimate": 650,
+      "scope": "chapter",
+      "boardIndex": 0,
+      "chapterIndex": 5,
+      "partIndex": null
+    },
+    {
+      "title": "A Clue Paige Forgot to Resolve",
+      "summary": "Reminder to pay off the key detail introduced in Chapter 2. Don't let it dangle!",
+      "notes": "The key needs to unlock something by Chapter 18 or readers will throw the book.",
+      "status": "todo",
+      "color": "red",
+      "laneRank": "e",
+      "scope": "chapter",
+      "boardIndex": 0,
+      "chapterIndex": 8,
+      "partIndex": null
+    },
+    {
+      "title": "Revision To-Do: Strengthen Chapter 2",
+      "summary": "Chapter 2 feels weak. Add more internal conflict, maybe a secondary character to bounce off.",
+      "notes": "Heatmap flagged this. Trust the data.",
+      "status": "revision",
+      "color": "red",
+      "laneRank": "f",
+      "scope": "chapter",
+      "boardIndex": 0,
+      "chapterIndex": 10,
+      "partIndex": null
+    },
+    {
+      "title": "Part II: Future Features Notes",
+      "summary": "Use this card to jot down what you'd like StoryLab to reveal about your story in the future: timelines, heatmaps, arc graphs.",
+      "notes": "Timeline tracking for objects and character states would be incredible.",
+      "status": "idea",
+      "color": "purple",
+      "laneRank": "g",
+      "scope": "part",
+      "boardIndex": 0,
+      "chapterIndex": null,
+      "partIndex": 1
+    },
+    {
+      "title": "Opening Hook Tutorial",
+      "summary": "Make sure Chapter 1 grabs attention fast. Start with action, emotion, or a question.",
+      "notes": null,
+      "status": "done",
+      "color": "green",
+      "laneRank": "h",
+      "wordEstimate": 150,
+      "scope": "chapter",
+      "boardIndex": 0,
+      "chapterIndex": 0,
+      "partIndex": null
+    },
+    {
+      "title": "Theme Mapping Exercise",
+      "summary": "Practice using the grid to map where themes appear. Mark presence and intensity.",
+      "notes": null,
+      "status": "done",
+      "color": "blue",
+      "laneRank": "i",
+      "scope": "chapter",
+      "boardIndex": 0,
+      "chapterIndex": 4,
+      "partIndex": null
+    },
+    {
+      "title": "Subplot: Comma's Secret Life",
+      "summary": "A running joke where Comma judges Paige's writing choices. Adds levity and personality.",
+      "notes": "Comma is basically a writing coach in feline form.",
+      "status": "idea",
+      "color": "green",
+      "laneRank": "j",
+      "scope": "book",
+      "boardIndex": 0,
+      "chapterIndex": null,
+      "partIndex": null
+    },
+    {
+      "title": "Track the Necklace",
+      "summary": "Timeline feature request: Track when objects appear, move, and disappear across chapters.",
+      "notes": "This would solve so many continuity headaches.",
+      "status": "idea",
+      "color": "purple",
+      "laneRank": "k",
+      "scope": "book",
+      "boardIndex": 0,
+      "chapterIndex": null,
+      "partIndex": null
+    },
+    {
+      "title": "Character Arc: Paige's Growth",
+      "summary": "Paige starts perfectionist and blocked, ends trusting iteration and structure. Map this across all 12 chapters.",
+      "notes": "Parallel to protagonist's arc. Meta-fiction vibes.",
+      "status": "draft",
+      "color": "amber",
+      "laneRank": "l",
+      "scope": "book",
+      "boardIndex": 0,
+      "chapterIndex": null,
+      "partIndex": null
     }
   ],
   "gridCells": [
@@ -73,15 +479,401 @@
       "chapterIndex": 0,
       "themeIndex": 0,
       "presence": true,
+      "intensity": 1,
+      "note": "Paige commits to starting but hasn't written yet. Momentum is fragile.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 0,
+      "themeIndex": 1,
+      "presence": true,
+      "intensity": 0,
+      "note": "Seed: Paige opens StoryLab and commits to writing her first novel.",
+      "threadRole": "seed"
+    },
+    {
+      "chapterIndex": 0,
+      "themeIndex": 4,
+      "presence": true,
       "intensity": 2,
-      "note": "Introduce the protagonist and their goals."
+      "note": "Self-doubt is present but not overwhelming. Paige is hopeful.",
+      "threadRole": null
     },
     {
       "chapterIndex": 1,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 0,
+      "note": "Momentum stalls. Paige is stuck and toggles between blank panes.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 1,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 3,
+      "note": "Self-doubt peaks. Every sentence feels wrong.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 2,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Momentum returns as Paige discovers outlining and tags.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 2,
       "themeIndex": 1,
       "presence": true,
+      "intensity": 0,
+      "note": "Buildup: Paige begins building structure with outlines and tags.",
+      "threadRole": "buildup"
+    },
+    {
+      "chapterIndex": 2,
+      "themeIndex": 4,
+      "presence": true,
       "intensity": 1,
-      "note": "Highlight the world stakes and open questions."
+      "note": "Self-doubt eases as structure becomes visible.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 2,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 2,
+      "note": "Paige experiments with color-coding and tags. Play begins.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 3,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Momentum rises. Paige is engaged and playful.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 3,
+      "themeIndex": 1,
+      "presence": true,
+      "intensity": 0,
+      "note": "Buildup: Paige discovers the corkboard and organizes scenes spatially.",
+      "threadRole": "buildup"
+    },
+    {
+      "chapterIndex": 3,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 1,
+      "note": "Self-doubt is low. Paige feels in control.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 3,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 3,
+      "note": "High experimentation. Paige drags cards, opens inspectors, plays with features.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 4,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 1,
+      "note": "Momentum is steady but uncertain. The grid is intimidating.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 4,
+      "themeIndex": 1,
+      "presence": true,
+      "intensity": 0,
+      "note": "Buildup: Paige opens the grid and sees the thread mapped across chapters.",
+      "threadRole": "buildup"
+    },
+    {
+      "chapterIndex": 4,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 2,
+      "note": "Self-doubt visible on the grid. Paige sees her own patterns.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 4,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 1,
+      "note": "Paige is exploring the grid but cautiously.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 5,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 3,
+      "note": "Momentum peaks. Paige writes a full scene and feels proud.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 5,
+      "themeIndex": 1,
+      "presence": true,
+      "intensity": 0,
+      "note": "Event: Paige writes her first complete, imperfect scene.",
+      "threadRole": "event"
+    },
+    {
+      "chapterIndex": 5,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 0,
+      "note": "Self-doubt drops. Paige feels accomplished.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 5,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 2,
+      "note": "Paige links the scene to cards and outline. Integration feels playful.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 6,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Momentum continues. Paige envisions the future.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 6,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 1,
+      "note": "Self-doubt is low. Paige is hopeful.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 6,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 3,
+      "note": "High experimentation. Paige imagines future grid views.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 7,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Momentum is strong. Paige is imagining future tools.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 7,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 1,
+      "note": "Self-doubt is manageable. Paige is in exploration mode.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 7,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 3,
+      "note": "Paige imagines timeline sliders and continuity tracking. High play.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 8,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Momentum steady. Paige is problem-solving.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 8,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 1,
+      "note": "Self-doubt low. Paige caught a plot hole early.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 8,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 2,
+      "note": "Paige imagines foreshadow-payoff lines. Playful problem-solving.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 9,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Momentum is reflective. Paige is analyzing her own arc.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 9,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 1,
+      "note": "Self-doubt acknowledged but not paralyzing. Paige sees the pattern.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 9,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 2,
+      "note": "Paige plays with character arc graphs and sees meta-parallels.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 10,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 2,
+      "note": "Momentum shifts to revision planning. Paige is strategic.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 10,
+      "themeIndex": 1,
+      "presence": true,
+      "intensity": 0,
+      "note": "Aftermath: Paige uses the heatmap to identify weak chapters and plan revisions.",
+      "threadRole": "aftermath"
+    },
+    {
+      "chapterIndex": 10,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 1,
+      "note": "Self-doubt is present but reframed as actionable data.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 10,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 1,
+      "note": "Paige uses heatmap diagnostics. Less play, more strategy.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 11,
+      "themeIndex": 0,
+      "presence": true,
+      "intensity": 3,
+      "note": "Momentum peaks. Paige commits to long-term consistency.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 11,
+      "themeIndex": 1,
+      "presence": true,
+      "intensity": 0,
+      "note": "Aftermath: Paige saves the project and commits to showing up tomorrow.",
+      "threadRole": "aftermath"
+    },
+    {
+      "chapterIndex": 11,
+      "themeIndex": 4,
+      "presence": true,
+      "intensity": 0,
+      "note": "Self-doubt at its lowest. Paige feels accomplished.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 11,
+      "themeIndex": 2,
+      "presence": true,
+      "intensity": 1,
+      "note": "Paige reflects on the day's playful learning. Ready to build.",
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 0,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 6,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 9,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 1,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 3,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 4,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 7,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 8,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
+    },
+    {
+      "chapterIndex": 11,
+      "themeIndex": 3,
+      "presence": true,
+      "intensity": 0,
+      "note": null,
+      "threadRole": null
     }
   ]
 }

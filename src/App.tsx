@@ -1023,6 +1023,46 @@ function AppContent() {
     window.open(url, "_blank");
   };
 
+  const handleImportBookTemplate = async (
+    bookId: string,
+    file: File,
+  ): Promise<void> => {
+    try {
+      // Read file as text
+      const text = await file.text();
+
+      // Parse JSON
+      let template;
+      try {
+        template = JSON.parse(text);
+      } catch (e) {
+        throw new Error(
+          "Invalid JSON file. Please provide a valid StoryLab book template.",
+        );
+      }
+
+      // Call import API
+      const response = await fetch(`/api/admin/books/${bookId}/import`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(template),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to import book template");
+      }
+
+      // Refresh book data after successful import by selecting it again
+      await handleSelectBook(bookId);
+    } catch (error) {
+      // Re-throw to be handled by the calling component
+      throw error;
+    }
+  };
+
   const handleNavigateToBooks = () => {
     setPanes((prev) =>
       prev.map((p) =>
@@ -1601,6 +1641,7 @@ function AppContent() {
             onUpdateBook={handleUpdateBook}
             onDeleteBook={handleDeleteBook}
             onExportBook={handleExportBookTemplate}
+            onImportBook={handleImportBookTemplate}
             canExportTemplates={isAdmin}
           />
         );

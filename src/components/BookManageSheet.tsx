@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Book } from "@/types/book";
-import { Download, X, Trash2 } from "lucide-react";
+import { Download, X, Trash2, Upload } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -17,6 +17,7 @@ interface BookManageSheetProps {
   onUpdate: (book: Book) => void;
   onDelete: (bookId: string) => void;
   onExport?: (bookId: string) => void;
+  onImport?: (bookId: string, file: File) => Promise<void>;
   canExportTemplates?: boolean;
 }
 
@@ -27,6 +28,7 @@ export function BookManageSheet({
   onUpdate,
   onDelete,
   onExport,
+  onImport,
   canExportTemplates,
 }: BookManageSheetProps) {
   const [title, setTitle] = useState(book.title);
@@ -34,6 +36,10 @@ export function BookManageSheet({
   const [description, setDescription] = useState(book.description || "");
   const [isSaving, setIsSaving] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset form when book changes
   useEffect(() => {
@@ -94,6 +100,51 @@ export function BookManageSheet({
     if (onExport) {
       onExport(book.id);
     }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check if it's a JSON file
+      if (!file.name.endsWith(".json")) {
+        toast.error("Please select a JSON file");
+        return;
+      }
+      setSelectedFile(file);
+      setShowImportConfirm(true);
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImportConfirm = async () => {
+    if (!selectedFile || !onImport) return;
+
+    setIsImporting(true);
+    setShowImportConfirm(false);
+
+    try {
+      await onImport(book.id, selectedFile);
+      toast.success("Book imported successfully");
+      onClose();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to import book: ${message}`);
+    } finally {
+      setIsImporting(false);
+      setSelectedFile(null);
+    }
+  };
+
+  const handleImportCancel = () => {
+    setShowImportConfirm(false);
+    setSelectedFile(null);
   };
 
   return (
@@ -172,15 +223,35 @@ export function BookManageSheet({
         {/* Footer */}
         <div className="flex-shrink-0 border-t border-gray-200 p-4 space-y-3 bg-gray-50">
           {canExportTemplates && (
-            <Button
-              onClick={handleExport}
-              variant="secondary"
-              className="w-full flex items-center justify-center gap-2"
-              disabled={isSaving || isArchiving}
-            >
-              <Download className="w-4 h-4" />
-              Export as template (JSON)
-            </Button>
+            <>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleExport}
+                  variant="secondary"
+                  className="flex-1 flex items-center justify-center gap-2"
+                  disabled={isSaving || isArchiving || isImporting}
+                >
+                  <Upload className="w-4 h-4" />
+                  Export as template
+                </Button>
+                <Button
+                  onClick={handleImportClick}
+                  variant="secondary"
+                  className="flex-1 flex items-center justify-center gap-2"
+                  disabled={isSaving || isArchiving || isImporting}
+                >
+                  <Download className="w-4 h-4" />
+                  Import from template
+                </Button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </>
           )}
 
           <div className="flex items-center gap-2">
@@ -219,6 +290,47 @@ export function BookManageSheet({
           </Tooltip>
         </div>
       </div>
+
+      {/* Import Confirmation Dialog */}
+      {showImportConfirm && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-[60]"
+            onClick={handleImportCancel}
+          />
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-[70] p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Confirm Import
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Are you sure? All current book data (chapters, themes, characters,
+              outline data, corkboard, grid cells, tags) will be overwritten.
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              The book title and description will remain unchanged.
+            </p>
+            <p className="text-xs text-gray-500 mb-6">
+              File: <span className="font-mono">{selectedFile?.name}</span>
+            </p>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={handleImportConfirm}
+                variant="default"
+                className="flex-1"
+              >
+                Import
+              </Button>
+              <Button
+                onClick={handleImportCancel}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
