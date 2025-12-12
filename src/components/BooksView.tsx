@@ -21,6 +21,7 @@ interface BooksViewProps {
   onUpdateBook?: (book: Book) => void;
   onDeleteBook?: (bookId: string) => void;
   onExportBook?: (bookId: string) => void;
+  onImportBook?: (bookId: string, file: File) => Promise<void>;
   canExportTemplates?: boolean;
 }
 
@@ -34,6 +35,7 @@ export function BooksView({
   onUpdateBook,
   onDeleteBook,
   onExportBook,
+  onImportBook,
   canExportTemplates,
 }: BooksViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
@@ -287,6 +289,7 @@ export function BooksView({
           onUpdate={handleUpdateBook}
           onDelete={handleDeleteBook}
           onExport={onExportBook}
+          onImport={onImportBook}
           canExportTemplates={canExportTemplates}
         />
       )}

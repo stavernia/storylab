@@ -15,11 +15,18 @@ export async function GET(
 
     const template = await exportBookTemplate(prisma, bookId);
 
+    // Create filename from book title
+    const sanitizedTitle = template.book.title
+      .replace(/[^a-zA-Z0-9\s-]/g, "") // Remove special characters
+      .replace(/\s+/g, "_") // Replace spaces with underscores
+      .trim();
+    const filename = `${sanitizedTitle || "book"}.json`;
+
     return new NextResponse(JSON.stringify(template, null, 2), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": "attachment; filename=\"storylab-book-template.json\"",
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
   } catch (error) {
