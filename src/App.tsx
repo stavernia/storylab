@@ -79,7 +79,7 @@ import {
   FinalCtaSection,
   Footer,
 } from "./components/marketing";
-import { stripHtml } from "@/utils/stripHtml";
+import { computeWordCount } from "@/utils/wordCount";
 import type { PaneId } from "./contexts/PaneContext";
 
 // NEW: Multi-book support - Book type is now imported from ./types/book
@@ -279,7 +279,8 @@ function AppContent() {
   const { openOverlay } = useFilters();
 
   // NEW: Inspector context
-  const { openInspector, closeInspector } = useInspector();
+  const { openInspector, closeInspector, payload, isOpen, refreshInspectorPayload } =
+    useInspector();
 
   // Handler to open inspector for a chapter
   const handleChapterInfoClick = (chapter: Chapter) => {
@@ -370,7 +371,7 @@ function AppContent() {
       return;
     }
 
-    const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+    const wordCount = computeWordCount(content);
     const lastEdited = new Date();
     setChapters(
       chapters.map((ch) =>
@@ -409,11 +410,46 @@ function AppContent() {
     }
   };
 
-  const addChapter = async (title?: string) => {
+  const addChapter = async (
+    title?: string,
+    options?: {
+      afterChapterId?: string;
+      selection?: ManuscriptSelection;
+      partId?: string | null;
+    },
+  ) => {
     if (!currentBookId) {
       console.error("Cannot add chapter: no book selected");
       return "";
     }
+
+    const sortedPartsForBook = bookParts
+      .filter((p) => p.bookId === currentBookId)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    // Determine target part based on provided options or current selection
+    const selection = options?.selection;
+    let targetPartId: string | null | undefined = options?.partId;
+
+    if (selection?.kind === "part") {
+      targetPartId = selection.partId;
+    } else if (selection?.kind === "chapter") {
+      const selectedChapter = bookChapters.find(
+        (ch) => ch.id === selection.chapterId,
+      );
+      targetPartId = selectedChapter?.partId ?? null;
+    } else if (selection?.kind === "manuscript" && options?.partId) {
+      targetPartId = options.partId;
+    }
+
+    if (sortedPartsForBook.length > 0 && targetPartId === undefined) {
+      // Enforce that chapters belong to a part when parts exist
+      targetPartId = sortedPartsForBook[sortedPartsForBook.length - 1]?.id;
+    }
+
+    const baseChapters = [...bookChapters].sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+    );
 
     const tempId = String(Date.now());
     const newChapter: Chapter = {
@@ -422,16 +458,89 @@ function AppContent() {
       title: title || `Chapter ${bookChapters.length + 1}`,
       content: "",
       wordCount: 0,
+      partId: targetPartId ?? undefined,
     };
-    setChapters([...chapters, newChapter]);
+
+    // Build ordered buckets per part/root
+    const partsById = new Map(sortedPartsForBook.map((p) => [p.id, p]));
+    const chaptersByPart = new Map<string | null, Chapter[]>();
+
+    sortedPartsForBook.forEach((part) => {
+      chaptersByPart.set(
+        part.id,
+        baseChapters.filter((ch) => ch.partId === part.id),
+      );
+    });
+
+    const rootChapters = baseChapters.filter((ch) => !ch.partId);
+    chaptersByPart.set(null, rootChapters);
+
+    const targetBucketKey = targetPartId ?? null;
+    const targetBucket = chaptersByPart.get(targetBucketKey) || [];
+    let insertIndex = targetBucket.length;
+
+    if (options?.afterChapterId) {
+      const idx = targetBucket.findIndex((ch) => ch.id === options.afterChapterId);
+      if (idx !== -1) {
+        insertIndex = idx + 1;
+      }
+    }
+
+    const updatedTargetBucket = [...targetBucket];
+    updatedTargetBucket.splice(insertIndex, 0, newChapter);
+    chaptersByPart.set(targetBucketKey, updatedTargetBucket);
+
+    const reordered: Chapter[] = [];
+
+    if (partsById.size > 0) {
+      sortedPartsForBook.forEach((part) => {
+        const bucket = chaptersByPart.get(part.id) || [];
+        reordered.push(...bucket.map((ch) => ({ ...ch, partId: part.id })));
+      });
+      const remainingRoot = chaptersByPart.get(null) || [];
+      reordered.push(...remainingRoot.map((ch) => ({ ...ch, partId: undefined })));
+    } else {
+      const onlyRoot = chaptersByPart.get(null) || [];
+      reordered.push(...onlyRoot.map((ch) => ({ ...ch, partId: undefined })));
+    }
+
+    const orderedWithSort = reordered.map((ch, index) => ({
+      ...ch,
+      sortOrder: index,
+    }));
+
+    const otherBookChapters = chapters.filter(
+      (ch) => ch.bookId !== currentBookId,
+    );
+
+    setChapters([...otherBookChapters, ...orderedWithSort]);
 
     try {
-      const saved = await manuscriptApi.saveChapter(newChapter);
-      setChapters((prev) =>
-        prev.map((ch) =>
+      const saved = await manuscriptApi.saveChapter({
+        ...newChapter,
+        sortOrder: orderedWithSort.find((ch) => ch.id === tempId)?.sortOrder,
+      });
+
+      setChapters((prev) => {
+        const otherBooks = prev.filter((ch) => ch.bookId !== currentBookId);
+        const mergedCurrent = orderedWithSort.map((ch) =>
           ch.id === tempId ? { ...saved, bookId: currentBookId } : ch,
+        );
+
+        return [...otherBooks, ...mergedCurrent];
+      });
+
+      // Persist sort orders for affected siblings
+      const siblingsToPersist = orderedWithSort.filter((ch) => ch.id !== saved.id);
+      await Promise.all(
+        siblingsToPersist.map((ch) =>
+          manuscriptApi.updateChapter(ch.bookId, ch.id, {
+            sortOrder: ch.sortOrder,
+            partId: ch.partId || null,
+          }),
         ),
       );
+
       return saved.id;
     } catch (error) {
       console.error("Error adding chapter:", error);
@@ -564,6 +673,9 @@ function AppContent() {
   const bookCharacters = currentBookId
     ? characters.filter((c) => c.bookId === currentBookId)
     : [];
+
+  const showPartTitles = currentBook?.showPartTitles ?? true;
+  const showChapterTitles = currentBook?.showChapterTitles ?? true;
 
   // Sort chapters by sortOrder
   const sortedChapters = [...bookChapters].sort((a, b) => {
@@ -804,6 +916,73 @@ function AppContent() {
     }
   };
 
+  const normalizeRootChaptersIntoParts = async (
+    chaptersForBook: Chapter[],
+    partsForBook: Part[],
+  ) => {
+    if (!currentBookId || partsForBook.length === 0) {
+      return chaptersForBook;
+    }
+
+    const sortedParts = [...partsForBook].sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+    );
+    const targetPartId = sortedParts[0]?.id;
+    if (!targetPartId) {
+      return chaptersForBook;
+    }
+
+    const rootChapters = chaptersForBook.filter((ch) => !ch.partId);
+    if (rootChapters.length === 0) {
+      return chaptersForBook;
+    }
+
+    const orderedBySort = [...chaptersForBook].sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+    );
+
+    const reassigned = orderedBySort.map((ch) =>
+      !ch.partId ? { ...ch, partId: targetPartId } : ch,
+    );
+
+    const reordered: Chapter[] = [];
+    sortedParts.forEach((part) => {
+      reordered.push(
+        ...reassigned
+          .filter((ch) => ch.partId === part.id)
+          .map((ch) => ({ ...ch, partId: part.id })),
+      );
+    });
+
+    const withOrder = reordered.map((ch, index) => ({
+      ...ch,
+      sortOrder: index,
+    }));
+
+    const changed = withOrder.filter((updated) => {
+      const original = chaptersForBook.find((c) => c.id === updated.id);
+      return (
+        original?.partId !== updated.partId ||
+        (original?.sortOrder ?? 0) !== (updated.sortOrder ?? 0)
+      );
+    });
+
+    if (changed.length > 0) {
+      Promise.all(
+        changed.map((ch) =>
+          manuscriptApi.updateChapter(ch.bookId, ch.id, {
+            partId: ch.partId || null,
+            sortOrder: ch.sortOrder,
+          }),
+        ),
+      ).catch((error) => {
+        console.error("Error normalizing root chapters into part:", error);
+      });
+    }
+
+    return withOrder;
+  };
+
   // NEW: Parts v1 - CRUD functions
   const addPart = async (data: { title: string; notes?: string }) => {
     if (!currentBookId) {
@@ -826,7 +1005,54 @@ function AppContent() {
 
     console.log("✅ Part created:", part);
 
-    setParts([...parts, part]);
+    const bookPartsForSort = parts.filter((p) => p.bookId === currentBookId);
+    const wasEmpty = bookPartsForSort.length === 0;
+    const sortOrder =
+      part.sortOrder ??
+      bookPartsForSort.reduce(
+        (max, current) => Math.max(max, current.sortOrder ?? -1),
+        -1,
+      ) + 1;
+
+    setParts([...parts, { ...part, sortOrder }]);
+
+    if (wasEmpty) {
+      const bookRootChapters = chapters
+        .filter((ch) => ch.bookId === currentBookId)
+        .filter((ch) => !ch.partId);
+
+      if (bookRootChapters.length > 0) {
+        const updatedChapters = chapters.map((ch) =>
+          ch.bookId === currentBookId && !ch.partId
+            ? { ...ch, partId: part.id }
+            : ch,
+        );
+
+        const reordered = updatedChapters
+          .filter((ch) => ch.bookId === currentBookId)
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((ch, index) => ({ ...ch, sortOrder: index }));
+
+        setChapters((prev) =>
+          prev.map((ch) => {
+            const updated = reordered.find((c) => c.id === ch.id);
+            return updated || ch;
+          }),
+        );
+
+        // Persist the migration for affected chapters
+        Promise.all(
+          bookRootChapters.map((ch, index) =>
+            manuscriptApi.updateChapter(ch.bookId, ch.id, {
+              partId: part.id,
+              sortOrder: index,
+            }),
+          ),
+        ).catch((error) => {
+          console.error("Error migrating root chapters to new part:", error);
+        });
+      }
+    }
     return part;
   };
 
@@ -856,19 +1082,182 @@ function AppContent() {
     return updated;
   };
 
-  const deletePart = async (id: string) => {
+  const deletePart = async (
+    id: string,
+    action?: { mode: "delete" | "move"; targetPartId?: string | null },
+  ) => {
     const part = parts.find((p) => p.id === id);
     if (!part) {
       throw new Error("Part not found");
     }
 
-    await partService.deletePart(part.bookId, id);
-    setParts(parts.filter((p) => p.id !== id));
-    // Also clear partId from affected chapters
-    setChapters(
-      chapters.map((ch) => (ch.partId === id ? { ...ch, partId: null } : ch)),
+    const bookId = part.bookId;
+    const bookParts = parts
+      .filter((p) => p.bookId === bookId && p.id !== id)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((p, index) => ({ ...p, sortOrder: index }));
+
+    const otherBooksParts = parts.filter((p) => p.bookId !== bookId);
+    const partChapters = chapters
+      .filter((ch) => ch.bookId === bookId && ch.partId === id)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const baseBookChapters = chapters
+      .filter((ch) => ch.bookId === bookId && ch.partId !== id)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+    if (action?.mode === "delete") {
+      // Drop the part and its chapters
+      setParts([...otherBooksParts, ...bookParts]);
+      setChapters((prev) =>
+        prev.filter((ch) => ch.bookId !== bookId || ch.partId !== id),
+      );
+
+      await partService.deletePart(bookId, id);
+      await Promise.all(
+        partChapters.map((ch) => manuscriptApi.deleteChapter(bookId, ch.id)),
+      );
+      return;
+    }
+
+    let targetPartId =
+      action?.mode === "move" ? action.targetPartId ?? null : null;
+
+    if (action?.mode === "move" && targetPartId === null && bookParts.length > 0) {
+      targetPartId = bookParts[0]?.id ?? null;
+    }
+
+    // Build buckets for remaining parts/root
+    const buckets = new Map<string | null, Chapter[]>();
+    bookParts.forEach((p) => {
+      buckets.set(
+        p.id,
+        baseBookChapters.filter((ch) => ch.partId === p.id),
+      );
+    });
+    buckets.set(
+      null,
+      baseBookChapters.filter((ch) => !ch.partId),
+    );
+
+    const movingChapters = partChapters.map((ch) => ({
+      ...ch,
+      partId: targetPartId || undefined,
+    }));
+
+    const targetBucket = buckets.get(targetPartId ?? null) || [];
+    buckets.set(targetPartId ?? null, [...targetBucket, ...movingChapters]);
+
+    const reordered: Chapter[] = [];
+    bookParts.forEach((p) => {
+      const bucket = buckets.get(p.id) || [];
+      reordered.push(...bucket.map((ch) => ({ ...ch, partId: p.id })));
+    });
+
+    const rootBucket = buckets.get(null) || [];
+    reordered.push(...rootBucket.map((ch) => ({ ...ch, partId: undefined })));
+
+    const orderedWithSort = reordered.map((ch, index) => ({
+      ...ch,
+      sortOrder: index,
+    }));
+
+    const otherBookChapters = chapters.filter((ch) => ch.bookId !== bookId);
+    setChapters([...otherBookChapters, ...orderedWithSort]);
+    setParts([...otherBooksParts, ...bookParts]);
+
+    await partService.deletePart(bookId, id);
+    await partService.reorderParts(bookId, bookParts);
+    await Promise.all(
+      orderedWithSort.map((ch) =>
+        manuscriptApi.updateChapter(ch.bookId, ch.id, {
+          partId: ch.partId || null,
+          sortOrder: ch.sortOrder,
+        }),
+      ),
     );
   };
+
+  useEffect(() => {
+    if (!isOpen || !payload) return;
+
+    if (payload.type === "chapter") {
+      const liveChapter = chapters.find((ch) => ch.id === payload.id);
+      if (!liveChapter) return;
+
+      const currentData = (payload.data as { chapter?: Chapter }) || {};
+      const lastEditedIncoming = liveChapter.lastEdited
+        ? new Date(liveChapter.lastEdited).getTime()
+        : undefined;
+      const lastEditedPayload = currentData.chapter?.lastEdited
+        ? new Date(currentData.chapter.lastEdited).getTime()
+        : undefined;
+
+      if (
+        currentData.chapter &&
+        currentData.chapter.title === liveChapter.title &&
+        currentData.chapter.content === liveChapter.content &&
+        currentData.chapter.wordCount === liveChapter.wordCount &&
+        currentData.chapter.partId === liveChapter.partId &&
+        lastEditedIncoming === lastEditedPayload
+      ) {
+        return;
+      }
+
+      const currentBookParts = currentBookId
+        ? parts
+            .filter((p) => p.bookId === currentBookId)
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        : [];
+
+      refreshInspectorPayload({
+        ...payload,
+        data: {
+          ...(payload.data || {}),
+          chapter: liveChapter,
+          parts: currentBookParts,
+          updateChapterTitle,
+          deleteChapter,
+        },
+      });
+      return;
+    }
+
+    if (payload.type === "part") {
+      const livePart = parts.find((p) => p.id === payload.id);
+      if (!livePart) return;
+
+      const currentData = (payload.data as { part?: Part }) || {};
+      if (
+        currentData.part &&
+        currentData.part.title === livePart.title &&
+        currentData.part.notes === livePart.notes &&
+        currentData.part.sortOrder === livePart.sortOrder
+      ) {
+        return;
+      }
+
+      refreshInspectorPayload({
+        ...payload,
+        data: {
+          ...(payload.data || {}),
+          part: livePart,
+          updatePartTitle,
+          deletePart,
+        },
+      });
+    }
+  }, [
+    chapters,
+    deleteChapter,
+    deletePart,
+    isOpen,
+    payload,
+    parts,
+    refreshInspectorPayload,
+    updateChapterTitle,
+    updatePartTitle,
+    currentBookId,
+  ]);
 
   const reorderParts = async (reorderedParts: Part[]) => {
     // CRITICAL: When parts are reordered, we must reorder all chapters to maintain correct ordering
@@ -953,18 +1342,17 @@ function AppContent() {
       const data = await manuscriptApi.loadData(bookId);
       console.log("Loaded data for book", bookId, ":", data);
 
-      const computeWordCount = (html: string | undefined) =>
-        stripHtml(html || "")
-          .trim()
-          .split(/\s+/)
-          .filter(Boolean).length;
-
       const chaptersWithCounts = data.chapters.map((ch) => ({
         ...ch,
         wordCount: computeWordCount(ch.content),
       }));
 
-      setChapters(chaptersWithCounts);
+      const normalizedChapters = await normalizeRootChaptersIntoParts(
+        chaptersWithCounts,
+        data.parts || [],
+      );
+
+      setChapters(normalizedChapters);
       setThemes(data.themes);
       setCharacters(data.characters || []);
       applyGridCells(bookId, data.gridCells);
@@ -974,7 +1362,7 @@ function AppContent() {
       setPanes((prev) =>
         prev.map((p) =>
           p.id === "primary"
-            ? { ...p, selectedChapterId: chaptersWithCounts[0]?.id || "" }
+            ? { ...p, selectedChapterId: normalizedChapters[0]?.id || "" }
             : p,
         ),
       );
@@ -1672,6 +2060,8 @@ function AppContent() {
             onChapterInfoClick={handleChapterInfoClick}
             onManuscriptInfoClick={handleManuscriptInfoClick}
             onPartInfoClick={handlePartInfoClick}
+            showPartTitles={showPartTitles}
+            showChapterTitles={showChapterTitles}
           >
             {(filteredChapters) => (
               <ManuscriptView
@@ -1689,6 +2079,8 @@ function AppContent() {
                 parts={bookParts}
                 onChapterInfoClick={handleChapterInfoClick}
                 onPartInfoClick={handlePartInfoClick}
+                showPartTitles={showPartTitles}
+                showChapterTitles={showChapterTitles}
               />
             )}
           </BinderWrapper>
@@ -1720,6 +2112,8 @@ function AppContent() {
             onChapterInfoClick={handleChapterInfoClick}
             onManuscriptInfoClick={handleManuscriptInfoClick}
             onPartInfoClick={handlePartInfoClick}
+            showPartTitles={showPartTitles}
+            showChapterTitles={showChapterTitles}
           >
             {(filteredChapters) => (
               <OutlineView
@@ -1737,6 +2131,8 @@ function AppContent() {
                 parts={bookParts}
                 onChapterInfoClick={handleChapterInfoClick}
                 onPartInfoClick={handlePartInfoClick}
+                showPartTitles={showPartTitles}
+                showChapterTitles={showChapterTitles}
               />
             )}
           </BinderWrapper>
@@ -1793,6 +2189,8 @@ function AppContent() {
             onChapterInfoClick={handleChapterInfoClick}
             onManuscriptInfoClick={handleManuscriptInfoClick}
             onPartInfoClick={handlePartInfoClick}
+            showPartTitles={showPartTitles}
+            showChapterTitles={showChapterTitles}
           >
             {(filteredChapters) => (
               <Corkboard
@@ -2109,9 +2507,10 @@ function AppContent() {
                 currentBook.id,
                 updates,
               );
-              setBooks(
-                books.map((b) => (b.id === updatedBook.id ? updatedBook : b)),
+              setBooks((prev) =>
+                prev.map((b) => (b.id === updatedBook.id ? updatedBook : b)),
               );
+              setCurrentBook(updatedBook);
             } catch (error) {
               console.error("Error updating book settings:", error);
             }

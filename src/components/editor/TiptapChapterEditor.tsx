@@ -3,7 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditorContext } from "./EditorContext";
 import { PLACEHOLDERS } from "@/constants/ui";
 
@@ -22,6 +22,8 @@ export function TiptapChapterEditor({
 }: TiptapChapterEditorProps) {
   const { setActiveEditor } = useEditorContext();
   const [isFocused, setIsFocused] = useState(false);
+  const activeChapterRef = useRef(chapterId);
+  const isHydratingRef = useRef(false);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -38,7 +40,12 @@ export function TiptapChapterEditor({
     content: value,
     editable: !readOnly,
     onUpdate: ({ editor }) => {
+      if (isHydratingRef.current) return;
+
       const html = editor.getHTML();
+
+      if (activeChapterRef.current !== chapterId) return;
+
       onChange(html);
     },
     editorProps: {
@@ -73,9 +80,21 @@ export function TiptapChapterEditor({
   // BUT ONLY if editor is not focused (prevents reverting while typing)
   useEffect(() => {
     if (editor && !isFocused && value !== editor.getHTML()) {
-      editor.commands.setContent(value);
+      isHydratingRef.current = true;
+      editor.commands.setContent(value, false);
+      isHydratingRef.current = false;
     }
   }, [value, editor, isFocused]);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    activeChapterRef.current = chapterId;
+    isHydratingRef.current = true;
+    editor.commands.setContent(value, false);
+    isHydratingRef.current = false;
+    editor.commands.focus();
+  }, [chapterId, editor, value]);
 
   // Cleanup on unmount
   useEffect(() => {

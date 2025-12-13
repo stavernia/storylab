@@ -21,6 +21,8 @@ type OutlineViewProps = {
   parts?: Part[];
   onChapterInfoClick?: (chapter: Chapter) => void;
   onPartInfoClick?: (part: Part) => void;
+  showPartTitles?: boolean;
+  showChapterTitles?: boolean;
 };
 
 export function OutlineView({
@@ -36,6 +38,8 @@ export function OutlineView({
   parts,
   onChapterInfoClick,
   onPartInfoClick,
+  showPartTitles = true,
+  showChapterTitles = true,
 }: OutlineViewProps) {
   const [isClient, setIsClient] = useState(false);
   const { getChapterNumber, getPartNumber } = useChapterNumbering();
@@ -59,6 +63,16 @@ export function OutlineView({
   const handleOutlineChange = (chapterId: string, html: string) => {
     debouncedUpdateChapter(chapterId, html);
   };
+
+  const getPartLabel = (part: Part) =>
+    showPartTitles && part.title?.trim()
+      ? part.title.trim()
+      : `Part ${getPartNumber(part.id)}`;
+
+  const getChapterLabel = (chapter: Chapter) =>
+    showChapterTitles && chapter.title?.trim()
+      ? chapter.title.trim()
+      : `Chapter ${getChapterNumber(chapter.id)}`;
 
   if (chapters.length === 0) {
     // In multi-chapter mode (part or manuscript), show part headers even if no chapters
@@ -103,7 +117,7 @@ export function OutlineView({
                         PART {getPartNumber(part.id)}
                       </div>
                       <h2 className="text-3xl font-normal text-gray-900 mb-1">
-                        {part.title}
+                        {getPartLabel(part)}
                       </h2>
                       {part.notes && (
                         <p className="text-sm text-gray-500 italic mt-2 max-w-xl">
@@ -222,17 +236,23 @@ export function OutlineView({
                           <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
                             PART {getPartNumber(part.id)}
                           </div>
-                          <EditableTitle
-                            value={part.title}
-                            onSave={(newTitle) =>
-                              updatePartTitle &&
-                              updatePartTitle(part.id, newTitle)
-                            }
-                            placeholder={PLACEHOLDERS.PART_TITLE}
-                            maxLength={100}
-                            className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block"
-                            editClassName="text-3xl font-normal text-gray-900 w-full max-w-3xl px-2 py-1 mb-1"
-                          />
+                          {showPartTitles ? (
+                            <EditableTitle
+                              value={part.title}
+                              onSave={(newTitle) =>
+                                updatePartTitle &&
+                                updatePartTitle(part.id, newTitle)
+                              }
+                              placeholder={PLACEHOLDERS.PART_TITLE}
+                              maxLength={100}
+                              className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block"
+                              editClassName="text-3xl font-normal text-gray-900 w-full max-w-3xl px-2 py-1 mb-1"
+                            />
+                          ) : (
+                            <div className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block">
+                              {getPartLabel(part)}
+                            </div>
+                          )}
                           {part.notes && (
                             <p className="text-sm text-gray-500 italic mt-2 max-w-xl">
                               {part.notes}
@@ -261,16 +281,22 @@ export function OutlineView({
                                 <div className="text-sm uppercase tracking-widest text-gray-400 mb-2">
                                   CHAPTER {getChapterNumber(chapter.id)}
                                 </div>
-                                <EditableTitle
-                                  value={chapter.title || ""}
-                                  onSave={(newTitle) =>
-                                    updateChapterTitle(chapter.id, newTitle)
-                                  }
-                                  placeholder={PLACEHOLDERS.CHAPTER_TITLE}
-                                  maxLength={100}
-                                  className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block"
-                                  editClassName="text-2xl font-normal text-gray-900 w-full max-w-2xl px-2 py-1"
-                                />
+                                {showChapterTitles ? (
+                                  <EditableTitle
+                                    value={chapter.title || ""}
+                                    onSave={(newTitle) =>
+                                      updateChapterTitle(chapter.id, newTitle)
+                                    }
+                                    placeholder={PLACEHOLDERS.CHAPTER_TITLE}
+                                    maxLength={100}
+                                    className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block"
+                                    editClassName="text-2xl font-normal text-gray-900 w-full max-w-2xl px-2 py-1"
+                                  />
+                                ) : (
+                                  <div className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block">
+                                    {getChapterLabel(chapter)}
+                                  </div>
+                                )}
                                 {onChapterInfoClick && (
                                   <button
                                     onClick={() => onChapterInfoClick(chapter)}
@@ -327,17 +353,23 @@ export function OutlineView({
                         <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
                           PART {getPartNumber(currentPart.id)}
                         </div>
-                        <EditableTitle
-                          value={currentPart.title}
-                          onSave={(newTitle) =>
-                            updatePartTitle &&
-                            updatePartTitle(currentPart.id, newTitle)
-                          }
-                          placeholder={PLACEHOLDERS.PART_TITLE}
-                          maxLength={100}
-                          className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block"
-                          editClassName="text-3xl font-normal text-gray-900 w-full max-w-3xl px-2 py-1 mb-1"
-                        />
+                        {showPartTitles ? (
+                          <EditableTitle
+                            value={currentPart.title}
+                            onSave={(newTitle) =>
+                              updatePartTitle &&
+                              updatePartTitle(currentPart.id, newTitle)
+                            }
+                            placeholder={PLACEHOLDERS.PART_TITLE}
+                            maxLength={100}
+                            className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block"
+                            editClassName="text-3xl font-normal text-gray-900 w-full max-w-3xl px-2 py-1 mb-1"
+                          />
+                        ) : (
+                          <div className="text-3xl font-normal text-gray-900 mb-1 px-2 py-1 inline-block">
+                            {getPartLabel(currentPart)}
+                          </div>
+                        )}
                         {currentPart.notes && (
                           <p className="text-sm text-gray-500 italic mt-2 max-w-xl">
                             {currentPart.notes}
@@ -363,16 +395,22 @@ export function OutlineView({
                         <div className="text-sm uppercase tracking-widest text-gray-400 mb-2">
                           CHAPTER {getChapterNumber(chapter.id)}
                         </div>
-                        <EditableTitle
-                          value={chapter.title || ""}
-                          onSave={(newTitle) =>
-                            updateChapterTitle(chapter.id, newTitle)
-                          }
-                          placeholder={PLACEHOLDERS.CHAPTER_TITLE}
-                          maxLength={100}
-                          className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block"
-                          editClassName="text-2xl font-normal text-gray-900 w-full max-w-2xl px-2 py-1"
-                        />
+                        {showChapterTitles ? (
+                          <EditableTitle
+                            value={chapter.title || ""}
+                            onSave={(newTitle) =>
+                              updateChapterTitle(chapter.id, newTitle)
+                            }
+                            placeholder={PLACEHOLDERS.CHAPTER_TITLE}
+                            maxLength={100}
+                            className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block"
+                            editClassName="text-2xl font-normal text-gray-900 w-full max-w-2xl px-2 py-1"
+                          />
+                        ) : (
+                          <div className="text-2xl font-normal text-gray-900 px-2 py-1 inline-block">
+                            {getChapterLabel(chapter)}
+                          </div>
+                        )}
                         {onChapterInfoClick && (
                           <button
                             onClick={() => onChapterInfoClick(chapter)}

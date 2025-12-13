@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Plus,
   Trash2,
@@ -18,6 +18,8 @@ import { useTagFilter, type FilterMode } from "@/contexts/TagFilterContext";
 import { useEntityTags } from "@/hooks/useEntityTags";
 import { useChapterNumbering } from "@/contexts/ChapterNumberingContext";
 import { PLACEHOLDERS } from "@/constants/ui";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Input } from "./ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +38,10 @@ type ChapterListProps = {
   chapters: Chapter[];
   currentChapterId: string;
   setCurrentChapterId: (id: string) => void;
-  addChapter: (title?: string) => Promise<string>;
+  addChapter: (
+    title?: string,
+    options?: { selection?: ManuscriptSelection; afterChapterId?: string },
+  ) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
   updateChapterDetails?: (id: string, updates: Partial<Chapter>) => void;
@@ -45,7 +50,10 @@ type ChapterListProps = {
   onReorderChapters?: (orderedIds: string[]) => void;
   parts?: Part[];
   addPart?: (data: { title: string; notes?: string }) => Promise<Part>;
-  deletePart?: (id: string) => void;
+  deletePart?: (
+    id: string,
+    action?: { mode: "delete" | "move"; targetPartId?: string | null },
+  ) => void;
   updatePartTitle?: (id: string, name: string) => void;
   reorderParts?: (parts: Part[]) => void;
   onSelectManuscript?: () => void; // NEW: Multi-Chapter View
@@ -53,6 +61,8 @@ type ChapterListProps = {
   selection?: ManuscriptSelection; // NEW: Multi-Chapter View
   onManuscriptInfoClick?: () => void; // NEW: Project info for full manuscript
   onPartInfoClick?: (part: Part) => void; // NEW: Part info
+  showPartTitles?: boolean;
+  showChapterTitles?: boolean;
 };
 
 type DragPosition = "before" | "after" | null;
@@ -67,7 +77,10 @@ type PartHeaderProps = {
   saveEdit: () => void;
   cancelEdit: () => void;
   startEditing: (id: string, title: string) => void;
-  deletePart?: (id: string) => void;
+  deletePart?: (
+    id: string,
+    action?: { mode: "delete" | "move"; targetPartId?: string | null },
+  ) => void;
   onDragStart: React.DragEventHandler<HTMLDivElement>;
   onDragEnd: React.DragEventHandler<HTMLDivElement>;
   onDragOver: React.DragEventHandler<HTMLDivElement>;
@@ -78,6 +91,8 @@ type PartHeaderProps = {
   onSelectPart?: (partId: string) => void;
   selection?: ManuscriptSelection;
   onPartInfoClick?: (part: Part) => void;
+  showPartTitles: boolean;
+  onRequestDelete: (part: Part) => void;
 };
 
 type ChapterRowProps = {
@@ -106,6 +121,7 @@ type ChapterRowProps = {
   dragPosition: DragPosition;
   inPart: boolean;
   selection?: ManuscriptSelection;
+  showChapterTitles: boolean;
 };
 
 export function ChapterList({
@@ -129,13 +145,22 @@ export function ChapterList({
   selection,
   onManuscriptInfoClick,
   onPartInfoClick,
+  showPartTitles = true,
+  showChapterTitles = true,
 }: ChapterListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
   const [addingType, setAddingType] = useState<"chapter" | "part" | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
   const [collapsedParts, setCollapsedParts] = useState<Set<string>>(new Set());
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletePartState, setDeletePartState] = useState<{
+    part: Part | null;
+    mode: "delete" | "move";
+    targetPartId: string | null;
+  }>({ part: null, mode: "delete", targetPartId: null });
 
   // Drag-and-drop state
   const [draggingItem, setDraggingItem] = useState<{
@@ -151,6 +176,13 @@ export function ChapterList({
   // Tag filtering
   const { matches, isActive, mode } = useTagFilter();
 
+  // Use a stable ordering source for rendering and drag calculations
+  const sortedChapters = [...chapters].sort((a, b) => {
+    const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+    const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+    return orderA - orderB;
+  });
+
   // Create ordered list of items (parts and chapters in correct order)
   const orderedItems: Array<
     { type: "part"; data: Part } | { type: "chapter"; data: Chapter }
@@ -164,20 +196,20 @@ export function ChapterList({
       orderedItems.push({ type: "part", data: part });
 
       // Add chapters in this part (maintain their original order)
-      const partChapters = chapters.filter((ch) => ch.partId === part.id);
+      const partChapters = sortedChapters.filter((ch) => ch.partId === part.id);
       partChapters.forEach((chapter) => {
         orderedItems.push({ type: "chapter", data: chapter });
       });
     });
 
     // Add unassigned chapters at the end
-    const unassignedChapters = chapters.filter((ch) => !ch.partId);
+    const unassignedChapters = sortedChapters.filter((ch) => !ch.partId);
     unassignedChapters.forEach((chapter) => {
       orderedItems.push({ type: "chapter", data: chapter });
     });
   } else {
     // No parts, just show all chapters
-    chapters.forEach((chapter) => {
+    sortedChapters.forEach((chapter) => {
       orderedItems.push({ type: "chapter", data: chapter });
     });
   }
@@ -206,29 +238,45 @@ export function ChapterList({
     setEditTitle("");
   };
 
-  const startAdding = (type: "chapter" | "part") => {
-    setIsAdding(true);
+  const openAddDialog = (type: "chapter" | "part") => {
     setAddingType(type);
     setNewTitle("");
+    setIsAddDialogOpen(true);
   };
+
+  const closeAddDialog = () => {
+    setAddingType(null);
+    setNewTitle("");
+    setIsAddDialogOpen(false);
+  };
+
+  useEffect(() => {
+    if (isAddDialogOpen) {
+      titleInputRef.current?.focus();
+    }
+  }, [isAddDialogOpen]);
 
   const saveNew = async () => {
-    if (newTitle.trim()) {
-      if (addingType === "chapter") {
-        addChapter(newTitle.trim());
-      } else if (addingType === "part" && addPart) {
-        await addPart({ title: newTitle.trim() });
-      }
+    const trimmed = newTitle.trim();
+    if (!addingType || !trimmed) {
+      closeAddDialog();
+      return;
     }
-    setIsAdding(false);
-    setAddingType(null);
-    setNewTitle("");
-  };
 
-  const cancelNew = () => {
-    setIsAdding(false);
-    setAddingType(null);
-    setNewTitle("");
+    if (addingType === "chapter") {
+      const newId = await addChapter(trimmed, {
+        selection,
+        afterChapterId: selection?.kind === "chapter" ? selection.chapterId : undefined,
+      });
+      if (newId) {
+        setCurrentChapterId(newId);
+      }
+    } else if (addingType === "part" && addPart) {
+      const part = await addPart({ title: trimmed });
+      onSelectPart?.(part.id);
+    }
+
+    closeAddDialog();
   };
 
   const togglePartCollapse = (partId: string) => {
@@ -239,6 +287,48 @@ export function ChapterList({
       newCollapsed.add(partId);
     }
     setCollapsedParts(newCollapsed);
+  };
+
+  const openDeletePartDialog = (part: Part) => {
+    const partChapters = chapters.filter((ch) => ch.partId === part.id);
+    if (!deletePart) return;
+
+    if (partChapters.length === 0) {
+      deletePart(part.id);
+      return;
+    }
+
+    const otherParts = (parts || []).filter((p) => p.id !== part.id);
+    const defaultTarget = otherParts[0]?.id ?? null;
+    setDeletePartState({
+      part,
+      mode: "delete",
+      targetPartId: defaultTarget,
+    });
+    setIsDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setDeletePartState({ part: null, mode: "delete", targetPartId: null });
+  };
+
+  const confirmDeletePart = () => {
+    if (!deletePart || !deletePartState.part) return;
+
+    const otherParts = (parts || []).filter((p) => p.id !== deletePartState.part?.id);
+    const resolvedTarget =
+      deletePartState.mode === "move" && otherParts.length > 0
+        ? deletePartState.targetPartId || otherParts[0]?.id || null
+        : deletePartState.targetPartId;
+
+    const action =
+      deletePartState.mode === "move"
+        ? { mode: "move" as const, targetPartId: resolvedTarget }
+        : { mode: "delete" as const };
+
+    deletePart(deletePartState.part.id, action);
+    closeDeleteDialog();
   };
 
   const handleDragStart = (id: string, type: "chapter" | "part") => {
@@ -291,12 +381,13 @@ export function ChapterList({
       reorderParts &&
       parts
     ) {
-      const sourceIndex = parts.findIndex((p) => p.id === draggedId);
-      const targetIndex = parts.findIndex((p) => p.id === targetId);
+      const sortedParts = [...parts].sort((a, b) => a.sortOrder - b.sortOrder);
+      const sourceIndex = sortedParts.findIndex((p) => p.id === draggedId);
+      const targetIndex = sortedParts.findIndex((p) => p.id === targetId);
 
       if (sourceIndex === -1 || targetIndex === -1) return;
 
-      const newParts = [...parts];
+      const newParts = [...sortedParts];
       const [moved] = newParts.splice(sourceIndex, 1);
 
       // Adjust target index if inserting after
@@ -304,7 +395,7 @@ export function ChapterList({
       const adjustedIndex =
         sourceIndex < targetIndex ? insertIndex - 1 : insertIndex;
 
-      newParts.splice(adjustedIndex, 0, moved);
+      newParts.splice(Math.min(adjustedIndex, newParts.length), 0, moved);
 
       // Update sortOrder
       const withOrder = newParts.map((p, i) => ({ ...p, sortOrder: i }));
@@ -317,25 +408,34 @@ export function ChapterList({
       updateChapterDetails &&
       (onReorderChapters || onReorder)
     ) {
-      const draggedChapter = chapters.find((ch) => ch.id === draggedId);
+      const draggedChapter = sortedChapters.find((ch) => ch.id === draggedId);
       if (!draggedChapter) return;
 
       // Determine target part and position
+      const hasParts = parts && parts.length > 0;
       let targetPartId: string | null = null;
       let targetChapterId: string | null = null;
 
       if (targetType === "part") {
-        // Dropping on a part header - assign to that part at the beginning
+        // Dropping on a part header - assign to that part
         targetPartId = targetId;
       } else if (targetType === "chapter") {
         // Dropping on a chapter - use that chapter's part and position
-        const targetChapter = chapters.find((ch) => ch.id === targetId);
+        const targetChapter = sortedChapters.find((ch) => ch.id === targetId);
         targetPartId = targetChapter?.partId || null;
         targetChapterId = targetId;
       }
 
+      // Prevent moving to root when parts exist
+      if (!targetPartId && hasParts) {
+        const sortedParts = [...(parts || [])].sort(
+          (a, b) => a.sortOrder - b.sortOrder,
+        );
+        targetPartId = sortedParts[sortedParts.length - 1]?.id || null;
+      }
+
       // Get all chapters for the target part
-      const targetPartChapters = chapters.filter((ch) =>
+      const targetPartChapters = sortedChapters.filter((ch) =>
         targetPartId ? ch.partId === targetPartId : !ch.partId,
       );
 
@@ -358,15 +458,17 @@ export function ChapterList({
           newOrder = [...targetPartIds, draggedId];
         }
       } else {
-        // Dropping on a part header - put at beginning
+        // Dropping on a part header - insert relative to the header position
         const targetPartIds = targetPartChapters
           .map((ch) => ch.id)
           .filter((id) => id !== draggedId);
-        newOrder = [draggedId, ...targetPartIds];
+        const insertIndex = position === "before" ? 0 : targetPartIds.length;
+        targetPartIds.splice(insertIndex, 0, draggedId);
+        newOrder = targetPartIds;
       }
 
       // Build complete reordered chapter list with updated partId
-      const updatedChapters = chapters.map((ch) => {
+      const updatedChapters = sortedChapters.map((ch) => {
         if (ch.id === draggedId) {
           // Update the dragged chapter's partId
           return { ...ch, partId: targetPartId || undefined };
@@ -441,17 +543,25 @@ export function ChapterList({
     const sortedParts = [...parts].sort((a, b) => a.sortOrder - b.sortOrder);
 
     sortedParts.forEach((part) => {
-      const partChapters = chapters.filter((ch) => ch.partId === part.id);
+      const partChapters = sortedChapters.filter((ch) => ch.partId === part.id);
       groupedChapters.push({ part, chapters: partChapters });
     });
 
-    const unassignedChapters = chapters.filter((ch) => !ch.partId);
+    const unassignedChapters = sortedChapters.filter((ch) => !ch.partId);
     if (unassignedChapters.length > 0) {
       groupedChapters.push({ part: null, chapters: unassignedChapters });
     }
   } else {
-    groupedChapters.push({ part: null, chapters });
+    groupedChapters.push({ part: null, chapters: sortedChapters });
   }
+
+  const deleteDialogPart = deletePartState.part;
+  const deleteDialogChapters = deleteDialogPart
+    ? chapters.filter((ch) => ch.partId === deleteDialogPart.id)
+    : [];
+  const deleteDialogOtherParts = deleteDialogPart
+    ? (parts || []).filter((p) => p.id !== deleteDialogPart.id)
+    : [];
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -471,11 +581,11 @@ export function ChapterList({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="z-50">
-              <DropdownMenuItem onClick={() => startAdding("chapter")}>
+              <DropdownMenuItem onClick={() => openAddDialog("chapter")}>
                 Add Chapter
               </DropdownMenuItem>
               {addPart && (
-                <DropdownMenuItem onClick={() => startAdding("part")}>
+                <DropdownMenuItem onClick={() => openAddDialog("part")}>
                   Add Part
                 </DropdownMenuItem>
               )}
@@ -524,41 +634,6 @@ export function ChapterList({
           </div>
         )}
 
-        {isAdding && (
-          <div className="p-3 bg-gray-50 border-b border-gray-200">
-            <input
-              type="text"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder={
-                addingType === "part"
-                  ? PLACEHOLDERS.PART_TITLE
-                  : PLACEHOLDERS.CHAPTER_TITLE
-              }
-              className="w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded text-sm"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") saveNew();
-                if (e.key === "Escape") cancelNew();
-              }}
-            />
-            <div className="flex gap-1 mt-2">
-              <button
-                onClick={saveNew}
-                className="flex-1 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
-              >
-                Add
-              </button>
-              <button
-                onClick={cancelNew}
-                className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
         {groupedChapters.map((group) => {
           const isCollapsed = !!(
             group.part && collapsedParts.has(group.part.id)
@@ -597,6 +672,8 @@ export function ChapterList({
                   onSelectPart={onSelectPart}
                   selection={selection}
                   onPartInfoClick={onPartInfoClick}
+                  showPartTitles={showPartTitles}
+                  onRequestDelete={openDeletePartDialog}
                 />
               )}
 
@@ -649,14 +726,181 @@ export function ChapterList({
                           : null
                       }
                       inPart={!!group.part}
-                      selection={selection}
-                    />
-                  ))}
+                    selection={selection}
+                    showChapterTitles={showChapterTitles}
+                  />
+                ))}
                 </div>
               )}
             </div>
           );
         })}
+
+        <Dialog
+          open={isAddDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeAddDialog();
+            }
+          }}
+        >
+          <DialogContent
+            className="max-w-md"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                saveNew();
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                closeAddDialog();
+              }
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>
+                {addingType === "part" ? "Add Part" : "Add Chapter"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Input
+                ref={titleInputRef}
+                placeholder={
+                  addingType === "part"
+                    ? PLACEHOLDERS.PART_TITLE
+                    : PLACEHOLDERS.CHAPTER_TITLE
+                }
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={closeAddDialog}
+                  className="px-3 py-1.5 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveNew}
+                  className="px-3 py-1.5 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={isDeleteDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeDeleteDialog();
+            } else {
+              setIsDeleteDialogOpen(true);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Delete Part</DialogTitle>
+            </DialogHeader>
+
+            {deleteDialogPart && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-700">
+                  {deleteDialogChapters.length > 0
+                    ? `${deleteDialogChapters.length} chapter(s) are inside “${deleteDialogPart.title || "Untitled Part"}”.`
+                    : "This part is empty."}
+                </p>
+
+                {deleteDialogChapters.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="delete-part-chapters"
+                        type="radio"
+                        checked={deletePartState.mode === "delete"}
+                        onChange={() => setDeletePartState((prev) => ({ ...prev, mode: "delete" }))}
+                      />
+                      <label htmlFor="delete-part-chapters" className="text-sm text-gray-800">
+                        Delete chapters
+                      </label>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          id="move-part-chapters"
+                          type="radio"
+                          checked={deletePartState.mode === "move"}
+                          onChange={() =>
+                            setDeletePartState((prev) => ({
+                              ...prev,
+                              mode: "move",
+                              targetPartId:
+                                deleteDialogOtherParts[0]?.id ?? prev.targetPartId ?? null,
+                            }))
+                          }
+                        />
+                        <label htmlFor="move-part-chapters" className="text-sm text-gray-800">
+                          Move chapters
+                          {deleteDialogOtherParts.length === 0
+                            ? " to root"
+                            : " to another part"}
+                        </label>
+                      </div>
+
+                      {deletePartState.mode === "move" && (
+                        <div className="ml-6">
+                          {deleteDialogOtherParts.length > 0 ? (
+                            <select
+                              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                              value={deletePartState.targetPartId || ""}
+                              onChange={(e) =>
+                                setDeletePartState((prev) => ({
+                                  ...prev,
+                                  targetPartId: e.target.value || null,
+                                }))
+                              }
+                            >
+                              {deleteDialogOtherParts.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.title || `Part ${p.sortOrder + 1}`}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-sm text-gray-600">Chapters will be moved to the root level.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={closeDeleteDialog}
+                    className="px-3 py-1.5 rounded border border-gray-300 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeletePart}
+                    className="px-3 py-1.5 rounded bg-red-600 text-white text-sm hover:bg-red-700"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
@@ -684,7 +928,15 @@ function PartHeader({
   onSelectPart,
   selection,
   onPartInfoClick,
+  showPartTitles,
+  onRequestDelete,
 }: PartHeaderProps) {
+  const { getPartNumber } = useChapterNumbering();
+  const partLabel =
+    showPartTitles && part.title?.trim()
+      ? part.title.trim()
+      : `Part ${getPartNumber(part.id)}`;
+
   return (
     <div
       className={`group relative ${
@@ -758,12 +1010,32 @@ function PartHeader({
             onClick={() => onSelectPart?.(part.id)}
           >
             <div className="text-xs text-gray-700 uppercase tracking-wider font-medium truncate">
-              {part.title}
+              {partLabel}
             </div>
           </div>
 
           {/* Part Info Button */}
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                startEditing(part.id, part.title || partLabel);
+              }}
+              className="p-1 hover:bg-gray-200 rounded"
+              title="Rename part"
+            >
+              <Edit2 className="w-3 h-3 text-gray-600" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRequestDelete(part);
+              }}
+              className="p-1 hover:bg-red-50 rounded"
+              title="Delete part"
+            >
+              <Trash2 className="w-3 h-3 text-red-600" />
+            </button>
             {onPartInfoClick && (
               <button
                 onClick={(e) => {
@@ -810,9 +1082,15 @@ function ChapterRow({
   dragPosition,
   inPart,
   selection,
+  showChapterTitles,
 }: ChapterRowProps) {
   const { tags } = useEntityTags("chapter", chapter.id);
   const { getChapterNumber } = useChapterNumbering();
+  const chapterLabel =
+    showChapterTitles && chapter.title?.trim()
+      ? chapter.title.trim()
+      : `Chapter ${getChapterNumber(chapter.id)}`;
+  const wordCount = chapter.wordCount ?? 0;
   const visible = !isActive || (tags && matches(tags));
   const dimClass =
     isActive && !visible && mode === "dim"
@@ -882,10 +1160,10 @@ function ChapterRow({
             className="flex-1 min-w-0 cursor-pointer"
           >
             <div className="text-sm text-gray-900 truncate">
-              {chapter.title}
+              {chapterLabel}
             </div>
             <div className="text-xs text-gray-500 mt-0.5">
-              {chapter.wordCount} words
+              {wordCount} words
             </div>
             <div className="mt-1">
               <TagBadges tags={tags || []} max={3} size="xs" />

@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { usePaneId, type PaneId } from './PaneContext';
 
 // Phase 1.5: New unified inspector types
 export type InspectorTool = 'inspector' | 'goals' | 'analytics' | 'comments' | 'history';
@@ -22,6 +21,7 @@ export interface InspectorContextValue {
   activeTool: InspectorTool;
   payload: InspectorPayload | null;
   openInspector: (payload?: InspectorPayload, tool?: InspectorTool) => void;
+  refreshInspectorPayload: (payload: InspectorPayload) => void;
   closeInspector: () => void;
   setInspectorTool: (tool: InspectorTool) => void;
 }
@@ -34,32 +34,22 @@ export const InspectorProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [payload, setPayload] = useState<InspectorPayload | null>(null);
 
   const openInspector = (newPayload?: InspectorPayload, tool?: InspectorTool) => {
-    console.log('[InspectorContext] openInspector called with:', { newPayload, tool, isOpen, activeTool, currentPayload: payload });
-    console.trace('[InspectorContext] Stack trace:');
-    
-    // Check if we're clicking on the same item that's already displayed
-    // BUT only toggle if it's a user action (has both type/id OR title AND the panel is already open)
-    // If we're just updating content (e.g., updating form data), don't toggle
     if (isOpen && newPayload && payload) {
-      const isSameItemWithId = 
-        newPayload.type === payload.type && 
+      const isSameItemWithId =
+        newPayload.type === payload.type &&
         newPayload.id === payload.id &&
         newPayload.type !== undefined &&
         newPayload.id !== undefined;
-        
-      const isSameItemWithTitle = 
-        newPayload.title === payload.title &&
-        newPayload.title !== undefined &&
-        // Only toggle if there's no content (meaning it's a click, not a content update)
-        newPayload.content === undefined;
-      
+
+      const isSameItemWithTitle =
+        newPayload.title !== undefined && newPayload.title === payload.title;
+
       if (isSameItemWithId || isSameItemWithTitle) {
-        console.log('[InspectorContext] Same item clicked - toggling inspector closed');
         setIsOpen(false);
         return;
       }
     }
-    
+
     setIsOpen(true);
     if (newPayload !== undefined) {
       setPayload(newPayload);
@@ -68,6 +58,11 @@ export const InspectorProvider: React.FC<{ children: ReactNode }> = ({ children 
       setActiveTool(tool);
     }
     // If neither provided, keep current state but open the inspector
+  };
+
+  const refreshInspectorPayload = (newPayload: InspectorPayload) => {
+    setPayload(newPayload);
+    setIsOpen(true);
   };
 
   const closeInspector = () => {
@@ -85,6 +80,7 @@ export const InspectorProvider: React.FC<{ children: ReactNode }> = ({ children 
         activeTool,
         payload,
         openInspector,
+        refreshInspectorPayload,
         closeInspector,
         setInspectorTool,
       }}
