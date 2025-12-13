@@ -18,7 +18,10 @@ interface BinderWrapperProps {
   // Chapter operations
   currentChapterId?: string;
   setCurrentChapterId?: (id: string) => void;
-  addChapter: (title?: string) => Promise<string>;
+  addChapter: (
+    title?: string,
+    options?: { selection?: ManuscriptSelection; afterChapterId?: string },
+  ) => Promise<string>;
   deleteChapter: (id: string) => void;
   updateChapterTitle: (id: string, title: string) => void;
   updateChapterDetails?: (id: string, updates: Partial<Chapter>) => void;
@@ -41,6 +44,9 @@ interface BinderWrapperProps {
   onChapterInfoClick?: (chapter: Chapter) => void;
   onManuscriptInfoClick?: () => void;
   onPartInfoClick?: (part: Part) => void;
+
+  showPartTitles?: boolean;
+  showChapterTitles?: boolean;
 
   // Children (the actual view content)
   children: (filteredChapters: Chapter[]) => React.ReactNode;
@@ -69,6 +75,8 @@ export function BinderWrapper({
   onChapterInfoClick,
   onManuscriptInfoClick,
   onPartInfoClick,
+  showPartTitles = true,
+  showChapterTitles = true,
   children,
 }: BinderWrapperProps) {
   // Track binder position for fixed positioning of open tab
@@ -260,6 +268,8 @@ export function BinderWrapper({
             onSelectPart={handleSelectPart}
             selection={selection}
             onPartInfoClick={onPartInfoClick}
+            showPartTitles={showPartTitles}
+            showChapterTitles={showChapterTitles}
           />
         </ResizableSidebar>
 

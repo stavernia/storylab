@@ -15,32 +15,33 @@ type SettingsOverlayProps = {
 
 export function SettingsOverlay({ isOpen, onClose, currentBook, updateBookSettings }: SettingsOverlayProps) {
   const { startTour } = useOnboardingTour();
-  const [needsRefresh, setNeedsRefresh] = useState(false);
-  const [initialChapterNumbering, setInitialChapterNumbering] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setNeedsRefresh(false);
-      setInitialChapterNumbering(currentBook?.chapterNumbering || 'per-book');
     }
   }, [isOpen, currentBook?.chapterNumbering]);
 
   if (!isOpen) return null;
 
   const chapterNumbering = currentBook?.chapterNumbering || 'per-book';
+  const showPartTitles = currentBook?.showPartTitles ?? true;
+  const showChapterTitles = currentBook?.showChapterTitles ?? true;
 
   const handleChapterNumberingChange = async (value: 'per-book' | 'per-part') => {
     setIsUpdating(true);
     try {
       await updateBookSettings({ chapterNumbering: value });
-      // Only mark for refresh if the value actually changed from initial
-      if (value !== initialChapterNumbering) {
-        setNeedsRefresh(true);
-      } else {
-        setNeedsRefresh(false);
-      }
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleToggle = async (field: 'showPartTitles' | 'showChapterTitles', value: boolean) => {
+    setIsUpdating(true);
+    try {
+      await updateBookSettings({ [field]: value });
     } finally {
       setIsUpdating(false);
     }
@@ -49,13 +50,8 @@ export function SettingsOverlay({ isOpen, onClose, currentBook, updateBookSettin
   const handleClose = () => {
     // Prevent closing while an update is in progress
     if (isUpdating) return;
-    
-    // If we need to refresh, just reload immediately without closing
-    if (needsRefresh) {
-      window.location.reload();
-    } else {
-      onClose();
-    }
+
+    onClose();
   };
 
   return (
@@ -201,6 +197,47 @@ export function SettingsOverlay({ isOpen, onClose, currentBook, updateBookSettin
                         <span className="text-sm text-gray-700 group-hover:text-gray-900">
                           Restart per part
                         </span>
+                      </label>
+                    </div>
+                  </section>
+
+                  {/* Title Visibility Section */}
+                  <section className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <h2 className="text-sm font-semibold text-gray-900">Titles</h2>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="text-gray-400 hover:text-gray-600">
+                            <Info className="w-3.5 h-3.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-xs z-[10000]">
+                          <p className="text-xs">
+                            Control whether part and chapter titles display in the binder and views. When off, StoryLab will use numbered fallbacks.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={showPartTitles}
+                          onChange={(e) => handleToggle('showPartTitles', e.target.checked)}
+                          className="w-4 h-4 text-[#60818E] border-gray-300 focus:ring-[#60818E] focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-700">Show part titles</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={showChapterTitles}
+                          onChange={(e) => handleToggle('showChapterTitles', e.target.checked)}
+                          className="w-4 h-4 text-[#60818E] border-gray-300 focus:ring-[#60818E] focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-700">Show chapter titles</span>
                       </label>
                     </div>
                   </section>
